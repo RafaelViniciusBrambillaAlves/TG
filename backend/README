@@ -1,0 +1,15 @@
+[DEFAULT]
+user=ocid1.user.oc1..aaaaaaaaiyvidgidq5ub55q54mi4qa74cc7tj3dv2tjgh4lwucahksayimwa
+fingerprint=44:f1:40:82:57:2d:3f:2e:f2:99:02:12:d4:ae:61:8c
+tenancy=ocid1.tenancy.oc1..aaaaaaaaued4ggfjiteeovpzuyeia5k6tqltf4hgydvw6efceoy2tq5qhwiq
+region=sa-saopaulo-1
+key_file=<path to your private keyfile> # TODO
+w:4#APG9A<s+]jjbGfTi
+grpxfagv6zpc
+
+$token = 'w:4#APG9A<s+]jjbGfTi'
+$token | docker login gru.ocir.io --username "grpxfagv6zpc/leonardoalves46" --password-stdin
+
+ALO1>H79#8b5k#(gaC>u
+
+docker login gru.ocir.io --username grpxfagv6zpc/oracleidentitycloudservice/leonardo.alves46@fatec.sp.gov.br
