@@ -1,0 +1,265 @@
+// app/components/Feed.tsx
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Composer from "./Composer";
+import PostCard from "./PostCard";
+import { Post as PostType } from "@/app/mocks";
+import styles from "./feed.module.css";
+import EditPostModal from "./EditPostModal";
+import { getPost, Publicidade } from "@/hooks/getPost";
+import api from "@/services/api";
+import { UserProfile } from "./ProfilePage";
+import classNames from "classnames";
+
+type FeedProps = {
+  // se o parent passar posts, usaremos; se não, buscamos internamente (fallback)
+  posts?: Publicidade[] | PostType[];
+  onCreate?: () => void;
+};
+
+export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
+  const [user, setUser] = useState<UserProfile>();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("usuario");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+    }
+  }, []);
+
+  const [internalPosts, setInternalPosts] = useState<
+    Publicidade[] | PostType[] | undefined
+  >(undefined);
+  const posts = postsFromProps ?? internalPosts; // usa prop se existir, senão internal
+
+  const [filter, setFilter] = useState<"all" | "mine">("all");
+  const [timeFilter, setTimeFilter] = useState<"all" | "24h" | "week">("all");
+  const [editingPost, setEditingPost] = useState<PostType | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // se não recebeu posts por prop, busca internamente (comportamento antigo)
+  useEffect(() => {
+    if (postsFromProps) return; // parent está controlando posts
+    let mounted = true;
+    getPost()
+      .then((data) => {
+        if (!mounted) return;
+        setInternalPosts(data);
+        console.log("Publicação recebida (Feed internal):", data);
+      })
+      .catch((err) => {
+        console.warn("Falha ao carregar posts no Feed:", err);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [postsFromProps]);
+
+  async function handleCreate(text: string, fileUrl?: string) {
+    try {
+      const usuario = JSON.parse(localStorage.getItem(`usuario`) || "{}");
+      const newPost: Publicidade = {
+        titulo: text,
+        descricao: text,
+        image: fileUrl,
+        usuario_id: usuario._id,
+      };
+      api({
+        url: "/api/v1/publicacao/publicidades",
+        method: "POST",
+        data: newPost,
+      });
+      onCreate?.();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function toggleSave(id: string) {
+    // placeholder
+  }
+
+  function handleShare(id: string) {
+    // placeholder
+  }
+
+  function handleDelete(id: string) {
+    if (!confirm("Excluir publicação?")) return;
+    // se parent controla posts, não mexe aqui — apenas instrui o usuário/developer
+    // aqui lidamos com internalPosts caso exista
+    if (postsFromProps) {
+      console.warn(
+        "handleDelete: parent controla posts, remova/implemente remoção no parent.",
+      );
+      return;
+    }
+    setInternalPosts((s) => s?.filter((p: any) => p._id !== id));
+  }
+
+  function handleEdit(post: PostType) {
+    setEditingPost(post);
+    setShowEditModal(true);
+  }
+
+  function handleUpdatePost(updated: PostType) {
+    if (postsFromProps) {
+      console.warn(
+        "handleUpdatePost: parent controla posts, atualize no parent.",
+      );
+      return;
+    }
+    setInternalPosts((s) =>
+      s?.map((p: any) => (p._id === updated._id ? updated : p)),
+    );
+  }
+
+  // se posts ainda undefined (fallback) mostra nada até carregamento
+  const filteredPosts = (posts ?? []).filter((p: any) => {
+    // filtro "Minhas" (propriedade)
+    if (filter === "mine" && p.usuario?._id !== user?._id) return false;
+
+    // --- filtro horário ---
+    if (timeFilter && timeFilter !== "all") {
+      // tenta extrair uma data em vários campos comuns
+      const raw =
+        p.data_criacao ??
+        p.createdAt ??
+        p.created_at ??
+        p.created ??
+        p.date ??
+        null;
+
+      if (!raw) {
+        // sem data: não passa quando um filtro temporal está ativo
+        return false;
+      }
+
+      const postDate = new Date(raw);
+      if (Number.isNaN(postDate.getTime())) {
+        // formato inválido: rejeita
+        return false;
+      }
+
+      const now = new Date();
+      const ageMs = now.getTime() - postDate.getTime();
+
+      const MS_PER_HOUR = 1000 * 60 * 60;
+      const MS_PER_DAY = MS_PER_HOUR * 24;
+
+      if (timeFilter === "24h") {
+        if (ageMs > MS_PER_DAY) return false;
+      } else if (timeFilter === "week") {
+        if (ageMs > MS_PER_DAY * 7) return false;
+      }
+      // se entrar aqui, passou no filtro horário
+    }
+
+    // passou em todos os filtros
+    return true;
+  });
+
+  return (
+    <section className={styles.wrap}>
+      <Composer onCreate={handleCreate} />
+
+      {/* filtros */}
+      <div className={styles.filters}>
+        <div className={styles.filterGroup}>
+          <button
+            type="button"
+            aria-pressed={filter === "all"}
+            className={classNames({ [styles.activeFilter]: filter === "all" })}
+            onClick={(e) => {
+              e.preventDefault();
+              // console.debug("set filter all");
+              setFilter("all");
+            }}
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            aria-pressed={filter === "mine"}
+            className={classNames({ [styles.activeFilter]: filter === "mine" })}
+            onClick={(e) => {
+              e.preventDefault();
+              // console.debug("set filter mine");
+              setFilter("mine");
+            }}
+          >
+            Minhas
+          </button>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <button
+            type="button"
+            aria-pressed={timeFilter === "all"}
+            className={classNames({
+              [styles.activeFilter]: timeFilter === "all",
+            })}
+            onClick={(e) => {
+              e.preventDefault();
+              // console.debug("time all");
+              setTimeFilter("all");
+            }}
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            aria-pressed={timeFilter === "24h"}
+            className={classNames({
+              [styles.activeFilter]: timeFilter === "24h",
+            })}
+            onClick={(e) => {
+              e.preventDefault();
+              // console.debug("time 24h");
+              setTimeFilter("24h");
+            }}
+          >
+            Últimas 24h
+          </button>
+          <button
+            type="button"
+            aria-pressed={timeFilter === "week"}
+            className={classNames({
+              [styles.activeFilter]: timeFilter === "week",
+            })}
+            onClick={(e) => {
+              e.preventDefault();
+              // console.debug("time week");
+              setTimeFilter("week");
+            }}
+          >
+            Última semana
+          </button>
+        </div>
+      </div>
+
+      <div style={{ height: 8 }} />
+
+      <div>
+        {filteredPosts?.map((p: any) => (
+          <PostCard
+            key={p._id}
+            post={p}
+            currentUser={user?.name}
+            onToggleSave={toggleSave}
+            onShare={handleShare}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ))}
+        <EditPostModal
+          post={editingPost}
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={handleUpdatePost}
+        />
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,34 @@
+.page {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding-top: 64px; /* altura do header fixo */
+}
+
+.main {
+  display: flex; /* Makes the container a flex container */
+  flex-direction: row; /* Arranges items horizontally (default for flexbox) */
+  justify-content: space-around; /* Distributes space evenly around items */
+  align-items: flex-start;
+}
+
+/* centro com feed */
+.center {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1; /* ocupa todo o espaço do centro */
+  min-width: 0; /* importante dentro do flex para evitar encolher */
+  align-items: center;
+}
+
+/* right column */
+.right {
+  position: sticky;
+  top: 64px; /* logo abaixo do header fixo */
+  flex-shrink: 0;
+  width: 430px;
+  height: max-content; /* ajusta conforme conteúdo */
+  flex-direction: column;
+  /* position: absolute;
+  right: 0; */
+}

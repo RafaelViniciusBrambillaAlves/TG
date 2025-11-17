@@ -1,0 +1,43 @@
+/* feed.module.css */
+.wrap {
+    width: 100%;
+    max-width: 640px; /* largura máxima do feed */
+    flex: 1; /* garante que o feed ocupe todo o espaço disponível do centro */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0; /* importante para truncar corretamente dentro do flex */
+}
+
+.filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 12px;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 6px;
+}
+
+.filterGroup button {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #374151;
+}
+
+.filterGroup button:hover {
+    background: rgba(11, 95, 255, 0.06);
+    color: #0b5fff;
+}
+
+.activeFilter {
+    background: #0b5fff;
+    color: #fff;
+    border-color: #0b5fff;
+}

@@ -1,0 +1,292 @@
+/* centersModal.module.css */
+
+/* overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  pointer-events: none;
+  transition: background 220ms ease;
+  z-index: 110;
+}
+
+.overlay.show {
+  background: rgba(0,0,0,0.38);
+  pointer-events: auto;
+}
+
+/* drawer base */
+/* assume header has a fixed height. Use CSS variable to easily adjust */
+:root {
+  --header-height: 64px; /* ajuste se seu header tiver outra altura */
+}
+
+.drawer {
+  position: fixed;
+  top: var(--header-height); /* evita ficar por baixo do header */
+  right: -460px;
+  width: 420px;
+  max-width: 92%;
+  height: calc(100vh - var(--header-height)); /* full height minus header */
+  background: #ffffff;
+  box-shadow: -18px 24px 48px rgba(2,6,23,0.16);
+  border-left: 1px solid rgba(16,24,40,0.04);
+  transition: right 260ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* opened state */
+.drawer.open {
+  right: 0;
+}
+
+/* header */
+.drawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(16,24,40,0.04);
+  gap: 12px;
+}
+
+.drawerTitle {
+  margin: 0;
+  font-size: 18px;
+  color: #0b5fff;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.drawerSubtitle {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* close & header actions */
+.headerActions {
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1;
+  padding: 6px;
+}
+
+/* body */
+.drawerBody {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* description */
+.description {
+  color: #374151;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #374151;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items:center;
+}
+
+.sectionHeader h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #111827;
+}
+
+.sectionHint {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* org list */
+.orgList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orgItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px;
+  border: 1px solid rgba(16,24,40,0.04);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.orgLeft {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orgAvatar {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.orgAvatarPlaceholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* main */
+.orgMain {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.orgNameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.orgName {
+  font-weight: 700;
+  color: #111827;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orgMeta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.orgDesc {
+  font-size: 13px;
+  color: #374151;
+  margin-top: 2px;
+}
+
+/* actions */
+.orgActions {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* buttons */
+.actionBtn {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(16,24,40,0.06);
+  background: transparent;
+  color: #111827;
+  text-decoration: none;
+}
+
+/* ghost danger (for "Remover interesse") */
+.ghostDanger {
+  color: #dc2626;
+  border-color: rgba(220,38,38,0.08);
+}
+
+/* solid primary (for "Minha ONG" or highlight) */
+.solidPrimary {
+  background: #0b5fff;
+  color: #fff;
+  border: none;
+}
+
+/* empty state */
+.emptyState {
+  padding: 14px;
+  border-radius: 8px;
+  background: #fbfbfc;
+  border: 1px dashed rgba(16,24,40,0.04);
+}
+
+.emptyTitle {
+  font-weight: 700;
+  color: #111827;
+}
+
+.emptyDesc {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+/* participate section */
+.primaryBtn {
+  background: #0b5fff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.full {
+  width: 100%;
+}
+
+/* selector for non-org users removed in favour of single-button UX */
+/* kept classes for backwards compatibility if needed later */
+.centerSelector {
+  display: none;
+}
+
+/* drawer empty state */
+.emptyDrawer {
+  padding: 20px;
+  color: #6b7280;
+}
+
+/* small responsive tweaks */
+@media (max-width: 720px) {
+  .drawer { width: 100%; right: -100%; }
+  .drawer.open { right: 0; top: 0; height: 100vh; } /* on mobile keep full height */
+}

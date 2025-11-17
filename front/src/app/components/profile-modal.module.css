@@ -1,0 +1,139 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 13, 0.36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+}
+
+.box {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  border: 1px solid rgba(2,6,23,0.06);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.closeBtn {
+  background: transparent;
+  border: 0;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.avatarWrap {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f2f2f2;
+  border: 1px solid rgba(2,6,23,0.04);
+}
+
+.avatarPlaceholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  background: #9CA3AF;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.meta {
+  min-width: 0;
+}
+
+.name {
+  font-weight: 800;
+  color: #0F172A;
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.org {
+  color: #6B7280;
+  font-weight: 600;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.info {
+  margin-top: 14px;
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.infoLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.infoValue {
+  font-size: 14px;
+  color: #111827;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.actionBtn {
+  flex: 1;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #3B82F6;
+  color: #fff;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+}
+
+.actionBtn svg { vertical-align: middle; }
+
+.actionBtn.disabled {
+  background: #F1F5F9;
+  color: #9CA3AF;
+  cursor: not-allowed;
+}
