@@ -83,20 +83,45 @@ html, body, #__next {
   color: var(--text);
 }
 
+.inputContainer {
+  position: relative;
+}
+
 .input {
   margin-top: 6px;
-  padding: 12px 14px;
+  padding: 12px 40px 12px 14px; /* Ajustado para dar espaço ao ícone à direita */
   border: 1px solid var(--input-border);
   border-radius: var(--radius);
   background: var(--input-bg);
   font-size: 15px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%; /* Garante que o input ocupe toda a largura */
 }
 
 .input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.1);
+}
+
+.eyeIcon {
+  position: absolute;
+  right: 12px;
+  top: 53%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.eyeIcon:hover {
+  color: var(--primary);
 }
 
 .actions {

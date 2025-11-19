@@ -23,6 +23,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
@@ -53,7 +54,7 @@ export default function Login() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.select({ ios: "padding", android: undefined })}
+      behavior={Platform.select({ ios: "padding", android: "height" })}
     >
       <View style={styles.card}>
         <View style={styles.logoContainer}>
@@ -78,16 +79,28 @@ export default function Login() {
           textContentType="username"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#888"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          importantForAutofill="yes"
-          textContentType="password"
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Senha"
+            placeholderTextColor="#888"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+            importantForAutofill="yes"
+            textContentType="password"
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <AntDesign
+              name={showPassword ? "eye-invisible" : "eye"}
+              size={20}
+              color="#888"
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, localLoading ? { opacity: 0.8 } : {}]}
@@ -165,6 +178,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
+  },
+  inputContainer: {
+    position: "relative",
+    width: "100%",
+    height: 48,
+    marginBottom: 14,
+  },
+  inputPassword: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingRight: 40, // Espaço para o ícone
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: "43%",
+    transform: [{ translateY: -10 }],
+    padding: 3,
   },
   button: {
     width: "100%",

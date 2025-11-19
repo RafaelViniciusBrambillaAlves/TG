@@ -642,15 +642,11 @@ export default function Home() {
               emergencies={filteredEmergencies}
               currentUser={user?._id}
               onEdit={(em: Emergency) => {
-                if (em.authorName !== currentUser)
-                  return alert("Somente o autor pode editar esta emergência.");
                 setEditingEmergency(em);
                 setShowEditEmergency(true);
               }}
               onDelete={(id: string) => {
                 const em = emergencies.find((x) => x.id === id);
-                if (em?.authorName !== currentUser)
-                  return alert("Somente o autor pode excluir esta emergência.");
                 handleDeleteEmergency(id);
               }}
             />

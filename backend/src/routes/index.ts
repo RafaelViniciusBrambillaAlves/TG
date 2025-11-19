@@ -6,6 +6,7 @@ import publicacaoRoutes from './publicidadeRoutes'
 import centrosRoutes from './centrosRoutes';
 import necessidadesRoutes from './necessidadesRoute';
 import organizacaoRoutes from './organizacaoRoutes';
+import upload from './upload'
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.use('/publicacao', publicacaoRoutes)
 router.use('/centros', centrosRoutes)
 router.use('/necessidades', necessidadesRoutes)
 router.use('/organizacao', organizacaoRoutes)
+router.use('/', upload)
 
 // auth / register / login podem ficar em userRoutes, ou num authRoutes separado
 export default router;

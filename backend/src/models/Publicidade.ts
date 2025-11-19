@@ -12,6 +12,7 @@ export interface IPublicidade extends Document {
   centro?: Types.ObjectId[]; // referência
   necessidades?: Types.ObjectId[]; // referência para múltiplas necessidades\
   usuario?: Types.ObjectId;
+  image?: string
 }
 
 const publicidadeSchema = new Schema<IPublicidade>({
@@ -26,6 +27,7 @@ const publicidadeSchema = new Schema<IPublicidade>({
   centro: [{ type: Schema.Types.ObjectId, ref: "Centro" }],
   necessidades: [{ type: Schema.Types.ObjectId, ref: "Necessidade" }],
   usuario: { type: Schema.Types.ObjectId, ref: "Usuario" },
+  image: String
 });
 
 export const Publicidade = model<IPublicidade>("Publicidade", publicidadeSchema);

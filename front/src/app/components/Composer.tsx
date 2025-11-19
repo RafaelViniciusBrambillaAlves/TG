@@ -1,30 +1,33 @@
-// app/components/Composer.tsx
 "use client";
 
 import React, { useState } from "react";
 import styles from "./composer.module.css";
 
 type ComposerProps = {
-  onCreate?: (text: string, fileUrl?: string) => void;
+  onCreate?: (text: string, file?: File | null) => void;
 };
 
 export default function Composer({ onCreate }: ComposerProps) {
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
+    const f = e.target.files?.[0] ?? null;
     if (!f) return;
+    setFile(f);
     const url = URL.createObjectURL(f);
     setPreview(url);
   }
 
-  function handleSubmit(e?: React.FormEvent) {
+  async function handleSubmit(e?: React.FormEvent) {
     if (e) e.preventDefault();
     if (!text.trim() && !preview) return;
-    onCreate?.(text.trim(), preview ?? undefined);
+    onCreate?.(text.trim(), file ?? null);
+
     setText("");
     setPreview(null);
+    setFile(null);
   }
 
   return (
@@ -55,6 +58,7 @@ export default function Composer({ onCreate }: ComposerProps) {
             className={styles.clearBtn}
             onClick={() => {
               setPreview(null);
+              setFile(null);
             }}
             aria-label="Remover anexo"
           >
@@ -76,6 +80,7 @@ export default function Composer({ onCreate }: ComposerProps) {
             onClick={() => {
               setText("");
               setPreview(null);
+              setFile(null);
             }}
           >
             Cancelar

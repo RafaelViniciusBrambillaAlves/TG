@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./createcenter.module.css";
-import type { Center } from "@/app/mocks";
-import { Centro } from "@/hooks/getCentros";
+import type { Centro } from "@/hooks/getCentros";
 import api from "@/services/api";
 import { UserProfile } from "./ProfilePage";
 
@@ -24,15 +23,20 @@ type Props = {
 };
 
 export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
-  const [user, setUser] = useState<UserProfile>();
+  const [user, setUser] = useState<UserProfile | undefined>();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario");
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch {
+        // ignore parse error
+      }
     }
   }, []);
+
   const [form, setForm] = useState<CreateCenterData>({
     nome: "",
     description: "",
@@ -42,6 +46,8 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
     imageFile: null,
     imagePreview: null,
   });
+
+  const [loading, setLoading] = useState(false);
 
   const modalRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
@@ -85,8 +91,17 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
+    const f = e.target.files?.[0] ?? null;
     if (!f) return;
+
+    // client-side size check (exemplo 8MB)
+    const MAX = 8 * 1024 * 1024;
+    if (f.size > MAX) {
+      alert("Arquivo muito grande. Tamanho máximo: 8MB.");
+      e.currentTarget.value = "";
+      return;
+    }
+
     const url = URL.createObjectURL(f);
     setForm((s) => ({ ...s, imageFile: f, imagePreview: url }));
   }
@@ -102,38 +117,83 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
     return form.nome.trim().length > 2 && form.description.trim().length > 6;
   }
 
-  function handleSubmit(e?: React.FormEvent) {
+  async function uploadFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    // se sua API exigir token, adicione aqui (ex: Authorization)
+    const res = await api.post("/api/v1/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    // backend idealmente retorna { url: "...", fileId: "..." }
+    const { url, fileId } = res.data ?? {};
+    // aceita tanto url quanto fileId (monta rota)
+    if (url) return url;
+    if (fileId) return `/api/v1/files/${fileId}`;
+    // se retornar apenas id em outro campo
+    if (res.data?.fileId) return `/api/v1/files/${res.data.fileId}`;
+    // fallback: se backend retornar objeto file with _id
+    if (res.data?.file?._id) return `/api/v1/files/${res.data.file._id}`;
+    throw new Error("Resposta de upload inválida");
+  }
+
+  async function handleSubmit(e?: React.FormEvent) {
     try {
       if (e) e.preventDefault();
       if (!validate()) {
-        // você pode melhorar com mensagens inline; por enquanto usamos alert simples
         alert(
           "Por favor preencha o nome (min 3 caracteres) e a descrição (min 7 caracteres).",
         );
         return;
       }
 
-      const newCenter: Centro = {
-        _id: `c${Date.now()}`,
-        orgId: user?.organizations[0]?._id,
+      setLoading(true);
+
+      // 1) se tiver imagem, faz upload e obtém URL
+      let imageUrl = form.imagePreview || "";
+      if (form.imageFile) {
+        try {
+          imageUrl = await uploadFile(form.imageFile);
+        } catch (err) {
+          console.error("Erro ao fazer upload da imagem:", err);
+          alert("Falha ao enviar imagem. Tente novamente.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2) monta objeto para enviar ao backend
+      const payload: Partial<Centro & { orgId?: string }> = {
+        orgId: user?.organizations?.[0]?._id,
         nome: form.nome.trim(),
         description: form.description.trim(),
         telefone: form.phone?.trim() || undefined,
         email: form.email?.trim() || undefined,
         address: form.address?.trim() || "",
-        image: form.imagePreview || "",
+        image: imageUrl || undefined,
       };
 
-      api({
-        url: "/api/v1/centros",
-        method: "POST",
-        data: newCenter,
-      });
+      // envia para API (espera receber o centro criado)
+      const res = await api.post("/api/v1/centros", payload);
+      const created: Centro = res.data ?? {
+        // fallback caso API não retorne o objeto completo
+        _id: `c${Date.now()}`,
+        orgId: payload.orgId,
+        nome: payload.nome || "",
+        description: payload.description || "",
+        telefone: payload.telefone,
+        email: payload.email,
+        address: payload.address,
+        image: payload.image,
+      };
 
-      onCreate(newCenter);
+      // chama callback com o centro criado
+      onCreate(created);
       onClose();
     } catch (error) {
       console.error("Error creating center:", error);
+      alert("Ocorreu um erro ao cadastrar o centro.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -158,6 +218,8 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
             className={styles.close}
             onClick={onClose}
             aria-label="Fechar"
+            type="button"
+            disabled={loading}
           >
             ✕
           </button>
@@ -167,11 +229,13 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
           <div className={styles.row}>
             <label className={styles.label}>Nome</label>
             <input
+              ref={firstInputRef}
               className={styles.input}
               value={form.nome}
               onChange={(e) => handleChange("nome", e.target.value)}
               placeholder="Nome do centro"
               required
+              disabled={loading}
             />
           </div>
 
@@ -184,6 +248,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
               placeholder="Uma breve descrição do centro"
               rows={3}
               required
+              disabled={loading}
             />
           </div>
 
@@ -195,6 +260,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
                 value={form.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder="+55 11 9..."
+                disabled={loading}
               />
             </div>
 
@@ -205,6 +271,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
                 placeholder="contato@exemplo.org"
+                disabled={loading}
               />
             </div>
           </div>
@@ -216,6 +283,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
               value={form.address}
               onChange={(e) => handleChange("address", e.target.value)}
               placeholder="Rua, número, bairro"
+              disabled={loading}
             />
           </div>
 
@@ -227,6 +295,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
+                  disabled={loading}
                 />
                 Selecionar imagem
               </label>
@@ -248,6 +317,7 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
                         imagePreview: null,
                       }))
                     }
+                    disabled={loading}
                   >
                     Remover
                   </button>
@@ -261,11 +331,12 @@ export default function CreateCenterModal({ open, onClose, onCreate }: Props) {
               type="button"
               className={styles.secondary}
               onClick={onClose}
+              disabled={loading}
             >
               Cancelar
             </button>
-            <button type="submit" className={styles.primary}>
-              Cadastrar centro
+            <button type="submit" className={styles.primary} disabled={loading}>
+              {loading ? "Enviando..." : "Cadastrar centro"}
             </button>
           </footer>
         </form>

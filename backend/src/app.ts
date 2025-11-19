@@ -8,6 +8,7 @@ import listEndpoints from 'express-list-endpoints';
 import './models/Usuario';
 import './models/Endereco';
 import './models/Emergencia'; 
+import { connectToMongo } from './db/connectMongoDB';
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,7 @@ async function start() {
   if (!mongoUri) throw new Error('MONGO_URI not set');
 
   await connectMongo(mongoUri);
+  await connectToMongo(mongoUri, 'test');
 
 
   const server = app.listen(port, () => {

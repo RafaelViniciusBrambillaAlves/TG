@@ -31,7 +31,7 @@ export default function VolunteersList() {
       <div className={styles.list}>
         {localVolunteers?.map((v) => (
           <article key={v._id} className={styles.card}>
-            <img src={"https://i.pravatar.cc/80?img=1"} alt={v.nome} className={styles.avatar} />
+            <img src={`http://localhost:3001${v.image}`} alt={v.nome} className={styles.avatar} />
             <div className={styles.info}>
               <h3 className={styles.name}>{v.nome}</h3>
               <p className={styles.email}>{v.email}</p>

@@ -18,6 +18,7 @@ type Props = {
 };
 
 export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete, currentUser }: Props) {
+  console.log(post)
   const createdDate = new Date(post.data_criacao);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -32,7 +33,7 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
   const isMine = post?.usuario?.nome === currentUser;
 
   const personName = post?.usuario?.nome ?? "Autor desconhecido";
-  const avatar = post?.usuario?.avatar ?? post?.organizacao?.logo ?? `https://i.pravatar.cc/80?u=${encodeURIComponent(personName)}`;
+  const avatar = post?.usuario?.image;
 
   const profile: ProfileShape = useMemo(() => ({
     name: personName,
@@ -53,7 +54,7 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
               aria-label={`Abrir perfil de ${personName}`}
               title={`Abrir perfil de ${personName}`}
             >
-              <img src={avatar} alt={personName} className={styles.avatar} />
+              <img src={`http://localhost:3001${avatar}`} alt={personName} className={styles.avatar} />
             </button>
 
             <div style={{ minWidth: 0 }}>
@@ -93,7 +94,7 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
 
         <div className={styles.body}>
           <p className={styles.description}>{post.descricao}</p>
-          {post.image && <img src={post.image} alt={post.titulo ?? ""} className={styles.image} />}
+          {post.image && <img src={`http://localhost:3001${post.image}`} alt={post.titulo ?? ""} className={styles.image} />}
         </div>
       </article>
 

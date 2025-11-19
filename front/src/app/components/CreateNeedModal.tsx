@@ -72,7 +72,7 @@ export default function CreateNeedModal({
       quantity: quantity.trim() || undefined,
       status,
       centerId,
-      emergencyId: emergencyId || undefined,
+      emergencyId: emergencyId!,
       createdAt: editData.createdAt ?? new Date().toISOString(),
       interestCount: editData.interestCount ?? 0,
     };

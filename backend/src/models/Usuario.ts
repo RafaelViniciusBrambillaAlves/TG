@@ -9,8 +9,8 @@ export interface IUsuario extends Document {
   id_perfil: Types.ObjectId;
   id_endereco?: mongoose.Types.ObjectId;
   data_criacao?: Date;
-  avatarUrl?: String
   matchPassword(plain: string): Promise<boolean>;
+  image?: string;
 }
 
 const UsuarioSchema = new Schema<IUsuario>(
@@ -22,7 +22,7 @@ const UsuarioSchema = new Schema<IUsuario>(
     id_perfil: { type: Schema.Types.ObjectId, ref: 'Perfil' },
     id_endereco: { type: Schema.Types.ObjectId, ref: 'Endereco' },
     data_criacao: { type: Date, default: Date.now },
-    avatarUrl: String
+    image: String,
   },
   { timestamps: true }
 );

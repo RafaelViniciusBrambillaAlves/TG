@@ -57,23 +57,37 @@ export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
     };
   }, [postsFromProps]);
 
-  async function handleCreate(text: string, fileUrl?: string) {
+  async function handleCreate(text: string, file?: File | null) {
     try {
       const usuario = JSON.parse(localStorage.getItem(`usuario`) || "{}");
+      let imageUrl: string | undefined = undefined;
+
+      if (file) {
+        const form = new FormData();
+        form.append("file", file);
+
+        const uploadRes = await api.post("/api/v1/upload", form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        imageUrl = uploadRes.data?.url;
+      }
       const newPost: Publicidade = {
         titulo: text,
         descricao: text,
-        image: fileUrl,
+        image: imageUrl,
         usuario_id: usuario._id,
       };
-      api({
+
+      await api({
         url: "/api/v1/publicacao/publicidades",
         method: "POST",
         data: newPost,
       });
+
       onCreate?.();
     } catch (error) {
-      console.log(error);
+      console.log("Erro ao criar publicação:", error);
     }
   }
 

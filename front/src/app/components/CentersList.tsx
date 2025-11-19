@@ -30,10 +30,7 @@ export default function CentersList({ centers, onEdit }: Props) {
           >
             <div className={styles.cardLeft}>
               <img
-                src={
-                  c?.image ||
-                  "https://upload.wikimedia.org/wikipedia/commons/0/0f/Blank_Square.svg"
-                }
+                src={`http://localhost:3001${c?.image}`}
                 alt={c?.nome}
                 className={styles.thumb}
               />

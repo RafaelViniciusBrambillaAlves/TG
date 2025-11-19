@@ -180,7 +180,7 @@ export default function EmergenciesList({
               <div className={styles.cardLeft}>
                 {em.image ? (
                   <img
-                    src={em.image}
+                    src={`http://localhost:3001${em.image}`}
                     alt={em.titulo}
                     className={styles.thumb}
                   />

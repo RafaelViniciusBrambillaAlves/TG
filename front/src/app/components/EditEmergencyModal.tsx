@@ -18,7 +18,7 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
     subtitle: "",
     description: "",
     address: "",
-    imagePreview: "" as string | null,
+    image: "" as string | null,
     status: "Aberta" as Emergency["status"],
   });
   const firstRef = useRef<HTMLInputElement | null>(null);
@@ -30,7 +30,7 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
         subtitle: emergency.subtitle || "",
         description: emergency.description || "",
         address: emergency.address || "",
-        imagePreview: emergency.image || null,
+        image: emergency.image || null,
         status: emergency.status || "Aberta",
       });
       setTimeout(() => firstRef.current?.focus(), 0);
@@ -70,7 +70,7 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
       subtitle: form.subtitle?.trim() || undefined,
       description: form.description.trim(),
       address: form.address?.trim() || undefined,
-      image: form.imagePreview || undefined,
+      image: form.image || undefined,
       status: form.status,
       // createdAt, id, authorName remain unchanged
     };
@@ -136,9 +136,9 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
                 Selecionar imagem
               </label>
 
-              {form.imagePreview ? (
+              {form.image ? (
                 <div className={styles.previewWrap}>
-                  <img src={form.imagePreview} alt="Preview" className={styles.preview} />
+                  <img src={`http://localhost:3001${form.image}`} alt="Preview" className={styles.preview} />
                   <button type="button" className={styles.removePreview} onClick={handleRemoveImage}>Remover</button>
                 </div>
               ) : null}

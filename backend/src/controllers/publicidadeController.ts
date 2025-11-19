@@ -29,8 +29,6 @@ export const publicidadeController = {
 
   async create(req: Request, res: Response) {
     try {
-      console.log(req.body);
-      // 1. Cria Necessidades
       const necessidadeIds = [];
       if (req.body.necessidades) {
         for (const n of req.body.necessidades) {
@@ -60,7 +58,8 @@ export const publicidadeController = {
         timeLabel: req.body.timeLabel,
         centro: centroIds,
         necessidades: necessidadeIds,
-        usuario: req.body.usuario_id
+        usuario: req.body.usuario_id,
+        image: req.body.image
       };
 
       const created = await Publicidade.create(payload);

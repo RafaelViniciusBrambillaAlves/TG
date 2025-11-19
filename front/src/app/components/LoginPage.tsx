@@ -7,12 +7,14 @@ import styles from "./loginPage.module.css";
 import { FcGoogle } from "react-icons/fc";
 import { SetAuthenticationToken, signInRequest } from "@/services/auth";
 import logo from "../../../public/logo4.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter(); // Instancie o router
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     try {
@@ -70,14 +72,23 @@ export default function LoginPage() {
 
           <label className={styles.label}>
             Senha
-            <input
-              type="password"
-              className={styles.input}
-              placeholder="Digite sua senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.inputContainer}>
+              <input
+                type={showPassword ? "text" : "password"}
+                className={styles.input}
+                placeholder="Digite sua senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className={styles.eyeIcon}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
           </label>
 
           <div className={styles.footer}>
