@@ -10,7 +10,7 @@ export type ProfileShape = {
   email?: string | null;
   phone?: string | null;
   organization?: string | null;
-  avatar?: string | null;
+  image?: string | null;
 };
 
 export default function ProfileModal({
@@ -22,6 +22,7 @@ export default function ProfileModal({
   onClose: () => void;
   profile?: ProfileShape | null;
 }) {
+  console.log(profile)
   useEffect(() => {
     if (!visible) return;
     const onKey = (e: KeyboardEvent) => {
@@ -55,8 +56,8 @@ export default function ProfileModal({
         </header>
 
         <div className={styles.avatarWrap}>
-          {profile.avatar ? (
-            <img src={profile.avatar} alt={profile.name} className={styles.avatar} />
+          {profile.image ? (
+            <img src={`http://localhost:3001${profile.image}`} alt={profile.name} className={styles.avatar} />
           ) : (
             <div className={styles.avatarPlaceholder}>{profile.name?.charAt(0)?.toUpperCase() ?? "U"}</div>
           )}

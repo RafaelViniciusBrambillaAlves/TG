@@ -38,7 +38,7 @@ export const publicidadeController = {
       }
 
       // 2. Cria Centro (se fornecido)
-      let centroIds = [];   
+      let centroIds = [];
       if (req.body.necessidades) {
         for (const n of req.body.necessidades) {
           const centro = await CentroModel.create(n);
@@ -77,18 +77,47 @@ export const publicidadeController = {
   },
 
   async update(req: Request, res: Response) {
-    const publicidade = await Publicidade.findOneAndUpdate(
-      { id_postagem: req.params.id },
-      req.body,
-      { new: true }
-    );
-    if (!publicidade) return res.status(404).json({ message: "Publicidade não encontrada" });
-    res.json(publicidade);
+    console.log(req.body)
+    console.log(req.params)
+    try {
+      const updateData = {
+        titulo: req.body.titulo,
+        descricao: req.body.descricao,
+        data_validade: req.body.data_validade,
+        status: req.body.status,
+        timeLabel: req.body.timeLabel,
+        image: req.body.image
+      };
+
+      const publicidade = await Publicidade.findOneAndUpdate({ _id: req.params._id }, updateData);
+      return res.json(publicidade);
+    } catch (err: any) {
+      if (err.message === 'Publicidade não encontrada') {
+        return res.status(404).json({ message: err.message });
+      }
+      console.error("Erro ao atualizar parcialmente publicidade:", err);
+      return res.status(500).json({
+        error: "Erro ao atualizar parcialmente publicidade",
+        message: err.message
+      });
+    }
   },
 
   async remove(req: Request, res: Response) {
-    const publicidade = await Publicidade.findOneAndDelete({ id_postagem: req.params.id });
-    if (!publicidade) return res.status(404).json({ message: "Publicidade não encontrada" });
-    res.json({ message: "Publicidade removida com sucesso" });
+    console.log(req.params)
+    try {
+      const result = await Publicidade.findOneAndDelete({ _id: req.params._id });
+      return res.json(result);
+    } catch (err: any) {
+      console.log(err)
+      if (err.message === 'Publicidade não encontrada') {
+        return res.status(404).json({ message: err.message });
+      }
+      console.error("Erro ao remover publicidade:", err);
+      return res.status(500).json({
+        error: "Erro ao remover publicidade",
+        message: err.message
+      });
+    }
   },
 };

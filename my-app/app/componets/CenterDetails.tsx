@@ -36,7 +36,7 @@ type Emergencia = {
 
 type Centro = {
   id_centro: number;
-  nome_centro: string;
+  nome: string;
   descricao?: string;
   endereco?: string;
   telefone?: string;

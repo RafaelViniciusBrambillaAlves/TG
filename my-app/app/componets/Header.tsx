@@ -70,11 +70,12 @@ const mapOrganizacoesToCard = (list: any[]) =>
       email: org.email ?? null,
       centros: centers.map((c: any) => ({
         id_centro: c.id_centro ?? c._id ?? Math.floor(Math.random() * 1000000),
-        nome_centro: c.nome_centro ?? c.name ?? "Centro",
+        nome: c.nome,
         descricao: c.descricao ?? "",
         endereco: c.endereco ?? "",
         telefone: c.telefone ?? "",
         email: c.email ?? "",
+        image: c.image ?? "",
         necessidades: c.necessidades,
         emergencias: org.emergencias,
       })),

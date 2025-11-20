@@ -37,6 +37,7 @@ export const emergenciaController = {
         return res.status(400).json({ message: 'O campo "titulo" é obrigatório' });
       }
 
+      let organizationId = null
       // Busca a organização do usuário
       const orgLinks = await OrganizacaoUsuario.find({ user_id: userId })
         .populate<{ organization_id: any }>('organization_id')
@@ -44,13 +45,13 @@ export const emergenciaController = {
         .exec();
 
       // Verifica se o usuário tem pelo menos uma organização vinculada
-      if (!orgLinks.length) {
-        return res.status(400).json({ message: 'Usuário não possui organização vinculada' });
-      }
+      // if (!orgLinks.length) {
+      //   return res.status(400).json({ message: 'Usuário não possui organização vinculada' });
+      // }
 
       // Pega a primeira organização (ou mapeia várias se quiser permitir múltiplas)
-      const organization = orgLinks[0].organization_id;
-      const organizationId = organization?._id;
+      const organization = orgLinks[0]?.organization_id;
+      organizationId = organization?._id;
 
       const created = await emergenciaRepository.create({
         titulo,
@@ -62,7 +63,7 @@ export const emergenciaController = {
         urgencia,
         status,
         id_usuario: userId,
-        orgId: organizationId,
+        orgId: organizationId ?? null,
         cep,
         numero,
         address,
@@ -133,6 +134,21 @@ export const emergenciaController = {
     } catch (err: any) {
       console.error('Error deleting emergencia:', err);
       res.status(400).json({ message: err.message ?? 'Erro ao deletar emergência' });
+    }
+  },
+
+  async join(req: Request, res: Response) {
+    try {
+
+      const joined = await Emergencia.findOneAndUpdate({ _id: req.params._id }, {orgId: req.body.orgId});
+      if (!joined) {
+        res.status(404).json({ message: 'Emergência não encontrada' });
+        return;
+      }
+      res.json({ message: 'Usuário adicionado à emergência com sucesso' });
+    } catch (err: any) {
+      console.error('Error joining emergencia:', err);
+      res.status(400).json({ message: err.message ?? 'Erro ao adicionar usuário à emergência' });
     }
   },
 };

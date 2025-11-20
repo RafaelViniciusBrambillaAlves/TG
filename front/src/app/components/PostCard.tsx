@@ -7,6 +7,7 @@ import { Post } from "@/app/mocks";
 import { FiShare2, FiBookmark, FiEdit, FiTrash2 } from "react-icons/fi";
 import { BsFillBookmarkFill } from "react-icons/bs";
 import ProfileModal, { ProfileShape } from "./ProfileModal";
+import { Usuario } from "@/hooks/getVoluntarios";
 
 type Props = {
   post: Post;
@@ -14,11 +15,10 @@ type Props = {
   onShare?: (id: string) => void;
   onEdit?: (post: Post) => void;
   onDelete?: (id: string) => void;
-  currentUser?: string;
+  currentUser?: Usuario;
 };
 
 export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete, currentUser }: Props) {
-  console.log(post)
   const createdDate = new Date(post.data_criacao);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -29,19 +29,10 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
     if (diff < 3600 * 24) return `${Math.floor(diff / 3600)}h`;
     return `${Math.floor(diff / (3600 * 24))}d`;
   };
-
-  const isMine = post?.usuario?.nome === currentUser;
+  const isMine = post?.usuario?._id === currentUser?._id;
 
   const personName = post?.usuario?.nome ?? "Autor desconhecido";
   const avatar = post?.usuario?.image;
-
-  const profile: ProfileShape = useMemo(() => ({
-    name: personName,
-    email: post?.usuario?.email ?? null,
-    phone: post?.usuario?.telefone ?? null,
-    organization: post?.organizacao?.nome ?? post?.usuario?.org ?? null,
-    avatar,
-  }), [personName, post, avatar]);
 
   return (
     <>
@@ -84,7 +75,7 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
                 <button className={styles.iconButton} onClick={() => onEdit?.(post)} aria-label="Editar postagem" type="button">
                   <FiEdit size={18} />
                 </button>
-                <button className={styles.iconButton} onClick={() => onDelete?.(post.id)} aria-label="Excluir postagem" type="button">
+                <button className={styles.iconButton} onClick={() => onDelete?.(post?._id)} aria-label="Excluir postagem" type="button">
                   <FiTrash2 size={18} />
                 </button>
               </>
@@ -98,7 +89,7 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
         </div>
       </article>
 
-      <ProfileModal visible={modalOpen} onClose={() => setModalOpen(false)} profile={profile} />
+      <ProfileModal visible={modalOpen} onClose={() => setModalOpen(false)} profile={post?.usuario} />
     </>
   );
 }

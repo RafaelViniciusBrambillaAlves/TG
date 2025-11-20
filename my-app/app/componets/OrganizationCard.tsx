@@ -19,10 +19,10 @@ import { useAuth } from "@/context/auth.context";
 
 type Centro = {
   id_centro: number;
-  nome_centro: string;
+  nome: string;
   descricao?: string;
-  thumbnail?: string;
-  endereco?: string;
+  image?: string;
+  address?: string;
   telefone?: string;
   email?: string;
   necessidades?: any[];
@@ -84,9 +84,9 @@ export default function OrganizationCard({
     <View style={styles.centerWrap}>
       <View style={styles.centerRow}>
         <View style={styles.thumbBox}>
-          {item.thumbnail ? (
+          {item.image ? (
             <Image
-              source={{ uri: item.thumbnail }}
+              source={{ uri: `http://localhost:3001${item.image}` }}
               style={styles.centerThumb}
             />
           ) : (
@@ -97,7 +97,7 @@ export default function OrganizationCard({
         <View style={styles.centerInfo}>
           <View style={styles.centerTitleRow}>
             <Text style={styles.centerTitle} numberOfLines={1}>
-              {item.nome_centro}
+              {item.nome}
             </Text>
 
             {item.telefone && (
@@ -105,7 +105,7 @@ export default function OrganizationCard({
                 onPress={() =>
                   openWhatsApp(
                     item.telefone,
-                    `Olá, gostaria de informações sobre o ${item.nome_centro}.`,
+                    `Olá, gostaria de informações sobre o ${item.nome}.`,
                   )
                 }
                 style={[styles.contactIcon, { backgroundColor: primary }]}
@@ -136,7 +136,7 @@ export default function OrganizationCard({
   );
 
   // console.log(organization); // opcional — remova em produção
-
+  console.log(organization.centros)
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={toggleExpand}>

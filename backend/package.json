@@ -15,12 +15,13 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/express-validator": "^2.20.33",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.5.2",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "eslint": "^8.3.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
@@ -30,6 +31,7 @@
     "dotenv": "^17.2.2",
     "express": "^4.17.1",
     "express-list-endpoints": "^7.1.1",
+    "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

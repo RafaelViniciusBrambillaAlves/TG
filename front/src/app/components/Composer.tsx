@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "./composer.module.css";
+import api from "@/services/api";
 
 type ComposerProps = {
   onCreate?: (text: string, file?: File | null) => void;

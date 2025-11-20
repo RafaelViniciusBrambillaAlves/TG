@@ -14,10 +14,12 @@ type Props = {
 export default function EditPostModal({ post, open, onClose, onUpdate }: Props) {
   const [text, setText] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (post) {
-      setText(post.description);
+      setText(post?.titulo);
       setImage(post.image || null);
     }
   }, [post]);
@@ -26,20 +28,24 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
 
   const handleSave = () => {
     if (!text.trim()) return;
-    onUpdate({ ...post, description: text.trim(), image });
+    onUpdate({ ...post, titulo: text.trim(), descricao: text.trim(), image: file });
     onClose();
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setImage(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    const f = e.target.files?.[0] ?? null;
+    if (!f) return;
+    setFile(f);
+    const url = URL.createObjectURL(f);
+    setPreview(url);
+    setImage(url)
   };
 
-  const handleRemoveImage = () => setImage(null);
+  const handleRemoveImage = () => {
+    setImage(null)
+    setFile(null)
+    setPreview(null)
+  };
 
   return (
     <div className={styles.overlay}>
@@ -55,7 +61,7 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
 
         {image && (
           <div className={styles.imagePreview}>
-            <img src={image} alt="Preview" />
+            <img src={`http://localhost:3001${image}`} alt="Preview" />
             <button className={styles.removeImage} onClick={handleRemoveImage}>✕</button>
           </div>
         )}

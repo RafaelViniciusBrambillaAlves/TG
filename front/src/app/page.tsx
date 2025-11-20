@@ -368,9 +368,10 @@ export default function Home() {
               : "",
             p.usuario?.email ?? "",
             p.usuario?.telefone ?? "",
+            p.usuario?._id
           ].join(" "),
         );
-        const hay = [title, desc, author, extra].join(" ");
+        const hay = [title, desc, author, extra, p.usuario?._id].join(" ");
         return hay.includes(q);
       } catch (err) {
         console.warn("filter post failed for item:", p, err);
@@ -568,6 +569,9 @@ export default function Home() {
     });
   }, [searchQuery, volunteers]);
 
+  function handleUpdatePostInParent(updated: PostType) {
+    setPosts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
+  }
   // --- DEBUG MODE: render login ou forgot-password only if requested via ?view=login ou ?view=forgot-password
   if (debugView === "login") {
     return (
@@ -622,7 +626,7 @@ export default function Home() {
 
         <div className={styles.center}>
           {activeTab === "publicacoes" && (
-            <Feed posts={filteredPosts} onCreate={getPosts} />
+            <Feed posts={filteredPosts} onCreate={getPosts} onUpdatePost={handleUpdatePostInParent} onRefresh={getPosts}/>
           )}
 
           {activeTab === "centros" && (

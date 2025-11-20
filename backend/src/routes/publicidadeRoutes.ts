@@ -7,7 +7,7 @@ const router = Router();
 router.get("/publicidades", asyncHandler(publicidadeController.getAll));
 router.get("/publicidades/:id", asyncHandler(publicidadeController.getById));
 router.post("/publicidades", asyncHandler(publicidadeController.create));
-router.put("/publicidades/:id", asyncHandler(publicidadeController.update));
-router.delete("/publicidades/:id", asyncHandler(publicidadeController.remove));
+router.put("/publicidades/:_id", asyncHandler(publicidadeController.update));
+router.delete("/publicidades/:_id", asyncHandler(publicidadeController.remove));
 
 export default router;

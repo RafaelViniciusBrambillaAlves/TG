@@ -40,24 +40,25 @@ export default function RightBar({
           )}
           <div>
             <div className={styles.name}>{currentOrg?.[0]?.name}</div>
-            <div className={styles.sub}>ONG • 1.234 seguidores</div>
           </div>
         </div>
 
         <p className={styles.desc}>{currentOrg?.[0]?.description}</p>
 
-        <button
-          className={styles.button}
-          type="button"
-          onClick={() => {
-            // 🔧 Dispara evento global capturado no Page.tsx
-            window.dispatchEvent(
-              new CustomEvent("view-org", { detail: currentOrg?.[0] }),
-            );
-          }}
-        >
-          Ver Organização
-        </button>
+        {currentOrg?.[0] &&
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => {
+              // 🔧 Dispara evento global capturado no Page.tsx
+              window.dispatchEvent(
+                new CustomEvent("view-org", { detail: currentOrg?.[0] }),
+              );
+            }}
+          >
+            Ver Organização
+          </button>
+        }
 
         {showRegister && (
           <div style={{ marginTop: 12 }}>

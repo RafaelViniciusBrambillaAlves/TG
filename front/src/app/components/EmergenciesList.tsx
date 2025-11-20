@@ -13,6 +13,7 @@ import {
 } from "@/app/mocks";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { Emergencia } from "@/hooks/getEmergencias";
+import api from "@/services/api";
 
 type Props = {
   emergencies?: Emergencia[];
@@ -36,9 +37,14 @@ export default function EmergenciesList({
   onEdit,
   onDelete,
 }: Props) {
+  const [user, setUser] = useState();
   const [localEmergencies, setLocalEmergencies] = useState<Emergencia[]>(
     emergencies || [],
   );
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem("usuario")));
+  }, []);
   useEffect(() => setLocalEmergencies(emergencies || []), [emergencies]);
 
   const [filter, setFilter] = useState<"all" | "mine">("all");
@@ -112,6 +118,17 @@ export default function EmergenciesList({
       }),
     );
   };
+
+  async function onJoin(em: Emergency) {
+    try {
+      if (!user?.organizations[0]._id) return;
+      await api.put(`/api/v1/emergencias/linkOrg/${em._id}`, {orgId: user?.organizations[0]._id});
+      alert(`Organizar vinculado com sucesso`)
+    } catch (error) {
+
+      console.error(error);
+    }
+  }
 
   return (
     <section className={styles.wrap} aria-label="Lista de emergências">
@@ -255,31 +272,42 @@ export default function EmergenciesList({
                       <dt>Reportado</dt>
                       <dd style={{ color: "#6b7280", margin: 0 }}>{timeAgo}</dd>
                     </div>
-
-                    {mine && (
-                      <div className={styles.actionIcons}>
-                        <button
-                          className={styles.iconButton}
-                          title="Editar emergência"
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            onEdit?.(em);
-                          }}
-                        >
-                          <FiEdit />
-                        </button>
-                        <button
-                          className={styles.iconButton}
-                          title="Excluir emergência"
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            onDelete?.(em._id);
-                          }}
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      className={styles.iconButton}
+                      title="Fazer parte"
+                      onClick={async (ev) => {
+                        ev.stopPropagation();
+                        await onJoin(em);
+                      }}
+                    >
+                      Ajudar
+                    </button>
+                    <div className={styles.actionIcons}>
+                      {mine && (
+                        <>
+                          <button
+                            className={styles.iconButton}
+                            title="Editar emergência"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              onEdit?.(em);
+                            }}
+                          >
+                            <FiEdit />
+                          </button>
+                          <button
+                            className={styles.iconButton}
+                            title="Excluir emergência"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              onDelete?.(em._id);
+                            }}
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </dl>
               </div>

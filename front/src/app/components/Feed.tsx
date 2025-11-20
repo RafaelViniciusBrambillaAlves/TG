@@ -13,12 +13,13 @@ import { UserProfile } from "./ProfilePage";
 import classNames from "classnames";
 
 type FeedProps = {
-  // se o parent passar posts, usaremos; se não, buscamos internamente (fallback)
   posts?: Publicidade[] | PostType[];
   onCreate?: () => void;
+  onUpdatePost?: (updated: PostType) => void; // <- nova
+  onRefresh?: () => void; // <- opcional: força re-fetch no parent
 };
 
-export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
+export default function Feed({ posts: postsFromProps, onCreate, onUpdatePost, onRefresh }: FeedProps) {
   const [user, setUser] = useState<UserProfile>();
 
   useEffect(() => {
@@ -47,7 +48,6 @@ export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
       .then((data) => {
         if (!mounted) return;
         setInternalPosts(data);
-        console.log("Publicação recebida (Feed internal):", data);
       })
       .catch((err) => {
         console.warn("Falha ao carregar posts no Feed:", err);
@@ -99,16 +99,15 @@ export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
     // placeholder
   }
 
-  function handleDelete(id: string) {
-    if (!confirm("Excluir publicação?")) return;
+  async function handleDelete(id: string) {
+    await api({
+      url: "/api/v1/publicacao/publicidades/" + id,
+      method: "DELETE"
+    });
+
     // se parent controla posts, não mexe aqui — apenas instrui o usuário/developer
     // aqui lidamos com internalPosts caso exista
-    if (postsFromProps) {
-      console.warn(
-        "handleDelete: parent controla posts, remova/implemente remoção no parent.",
-      );
-      return;
-    }
+
     setInternalPosts((s) => s?.filter((p: any) => p._id !== id));
   }
 
@@ -117,17 +116,53 @@ export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
     setShowEditModal(true);
   }
 
-  function handleUpdatePost(updated: PostType) {
-    if (postsFromProps) {
-      console.warn(
-        "handleUpdatePost: parent controla posts, atualize no parent.",
-      );
-      return;
+  async function handleUpdatePost(updated: PostType) {
+      try {
+        let imageUrl: string | undefined = undefined;
+
+        if (updated.image) {
+          const form = new FormData();
+          form.append("file", updated.image);
+
+          const uploadRes = await api.post("/api/v1/upload", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          imageUrl = uploadRes.data?.url;
+        }
+        const newPost: Publicidade = {
+          titulo: updated.titulo,
+          descricao: updated.descricao,
+          image: imageUrl,
+          usuario_id: updated.usuario,
+        };
+
+        await api({
+          url: "/api/v1/publicacao/publicidades/" + updated._id,
+          method: "PUT",
+          data: newPost,
+        });
+
+        // se parent controla posts: informar o parent (ele fará o setPosts)
+        if (postsFromProps) {
+          if (onUpdatePost) {
+            onUpdatePost(updated); // atualiza só o item no parent
+          } else if (onRefresh) {
+            onRefresh(); // força re-fetch completo
+          } else {
+            console.warn("parent controla posts mas não passou onUpdatePost nem onRefresh");
+          }
+          return;
+        }
+
+        // caso interno (fallback), atualiza localmente
+        setInternalPosts((s) =>
+          s?.map((p: any) => (p._id === updated._id ? updated : p)),
+        );
+      } catch (err) {
+        console.error("Erro ao atualizar post:", err);
+      }
     }
-    setInternalPosts((s) =>
-      s?.map((p: any) => (p._id === updated._id ? updated : p)),
-    );
-  }
 
   // se posts ainda undefined (fallback) mostra nada até carregamento
   const filteredPosts = (posts ?? []).filter((p: any) => {
@@ -260,7 +295,7 @@ export default function Feed({ posts: postsFromProps, onCreate }: FeedProps) {
           <PostCard
             key={p._id}
             post={p}
-            currentUser={user?.name}
+            currentUser={user}
             onToggleSave={toggleSave}
             onShare={handleShare}
             onEdit={handleEdit}

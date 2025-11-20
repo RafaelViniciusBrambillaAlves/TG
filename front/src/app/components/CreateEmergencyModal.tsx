@@ -5,6 +5,7 @@ import styles from "./createEmergency.module.css";
 import type { Emergency } from "@/app/mocks";
 import { Emergencia } from "@/hooks/getEmergencias";
 import api from "@/services/api";
+import { AxiosError, AxiosResponse } from "axios";
 
 type CreateEmergencyData = {
   title: string;
@@ -207,12 +208,22 @@ export default function CreateEmergencyModal({
       }
 
       onClose();
-    } catch (error) {
-      console.error("Error creating emergency:", error);
-      alert("Ocorreu um erro ao criar a emergência. Tente novamente.");
+    } catch (error: any) {
+      console.error(error);
+
+      // Axios error — pega message do body (backend: { message: "..." })
+      const serverMessage =
+        error?.response?.data?.message ||
+        // fallback para string JSON do body caso o backend retorne outro shape
+        (error?.response?.data ? JSON.stringify(error.response.data) : null) ||
+        error?.message ||
+        "Ocorreu um erro desconhecido.";
+
+      alert(serverMessage);
     } finally {
       setLoading(false);
     }
+
   }
 
   if (!open) return null;
