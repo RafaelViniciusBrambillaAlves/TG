@@ -12,18 +12,19 @@
 
 /* page wrapper */
 .pageWrap {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 28px auto;
   padding: 20px;
   box-sizing: border-box;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   color: var(--text);
+  background: transparent;
 }
 
 /* two-column grid */
 .grid {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 360px 1fr;
   gap: 20px;
   align-items: start;
 }
@@ -33,77 +34,136 @@
   background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* avatar */
+/* avatar row */
 .avatarBox {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   position: relative;
 }
 
 /* avatar image */
 .avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 999px;
+  width: 112px;
+  height: 112px;
+  border-radius: 16px;
   object-fit: cover;
-  border: 3px solid var(--primary);
+  border: 3px solid rgba(11,95,255,0.12);
   display: block;
   flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
 }
 
-/* role badge positioned relative to avatar but not absolute covering layout */
-.roleBadge {
-  margin-left: 6px;
-  background: var(--glass);
-  color: var(--primary);
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 12px;
-  align-self: flex-start;
+/* left meta next to avatar */
+.leftMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
-/* basic info */
-.basicInfo {
-  margin-top: 6px;
+/* name */
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .name {
   margin: 0;
   font-size: 20px;
   font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.email {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 13px;
+/* small meta area */
+.smallMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.meta {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 13px;
+.contactLine {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.org {
-  margin-top: 8px;
+.contactLink {
   color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.contactPhone {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* organização no view profile */
+.orgInfo {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.orgLabel {
+  font-size: 13px;
+  color: var(--muted);
   font-weight: 700;
+}
+
+.orgValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* basic info */
+.basicInfo {
+  margin-top: 8px;
+}
+
+/* profile summary / view */
+.profileSummary {
+  margin-top: 8px;
+  padding: 14px;
+  background: linear-gradient(180deg, #fbfdff, #fff);
+  border-radius: 10px;
+  border: 1px solid rgba(11,95,255,0.04);
+}
+
+.bioLarge {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.bioPlaceholder {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
 }
 
 /* card actions */
 .cardActions {
   display: flex;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 /* separator */
@@ -111,21 +171,7 @@
   border: 0;
   height: 1px;
   background: linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.02));
-  margin: 6px 0;
-}
-
-/* headings */
-.sectionTitle {
-  margin: 0 0 6px 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.bio {
-  margin: 0;
-  color: #374151;
-  font-size: 14px;
-  line-height: 1.45;
+  margin: 12px 0;
 }
 
 /* detail card (right) */
@@ -159,13 +205,6 @@
   font-size: 13px;
 }
 
-/* header actions */
-.headerActions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 /* base button class (local) */
 .btn {
   font-family: inherit;
@@ -175,6 +214,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.14s ease;
 }
 
 /* primary */
@@ -186,9 +226,10 @@
   border: 0;
   cursor: pointer;
   font-weight: 700;
+  box-shadow: 0 8px 24px rgba(11,95,255,0.08);
 }
 
-/* secondary solid */
+/* secondary */
 .secondary {
   background: #fff;
   color: var(--text);
@@ -234,7 +275,7 @@
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 18px;
-  align-items: start; /* garante topo alinhado */
+  align-items: start;
 }
 
 /* left column */
@@ -249,7 +290,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  align-items: center; /* centraliza preview e orgCard para balance visual */
+  align-items: center;
 }
 
 /* labels & inputs */
@@ -282,12 +323,12 @@
   min-height: 88px;
 }
 
-/* avatar edit */
+/* avatar edit (kept for editing) */
 .avatarEdit {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  align-items: center; /* centraliza preview e botões, alinha com left column top */
+  align-items: center;
 }
 
 /* preview box */
@@ -333,8 +374,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 100%; /* ocupa largura da coluna direita */
+  width: 100%;
   box-sizing: border-box;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.orgCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(2,6,23,0.06);
 }
 
 .orgHeader {
@@ -344,14 +391,16 @@
 }
 
 .orgAvatar {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 8px;
   background: linear-gradient(90deg, var(--primary), #6c8cff);
+  object-fit: cover;
 }
 
 .orgName {
   font-weight: 800;
+  font-size: 15px;
 }
 
 .orgMeta {
@@ -380,14 +429,6 @@
   gap: 12px;
 }
 
-.secSectionInline {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  background: #fbfdff;
-  border: 1px solid rgba(11,95,255,0.06);
-}
-
 .secTitle {
   margin: 0 0 6px 0;
   font-size: 14px;
@@ -412,14 +453,6 @@
   display: flex;
   gap: 8px;
   margin-top: 10px;
-}
-
-/* bottom actions (delete) */
-.bottomActions {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 6px;
-  gap: 12px;
 }
 
 /* modal overlay */
@@ -457,4 +490,6 @@
   .formGrid { grid-template-columns: 1fr; }
   .avatarPreviewWrap { width: 120px; height: 120px; }
   .pwdRow { grid-template-columns: 1fr; }
+  .avatar { width: 96px; height: 96px; }
+  .leftMeta { min-width: 0; }
 }

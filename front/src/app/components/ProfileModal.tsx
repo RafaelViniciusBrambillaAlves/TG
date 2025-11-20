@@ -22,7 +22,6 @@ export default function ProfileModal({
   onClose: () => void;
   profile?: ProfileShape | null;
 }) {
-  console.log(profile)
   useEffect(() => {
     if (!visible) return;
     const onKey = (e: KeyboardEvent) => {
@@ -48,23 +47,50 @@ export default function ProfileModal({
   };
 
   return (
-    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" onClick={onClose}>
+    <div
+      className={styles.backdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-modal-title"
+      onClick={onClose}
+    >
       <div className={styles.box} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
-          <h3 id="profile-modal-title" className={styles.headerTitle}>Perfil</h3>
-          <button className={styles.closeBtn} aria-label="Fechar" onClick={onClose}><FiX size={18} /></button>
+          <h3 id="profile-modal-title" className={styles.headerTitle}>
+            Perfil
+          </h3>
+          <button
+            className={styles.closeBtn}
+            aria-label="Fechar"
+            onClick={onClose}
+          >
+            <FiX size={18} />
+          </button>
         </header>
 
         <div className={styles.avatarWrap}>
           {profile.image ? (
-            <img src={`http://localhost:3001${profile.image}`} alt={profile.name} className={styles.avatar} />
+            // conserva a mesma origem que você usa: http://localhost:3001
+            <img
+              src={
+                profile.image.startsWith("http")
+                  ? profile.image
+                  : `http://localhost:3001${profile.image}`
+              }
+              alt={profile.name}
+              className={styles.avatar}
+            />
           ) : (
-            <div className={styles.avatarPlaceholder}>{profile.name?.charAt(0)?.toUpperCase() ?? "U"}</div>
+            <div className={styles.avatarPlaceholder}>
+              {profile.name?.charAt(0)?.toUpperCase() ?? "U"}
+            </div>
           )}
 
           <div className={styles.meta}>
             <div className={styles.name}>{profile.name}</div>
-            <div className={styles.org}>{profile.organization ?? "Organização não informada"}</div>
+            <div className={styles.org}>
+              {profile.organization ?? "Organização não informada"}
+            </div>
           </div>
         </div>
 
@@ -86,6 +112,7 @@ export default function ProfileModal({
             onClick={() => openMail(profile.email)}
             disabled={!profile.email}
             aria-disabled={!profile.email}
+            title={profile.email ? `Enviar email para ${profile.email}` : "Email não disponível"}
           >
             <FiMail /> <span>Email</span>
           </button>
@@ -95,6 +122,7 @@ export default function ProfileModal({
             onClick={() => openWhatsapp(profile.phone)}
             disabled={!profile.phone}
             aria-disabled={!profile.phone}
+            title={profile.phone ? `Abrir WhatsApp para ${profile.phone}` : "Telefone não disponível"}
           >
             <FiPhone /> <span>WhatsApp</span>
           </button>

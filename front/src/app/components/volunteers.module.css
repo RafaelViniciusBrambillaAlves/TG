@@ -1,3 +1,4 @@
+/* src/components/volunteers.module.css */
 .wrap {
   width: 100%;
   max-width: 720px;
@@ -39,16 +40,61 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
+/* botão que envolve a imagem para acessibilidade/keyboard */
+.avatarButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  outline: none;
+}
+
+.avatarButton:focus {
+  box-shadow: 0 0 0 4px rgba(11,95,255,0.08);
+}
+
+.avatarButton:hover {
+  transform: translateY(-2px);
+}
+
+/* avatar e placeholder */
 .avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 16px;
+  display: block;
+  border: 2px solid rgba(11,95,255,0.06);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  flex-shrink: 0;
+}
+
+.avatarPlaceholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #0b5fff;
+  background: linear-gradient(180deg, rgba(11,95,255,0.06), rgba(11,95,255,0.02));
+  margin-right: 16px;
+  border: 2px solid rgba(11,95,255,0.06);
+  flex-shrink: 0;
 }
 
 .info {
   flex: 1;
+  margin-right: 8px;
+  min-width: 0;
 }
 
 .name {
@@ -56,25 +102,35 @@
   font-weight: 700;
   font-size: 16px;
   color: #0b5fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .email {
   margin: 2px 0 0 0;
   font-size: 13px;
   color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.profileBtn {
-  padding: 6px 12px;
-  background: #0b5fff;
-  color: #fff;
-  font-weight: 700;
-  font-size: 13px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
+/* mensagem vazia / carregando */
+.empty {
+  padding: 18px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
 }
 
-.profileBtn:hover {
-  opacity: 0.9;
+/* responsividade */
+@media (max-width: 720px) {
+  .card {
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+  }
+  .info { min-width: 0; }
+  .name, .email { white-space: normal; }
 }

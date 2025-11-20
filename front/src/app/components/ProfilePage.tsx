@@ -1,3 +1,4 @@
+// profilePage.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -28,15 +29,15 @@ export type UserProfile = {
 };
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | undefined>();
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  // editData é parcial — facilita trabalhar com campos opcionais
   const [editData, setEditData] = useState<Partial<UserProfile>>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pwd, setPwd] = useState({ current: "", next: "", confirm: "" });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const stored = localStorage.getItem("usuario");
@@ -45,17 +46,21 @@ export default function ProfilePage() {
         const parsed = JSON.parse(stored);
         setUser(parsed);
         setEditData(parsed);
-      } catch {}
+      } catch (e) {
+        console.error("Erro ao parsear usuário do localStorage:", e);
+      }
     }
   }, []);
 
-  // sempre sincroniza editData quando user muda (ex: após salvar)
   useEffect(() => {
     setEditData(user ?? {});
   }, [user]);
 
   const handleChange = (key: keyof UserProfile, value: any) => {
     setEditData((p) => ({ ...(p ?? {}), [key]: value }));
+    if (errors[key]) {
+      setErrors((prev) => ({ ...prev, [key]: "" }));
+    }
   };
 
   const triggerAvatarPicker = () => fileInputRef.current?.click();
@@ -63,16 +68,16 @@ export default function ProfilePage() {
   const onAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) return;
-    // client-side size check
     const MAX = 8 * 1024 * 1024;
     if (f.size > MAX) {
-      alert("Arquivo muito grande. Máx 8MB.");
+      setErrors((prev) => ({ ...prev, avatar: "Arquivo muito grande. Máx 8MB." }));
       e.currentTarget.value = "";
       return;
     }
     setAvatarFile(f);
     const url = URL.createObjectURL(f);
     setEditData((p) => ({ ...(p ?? {}), image: url }));
+    setErrors((prev) => ({ ...prev, avatar: "" }));
   };
 
   async function uploadFile(file: File) {
@@ -90,11 +95,41 @@ export default function ProfilePage() {
     throw new Error("Resposta de upload inválida");
   }
 
+  // Normaliza telefone: aceita "18999999999" ou "(18) 99999-9999" etc.
+  const formatPhoneFromInput = (raw?: string) => {
+    if (!raw) return "";
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) {
+      // (99) 9999-9999
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    if (digits.length === 11) {
+      // (99) 99999-9999
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    }
+    // retorna original se não for 10/11 dígitos (tratamento de erro acontece onde chama)
+    return raw;
+  };
+
   async function saveProfile() {
-    if (!editData?.name?.trim() || !editData?.email?.trim()) {
-      alert("Nome e email são obrigatórios.");
+    const newErrors: { [key: string]: string } = {};
+    if (!editData?.name?.trim()) newErrors.name = "Nome é obrigatório.";
+    if (!editData?.email?.trim()) newErrors.email = "Email é obrigatório.";
+    if (editData?.email && !/\S+@\S+\.\S+/.test(editData.email)) newErrors.email = "Email inválido.";
+
+    // Validação do telefone: aceita entrada com ou sem formatação
+    if (editData?.phone) {
+      const digits = (editData.phone + "").replace(/\D/g, "");
+      if (!(digits.length === 10 || digits.length === 11)) {
+        newErrors.phone = "Telefone inválido (formato: (99) 99999-9999 ou 10/11 dígitos).";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
     if (!user?._id) {
       alert("Usuário não identificado.");
       return;
@@ -104,24 +139,26 @@ export default function ProfilePage() {
     try {
       let avatarUrl = editData.image;
 
-      // se tiver arquivo selecionado, faz upload e substitui avatarUrl pelo retorno
       if (avatarFile) {
         try {
           avatarUrl = await uploadFile(avatarFile);
         } catch (err) {
           console.error("Falha upload avatar:", err);
-          alert("Falha ao enviar avatar. Tente novamente.");
+          setErrors({ avatar: "Falha ao enviar avatar. Tente novamente." });
           setLoading(false);
           return;
         }
       }
 
+      // Normaliza telefone antes de enviar
+      const formattedPhone = editData.phone ? formatPhoneFromInput(editData.phone) : undefined;
+
       const payload: any = {
         nome: editData.name,
         email: editData.email,
-        telefone: editData.phone,
+        telefone: formattedPhone ?? editData.phone,
         bio: editData.bio,
-        image: avatarUrl, // seu model usa 'image' / 'avatarUrl' interchangeably; backend deve tratar
+        image: avatarUrl,
       };
 
       const res = await api.put(`/api/v1/usuarios/usuarios/${user._id}`, payload);
@@ -132,7 +169,11 @@ export default function ProfilePage() {
         ...updated,
         name: updated.nome ?? updated.name ?? editData.name,
         email: updated.email ?? editData.email,
-        phone: updated.telefone ?? updated.phone ?? editData.phone,
+        // garante que o phone no estado fique formatado se possível
+        phone:
+          updated.telefone ??
+          updated.phone ??
+          (formattedPhone ? formattedPhone : editData.phone ?? user?.phone),
         avatarUrl: updated.avatarUrl ?? updated.image ?? avatarUrl,
         bio: updated.bio ?? editData.bio,
         organizations: updated.organizations ?? user?.organizations,
@@ -145,39 +186,43 @@ export default function ProfilePage() {
       setEditData(normalized);
       setAvatarFile(null);
       setIsEditing(false);
+      setErrors({});
       alert("Perfil atualizado com sucesso.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Ocorreu um erro ao salvar o perfil.");
+      setErrors({ general: err?.response?.data?.message ?? "Ocorreu um erro ao salvar o perfil." });
     } finally {
       setLoading(false);
     }
   }
 
   async function changePassword() {
+    const newErrors: { [key: string]: string } = {};
+    if (!pwd.current) newErrors.current = "Senha atual é obrigatória.";
+    if (!pwd.next) newErrors.next = "Nova senha é obrigatória.";
+    if (!pwd.confirm) newErrors.confirm = "Confirmação é obrigatória.";
+    if (pwd.next && pwd.next.length < 8) newErrors.next = "A nova senha precisa ter no mínimo 8 caracteres.";
+    if (pwd.next && pwd.confirm && pwd.next !== pwd.confirm) newErrors.confirm = "A nova senha e a confirmação não coincidem.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     if (!user?._id) return alert("Usuário não identificado.");
-    if (!pwd.current || !pwd.next || !pwd.confirm) {
-      return alert("Preencha todos os campos de senha.");
-    }
-    if (pwd.next.length < 8) {
-      return alert("A nova senha precisa ter no mínimo 8 caracteres.");
-    }
-    if (pwd.next !== pwd.confirm) {
-      return alert("A nova senha e a confirmação não coincidem.");
-    }
 
     setLoading(true);
     try {
-      // rota que vamos criar no backend
       await api.put(`/api/v1/usuarios/${user._id}/password`, {
         currentPassword: pwd.current,
         newPassword: pwd.next,
       });
       alert("Senha alterada com sucesso.");
       setPwd({ current: "", next: "", confirm: "" });
+      setErrors({});
     } catch (err: any) {
       console.error(err);
-      alert(err?.response?.data?.message ?? "Falha ao alterar senha.");
+      setErrors({ password: err?.response?.data?.message ?? "Falha ao alterar senha." });
     } finally {
       setLoading(false);
     }
@@ -192,155 +237,302 @@ export default function ProfilePage() {
   const cls = (variant?: string) =>
     [styles.btn, variant ? (styles as any)[variant] : null].filter(Boolean).join(" ");
 
+  // helper: formata telefone simples (se já tiver dado formato, não altera)
+  const prettyPhone = (p?: string) => {
+    if (!p) return "";
+    // se já tiver parênteses, retorna
+    if (p.includes("(") || p.includes("-")) return p;
+    const digits = p.replace(/\D/g, "");
+    if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    return p;
+  };
+
+  // helper: full image url
+  const resolveImage = (img?: string) => {
+    if (!img) return "/default-avatar.png";
+    if (/^https?:\/\//.test(img)) return img;
+    if (img.startsWith("/")) {
+      return `http://localhost:3001${img}`;
+    }
+    return img;
+  };
+
   return (
     <div className={styles.pageWrap}>
-      <div className={styles.card}>
-        <div className={styles.avatarBox}>
-          <img
-            src={user?.image ? `http://localhost:3001${user?.image}` : editData.image}
-            alt="avatar"
-            className={styles.avatar}
-          />
-          <div className={styles.roleBadge}>{user?.role?.nome_perfil}</div>
-        </div>
-
-        <div className={styles.basicInfo}>
-          {isEditing ? (
-            <>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input
-                  ref={fileInputRef as any}
-                  type="file"
-                  accept="image/*"
-                  onChange={onAvatarSelect}
-                  style={{ display: "none" }}
-                />
-                <button type="button" className={styles.btn} onClick={triggerAvatarPicker}>
-                  Trocar avatar
-                </button>
-                {avatarFile && <span>{avatarFile.name}</span>}
+      <div className={styles.grid}>
+        {/* Coluna Esquerda: Avatar e Info Básica */}
+        <div className={styles.card}>
+          <div className={styles.avatarBox}>
+            <img
+              src={user?.image ? resolveImage(user?.image) : editData.image || "/default-avatar.png"}
+              alt="Avatar do usuário"
+              className={styles.avatar}
+            />
+            <div className={styles.leftMeta}>
+              <div className={styles.nameRow}>
+                <h1 className={styles.name}>{user?.name || "Nome não informado"}</h1>
               </div>
 
-              <input
-                className={styles.input}
-                value={editData.name ?? ""}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Nome completo"
-              />
-              <input
-                className={styles.input}
-                value={editData.email ?? ""}
-                onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="email@exemplo.com"
-              />
-              <input
-                className={styles.input}
-                value={editData.phone ?? ""}
-                onChange={(e) => handleChange("phone", e.target.value)}
-                placeholder="(99) 99999-9999"
-              />
-              <textarea
-                className={styles.textarea}
-                rows={3}
-                value={editData.bio ?? ""}
-                onChange={(e) => handleChange("bio", e.target.value)}
-                placeholder="Fale algo sobre você"
-              />
-            </>
-          ) : (
-            <>
-              <h1 className={styles.name}>{user?.name}</h1>
-              <p className={styles.email}>{user?.email}</p>
-              {user?.phone && <p className={styles.meta}>{user?.phone}</p>}
-              {user?.organizations && <p className={styles.org}>{user?.organizations[0]?.name}</p>}
-              {user?.bio && <p className={styles.bio}>{user?.bio}</p>}
-            </>
-          )}
-        </div>
+              <div className={styles.smallMeta}>
+                <div className={styles.contactLine}>
+                  {user?.email && (
+                    <a className={styles.contactLink} href={`mailto:${user.email}`}>
+                      {user.email}
+                    </a>
+                  )}
+                  {user?.phone && <span className={styles.contactPhone}>{prettyPhone(user.phone)}</span>}
+                </div>
 
-        <div className={styles.cardActions}>
-          {!isEditing ? (
-            <button className={cls("primary")} onClick={() => setIsEditing(true)}>
-              Editar perfil
-            </button>
-          ) : (
-            <>
-              <button className={cls("primary")} onClick={saveProfile} disabled={loading}>
-                Salvar
-              </button>
-              <button className={cls("secondary")} onClick={() => { setEditData(user); setIsEditing(false); }}>
-                Cancelar
-              </button>
-            </>
-          )}
-        </div>
-
-        {isEditing && (
-          <div className={styles.secSectionInline}>
-            <h3 className={styles.secTitle}>Alterar senha</h3>
-            <input
-              className={styles.input}
-              type="password"
-              placeholder="Senha atual"
-              value={pwd.current}
-              onChange={(e) => setPwd({ ...pwd, current: e.target.value })}
-            />
-            <input
-              className={styles.input}
-              type="password"
-              placeholder="Nova senha"
-              value={pwd.next}
-              onChange={(e) => setPwd({ ...pwd, next: e.target.value })}
-            />
-            <input
-              className={styles.input}
-              type="password"
-              placeholder="Confirmar nova senha"
-              value={pwd.confirm}
-              onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })}
-            />
-            <div className={styles.pwdActions}>
-              <button className={cls("primary")} onClick={changePassword} disabled={loading}>
-                Atualizar senha
-              </button>
-              <button className={cls("ghost")} onClick={() => setPwd({ current: "", next: "", confirm: "" })}>
-                Limpar
-              </button>
+                {/* organização principal (se houver) */}
+                {user?.organizations && user.organizations.length > 0 && (
+                  <div className={styles.orgInfo}>
+                    <span className={styles.orgLabel}>Organização:</span>
+                    <span className={styles.orgValue}>{user.organizations[0].name}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        )}
 
-        {user?.organizations?.map((e) => {
-          return (
-            <div className={styles.orgCard} key={e._id ?? e.id}>
-              <div className={styles.orgHeader}>
-                <img src={e.logo} alt={e.name} className={styles.orgAvatar} />
+          <div className={styles.basicInfo}>
+            {!isEditing ? (
+              <>
+                {/* View profile simplificada e profissional */}
+                <div className={styles.profileSummary}>
+                  {user?.bio ? (
+                    <p className={styles.bioLarge}>{user.bio}</p>
+                  ) : (
+                    <p className={styles.bioPlaceholder}>Sem bio — conte um pouco sobre você para que outros saibam quem você é.</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* edição: mantida igual */}
+                <div className={styles.avatarEdit}>
+                  <div className={styles.avatarPreviewWrap}>
+                    <img src={editData.image || "/default-avatar.png"} alt="Pré-visualização do avatar" className={styles.avatarPreview} />
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={onAvatarSelect} className={styles.fileInput} aria-label="Selecionar novo avatar" />
+                  <div className={styles.avatarBtns}>
+                    <button type="button" className={cls("outline")} onClick={triggerAvatarPicker}>
+                      Trocar avatar
+                    </button>
+                    {avatarFile && <span className={styles.hint}>{avatarFile.name}</span>}
+                  </div>
+                  {errors.avatar && <p className={styles.error}>{errors.avatar}</p>}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className={styles.cardActions}>
+            {!isEditing ? (
+              <button className={cls("primary")} onClick={() => setIsEditing(true)}>
+                Editar perfil
+              </button>
+            ) : (
+              <>
+                <button className={cls("primary")} onClick={saveProfile} disabled={loading}>
+                  {loading ? "Salvando..." : "Salvar"}
+                </button>
+                <button
+                  className={cls("secondary")}
+                  onClick={() => {
+                    setEditData(user);
+                    setIsEditing(false);
+                    setErrors({});
+                  }}
+                >
+                  Cancelar
+                </button>
+
+                {/* botão Excluir aparece APENAS enquanto estiver editando */}
+                <button
+                  className={cls("danger")}
+                  onClick={confirmDelete}
+                  title="Excluir conta"
+                  style={{ marginLeft: 8 }}
+                >
+                  Excluir conta
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Coluna Direita: Detalhes e Organizações */}
+        <div className={styles.detailCard}>
+          {isEditing && (
+            <>
+              <div className={styles.headerRow}>
                 <div>
-                  <div className={styles.orgName}>{e.name}</div>
-                  <div className={styles.orgMeta}>{e.email}</div>
+                  <h2 className={styles.heading}>Editar Perfil</h2>
+                  <p className={styles.subheading}>Atualize suas informações pessoais</p>
                 </div>
               </div>
-              <p className={styles.orgDesc}>{e.description}</p>
-              <div className={styles.orgActions}>
-                <button className={cls("ghost")} onClick={() => window.open(e.website, "_blank")}>
-                  Ver ONG
-                </button>
-              </div>
-            </div>
-          );
-        })}
 
-        <div className={styles.bottomActions}>
-          <button className={cls("danger")} onClick={confirmDelete}>
-            Excluir conta
-          </button>
+              <div className={styles.formGrid}>
+                <div className={styles.leftCol}>
+                  <div>
+                    <label className={styles.label} htmlFor="name">Nome completo</label>
+                    <input
+                      id="name"
+                      className={styles.input}
+                      value={editData.name ?? ""}
+                      onChange={(e) => handleChange("name", e.target.value)}
+                      placeholder="Nome completo"
+                      aria-describedby={errors.name ? "name-error" : undefined}
+                    />
+                    {errors.name && <p id="name-error" className={styles.error}>{errors.name}</p>}
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="email">Email</label>
+                    <input
+                      id="email"
+                      className={styles.input}
+                      value={editData.email ?? ""}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      placeholder="email@exemplo.com"
+                      type="email"
+                      aria-describedby={errors.email ? "email-error" : undefined}
+                    />
+                    {errors.email && <p id="email-error" className={styles.error}>{errors.email}</p>}
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="phone">Telefone</label>
+                    <input
+                      id="phone"
+                      className={styles.input}
+                      value={editData.phone ?? ""}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      placeholder="(99) 99999-9999"
+                      aria-describedby={errors.phone ? "phone-error" : undefined}
+                    />
+                    {errors.phone && <p id="phone-error" className={styles.error}>{errors.phone}</p>}
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="bio">Bio</label>
+                    <textarea
+                      id="bio"
+                      className={styles.textarea}
+                      rows={3}
+                      value={editData.bio ?? ""}
+                      onChange={(e) => handleChange("bio", e.target.value)}
+                      placeholder="Fale algo sobre você"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <hr className={styles.sep} />
+
+              <div className={styles.secSection}>
+                <h3 className={styles.secTitle}>Alterar senha</h3>
+                <p className={styles.secDesc}>Mantenha sua conta segura com uma senha forte.</p>
+                <div className={styles.pwdRow}>
+                  <div>
+                    <label className={styles.label} htmlFor="current-pwd">Senha atual</label>
+                    <input
+                      id="current-pwd"
+                      className={styles.input}
+                      type="password"
+                      placeholder="Senha atual"
+                      value={pwd.current}
+                      onChange={(e) => setPwd({ ...pwd, current: e.target.value })}
+                      aria-describedby={errors.current ? "current-error" : undefined}
+                    />
+                    {errors.current && <p id="current-error" className={styles.error}>{errors.current}</p>}
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="new-pwd">Nova senha</label>
+                    <input
+                      id="new-pwd"
+                      className={styles.input}
+                      type="password"
+                      placeholder="Nova senha"
+                      value={pwd.next}
+                      onChange={(e) => setPwd({ ...pwd, next: e.target.value })}
+                      aria-describedby={errors.next ? "next-error" : undefined}
+                    />
+                    {errors.next && <p id="next-error" className={styles.error}>{errors.next}</p>}
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="confirm-pwd">Confirmar nova senha</label>
+                    <input
+                      id="confirm-pwd"
+                      className={styles.input}
+                      type="password"
+                      placeholder="Confirmar nova senha"
+                      value={pwd.confirm}
+                      onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })}
+                      aria-describedby={errors.confirm ? "confirm-error" : undefined}
+                    />
+                    {errors.confirm && <p id="confirm-error" className={styles.error}>{errors.confirm}</p>}
+                  </div>
+                </div>
+                <div className={styles.pwdActions}>
+                  <button className={cls("primary")} onClick={changePassword} disabled={loading}>
+                    {loading ? "Atualizando..." : "Atualizar senha"}
+                  </button>
+                  <button
+                    className={cls("ghost")}
+                    onClick={() => {
+                      setPwd({ current: "", next: "", confirm: "" });
+                      setErrors({});
+                    }}
+                  >
+                    Limpar
+                  </button>
+                </div>
+                {errors.password && <p className={styles.error}>{errors.password}</p>}
+              </div>
+            </>
+          )}
+
+          {!isEditing && user?.organizations && user.organizations.length > 0 && (
+            <>
+              <div className={styles.headerRow}>
+                <div>
+                  <h2 className={styles.heading}>Organizações</h2>
+                  <p className={styles.subheading}>ONGs associadas ao seu perfil</p>
+                </div>
+              </div>
+              {user.organizations.map((e) => (
+                <div className={styles.orgCard} key={e._id ?? e.id}>
+                  <div className={styles.orgHeader}>
+                    <img
+                      src={e.logo || "/default-org-logo.png"}
+                      alt={`Logo de ${e.name}`}
+                      className={styles.orgAvatar}
+                    />
+                    <div>
+                      <div className={styles.orgName}>{e.name}</div>
+                      <div className={styles.orgMeta}>{e.email}</div>
+                    </div>
+                  </div>
+                  <p className={styles.orgDesc}>{e.description || "Descrição não disponível."}</p>
+                  <div className={styles.orgActions}>
+                    <button
+                      className={cls("ghost")}
+                      onClick={() => window.open(e.website, "_blank")}
+                      aria-label={`Visitar site de ${e.name}`}
+                    >
+                      Ver ONG
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
 
       {showDeleteConfirm && (
-        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="delete-title">
           <div className={styles.modal}>
-            <h3>Confirmar exclusão de conta</h3>
+            <h3 id="delete-title">Confirmar exclusão de conta</h3>
             <p>Esta ação é irreversível. Todos os dados serão removidos. Tem certeza?</p>
             <div className={styles.modalActions}>
               <button className={cls("secondary")} onClick={() => setShowDeleteConfirm(false)}>

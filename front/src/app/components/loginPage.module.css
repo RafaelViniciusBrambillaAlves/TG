@@ -10,8 +10,10 @@
   --radius: 8px;
   --shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 16px 32px rgba(0, 0, 0, 0.12);
+  --danger: #dc2626;
 }
 
+/* base reset / layout (mantive seu original) */
 html, body, #__next {
   margin: 0;
   padding: 0;
@@ -54,7 +56,6 @@ html, body, #__next {
   justify-content: center;
   border-radius: var(--radius);
   margin-bottom: 16px;
-  /* box-shadow: 0 4px 8px rgba(11, 95, 255, 0.1); */
 }
 
 .heading {
@@ -75,6 +76,12 @@ html, body, #__next {
   gap: 20px;
 }
 
+/* small live region at top of form for announcements */
+.liveRegion {
+  min-height: 22px;
+  margin-bottom: 4px;
+}
+
 .label {
   display: flex;
   flex-direction: column;
@@ -83,19 +90,21 @@ html, body, #__next {
   color: var(--text);
 }
 
+/* container used for input + icon */
 .inputContainer {
   position: relative;
 }
 
 .input {
   margin-top: 6px;
-  padding: 12px 40px 12px 14px; /* Ajustado para dar espaço ao ícone à direita */
+  padding: 12px 40px 12px 14px; /* espaço para ícone */
   border: 1px solid var(--input-border);
   border-radius: var(--radius);
   background: var(--input-bg);
   font-size: 15px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  width: 100%; /* Garante que o input ocupe toda a largura */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input:focus {
@@ -104,6 +113,44 @@ html, body, #__next {
   box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.1);
 }
 
+/* error state for inputs (visual) */
+.inputError {
+  border-color: rgba(220,38,38,0.8);
+  box-shadow: 0 0 0 4px rgba(220,38,38,0.06);
+}
+
+/* little error text below input */
+.errorMini {
+  margin-top: 6px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* general error banner */
+.errorText {
+  background: rgba(220,38,38,0.06);
+  color: var(--danger);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+/* lock notice */
+.lockNotice {
+  background: linear-gradient(90deg, rgba(255, 199, 199, 0.08), rgba(255,255,255,0.02));
+  border: 1px solid rgba(220,38,38,0.06);
+  color: var(--danger);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+/* eye icon */
 .eyeIcon {
   position: absolute;
   right: 12px;
@@ -124,6 +171,7 @@ html, body, #__next {
   color: var(--primary);
 }
 
+/* actions / buttons (mantidos) */
 .actions {
   display: flex;
   flex-direction: column;
@@ -199,17 +247,7 @@ html, body, #__next {
   color: var(--muted);
 }
 
-.signup strong {
-  color: var(--primary);
-  cursor: pointer;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.signup strong:hover {
-  color: var(--primary-hover);
-}
-
+/* side panel (mantive) */
 .sidePanel {
   flex: 1;
   background: linear-gradient(135deg, var(--primary) 0%, #0b5fff 100%);
@@ -248,11 +286,24 @@ html, body, #__next {
   z-index: 1;
 }
 
+/* small accessible message container for screen readers */
 .message {
   font-size: 14px;
   color: var(--primary);
   text-align: center;
   margin: 0;
+}
+
+/* shake animation for failed submit */
+@keyframes shakeX {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shakeX 360ms ease-in-out;
 }
 
 /* Responsividade para mobile */

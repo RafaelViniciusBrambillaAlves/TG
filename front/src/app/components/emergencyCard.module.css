@@ -1,0 +1,276 @@
+/* emergencyCard.module.css
+   Estilos isolados e profissionais só para os cards de emergência.
+   Paleta pensada para contraste com fundo claro: texto escuro, labels coloridas,
+   botões com cor primaria --0b5fff-- e estado aberto em vermelho escuro.
+*/
+
+:root{
+  --primary: #0b5fff;
+  --muted: #6b7280;
+  --text: #0f1724;
+  --card-bg: #ffffff;
+  --card-border: rgba(16,24,40,0.06);
+  --danger: #dc2626;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(2,6,23,0.04);
+}
+
+/* card wrapper */
+.card {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: start;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, box-shadow .12s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(2,6,23,0.06);
+}
+
+/* media (thumb) */
+.media {
+  width: 120px;
+  height: 84px;
+  flex: 0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.thumb {
+  width: 120px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 8px;
+  display:block;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+.noImage {
+  width: 120px;
+  height: 84px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f8fafc, #f3f4f6);
+  color: var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 13px;
+  padding: 8px;
+  text-align:center;
+  border: 1px dashed rgba(16,24,40,0.03);
+}
+
+/* content column */
+.content {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-width: 0; /* important for ellipsis */
+}
+
+/* header row: title + status/time */
+.headerRow {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.titleWrap {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width: 0;
+}
+
+.title {
+  margin:0;
+  font-size:16px;
+  font-weight:800;
+  color:var(--text);
+  line-height:1.1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.subtitle {
+  font-size:13px;
+  color:var(--muted);
+  max-width: 60ch;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* status and time */
+.statusWrap {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.statusBadge{
+  font-size:12px;
+  padding:6px 8px;
+  border-radius:8px;
+  font-weight:700;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.statusOpen {
+  background: linear-gradient(180deg, rgba(220,38,38,0.06), rgba(220,38,38,0.02));
+  color: var(--danger);
+  border-color: rgba(220,38,38,0.12);
+}
+
+.statusOther {
+  background: linear-gradient(180deg, rgba(11,95,255,0.06), rgba(11,95,255,0.02));
+  color: var(--primary);
+  border-color: rgba(11,95,255,0.12);
+}
+
+.timeAgo{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* description */
+.description{
+  margin:0;
+  color:#344054;
+  font-size:14px;
+  line-height:1.45;
+  max-height: 3.6em; /* ~2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* footer row: meta + actions */
+.footerRow {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:4px;
+}
+
+/* left meta group */
+.metaLeft {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  min-width:0;
+}
+
+.metaItem {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.metaLabel {
+  font-size:12px;
+  color:var(--muted);
+  font-weight:700;
+}
+
+.metaValue {
+  font-size:13px;
+  color:#0b1724;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 30ch;
+}
+
+/* actions aligned right */
+.actionsRight {
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+/* prominent "Ajudar" button */
+.helpBtn {
+  background: linear-gradient(180deg,var(--primary), #094acb);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow: 0 8px 20px rgba(11,95,255,0.12);
+  transition: transform .08s ease, box-shadow .12s ease, opacity .12s;
+  white-space:nowrap;
+}
+
+.helpBtn:hover {
+  transform: translateY(-2px);
+  opacity: 0.98;
+}
+
+/* secondary icon actions (edit/delete) */
+.iconActions {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-left: 6px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: 1px solid rgba(16,24,40,0.04);
+  color: var(--muted);
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  cursor:pointer;
+  transition: background .12s ease, color .12s ease, transform .08s ease;
+}
+
+.iconBtn:hover {
+  background: rgba(11,95,255,0.06);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+/* make sure the ajudar button and icons don't blend with background */
+.helpBtn, .iconBtn {
+  box-shadow: none;
+}
+
+/* responsive adjustments */
+@media (max-width: 720px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+  .media {
+    width:100%;
+    height:160px;
+  }
+  .thumb, .noImage {
+    width:100%;
+    height:160px;
+  }
+  .headerRow { align-items:flex-start; }
+  .statusWrap { align-items:flex-start; }
+  .footerRow { flex-direction: column; align-items: stretch; gap: 10px; }
+  .actionsRight { justify-content: space-between; width: 100%; }
+  .metaValue { max-width: 100%; }
+}

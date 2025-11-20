@@ -255,6 +255,17 @@ export default function CreateVolunteerModal({ open, onClose, onCreate }: Props)
           </div>
 
           <div className={styles.row}>
+            <label className={styles.label}>Email (opcional)</label>
+            <input
+              className={styles.input}
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="exemplo@email.com"
+              disabled={loading}
+            />
+          </div>
+
+          <div className={styles.row}>
             <label className={styles.label}>Senha</label>
             <input
               type="password"
@@ -263,17 +274,6 @@ export default function CreateVolunteerModal({ open, onClose, onCreate }: Props)
               onChange={(e) => handleChange("senha", e.target.value)}
               placeholder="Senha (mínimo 6 caracteres)"
               required
-              disabled={loading}
-            />
-          </div>
-
-          <div className={styles.row}>
-            <label className={styles.label}>Email (opcional)</label>
-            <input
-              className={styles.input}
-              value={form.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              placeholder="exemplo@email.com"
               disabled={loading}
             />
           </div>

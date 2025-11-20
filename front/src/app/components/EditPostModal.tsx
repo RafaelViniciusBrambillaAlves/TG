@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import styles from "./editPostModal.module.css";
 import { Post } from "@/app/mocks";
 
@@ -13,38 +13,74 @@ type Props = {
 
 export default function EditPostModal({ post, open, onClose, onUpdate }: Props) {
   const [text, setText] = useState("");
-  const [image, setImage] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null); // Caminho da imagem original
+  const [preview, setPreview] = useState<string | null>(null); // Preview da nova imagem
+  const [file, setFile] = useState<File | null>(null); // Novo arquivo selecionado
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Inicializa com dados do post
   useEffect(() => {
     if (post) {
-      setText(post?.titulo);
+      setText(post.titulo);
       setImage(post.image || null);
+      setPreview(null);
+      setFile(null);
     }
   }, [post]);
+
+  // Revoga preview ao desmontar
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch {}
+      }
+    };
+  }, [preview]);
 
   if (!open || !post) return null;
 
   const handleSave = () => {
     if (!text.trim()) return;
-    onUpdate({ ...post, titulo: text.trim(), descricao: text.trim(), image: file });
+    // Passa o file se houver nova imagem, senão mantém o image original
+    onUpdate({ ...post, titulo: text.trim(), descricao: text.trim(), image: file || image });
     onClose();
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) return;
-    setFile(f);
+
+    // Revoga preview anterior
+    if (preview) {
+      try {
+        URL.revokeObjectURL(preview);
+      } catch {}
+    }
+
     const url = URL.createObjectURL(f);
+    setFile(f);
     setPreview(url);
-    setImage(url)
+
+    // Limpa value do input para permitir re-selecionar o mesmo arquivo
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   const handleRemoveImage = () => {
-    setImage(null)
-    setFile(null)
-    setPreview(null)
+    if (preview) {
+      // Removendo nova imagem (preview)
+      try {
+        URL.revokeObjectURL(preview);
+      } catch {}
+      setPreview(null);
+      setFile(null);
+    } else {
+      // Removendo imagem original
+      setImage(null);
+    }
+    // Limpa input
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
@@ -59,16 +95,26 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
           placeholder="Digite a nova descrição..."
         />
 
-        {image && (
+        {/* Mostra preview se houver nova imagem, senão a imagem original */}
+        {(preview || image) && (
           <div className={styles.imagePreview}>
-            <img src={`http://localhost:3001${image}`} alt="Preview" />
+            <img
+              src={preview || `http://localhost:3001${image}`}
+              alt="Preview"
+            />
             <button className={styles.removeImage} onClick={handleRemoveImage}>✕</button>
           </div>
         )}
 
         <label className={styles.uploadImage}>
           📷 Adicionar/Alterar imagem
-          <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ display: "none" }}
+          />
         </label>
 
         <div className={styles.actions}>

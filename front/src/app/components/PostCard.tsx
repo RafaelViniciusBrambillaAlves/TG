@@ -1,12 +1,11 @@
-// src/components/PostCard.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import styles from "./post.module.css";
 import { Post } from "@/app/mocks";
-import { FiShare2, FiBookmark, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiShare2, FiBookmark, FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
 import { BsFillBookmarkFill } from "react-icons/bs";
-import ProfileModal, { ProfileShape } from "./ProfileModal";
+import ProfileModal from "./ProfileModal";
 import { Usuario } from "@/hooks/getVoluntarios";
 
 type Props = {
@@ -18,9 +17,36 @@ type Props = {
   currentUser?: Usuario;
 };
 
-export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete, currentUser }: Props) {
+export default function PostCard({
+  post,
+  onToggleSave,
+  onShare,
+  onEdit,
+  onDelete,
+  currentUser,
+}: Props) {
   const createdDate = new Date(post.data_criacao);
   const [modalOpen, setModalOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const shareRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!shareRef.current) return;
+      if (!shareRef.current.contains(e.target as Node)) {
+        setShareOpen(false);
+      }
+    }
+    if (shareOpen) document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [shareOpen]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2200);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const computeTimeAgo = () => {
     const diff = Math.floor((Date.now() - createdDate.getTime()) / 1000);
@@ -29,10 +55,100 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
     if (diff < 3600 * 24) return `${Math.floor(diff / 3600)}h`;
     return `${Math.floor(diff / (3600 * 24))}d`;
   };
-  const isMine = post?.usuario?._id === currentUser?._id;
 
+  const isMine = post?.usuario?._id === currentUser?._id;
   const personName = post?.usuario?.nome ?? "Autor desconhecido";
   const avatar = post?.usuario?.image;
+
+  // --- nova função: busca o nome da organização com várias tentativas de fallback ---
+  const getOrgName = () => {
+    const u = post?.usuario as any;
+    if (!u) return "Organização não informada";
+
+    // possíveis campos onde a organização pode estar no mock / API:
+    const candidates = [
+      u.organization,
+      u.organizationName,
+      u.orgName,
+      u.ongName,
+      u.ong?.name,
+      u.organizations?.[0]?.name,
+      u.organizations?.[0]?.nome,
+      u.organization?.name,
+      u.organization?.nome,
+      u.company,
+      u.institution,
+      u.ong,
+      u.organization_title,
+    ];
+
+    for (const c of candidates) {
+      if (typeof c === "string" && c.trim().length > 0) return c;
+      if (c && typeof c === "object" && (c.name || c.nome)) {
+        return (c.name ?? c.nome) as string;
+      }
+    }
+
+    // se não encontrou, tenta usar o próprio nome do usuário (como fallback)
+    return u.nome ? `${u.nome}` : "Organização não informada";
+  };
+
+  const orgName = getOrgName();
+
+  // canonical share url (adjust path if your app uses different route)
+  const shareUrl = useMemo(() => {
+    try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const id = post._id ?? post.id ?? "";
+      return origin ? `${origin}/post/${id}` : `/post/${id}`;
+    } catch {
+      return `/post/${post._id ?? post.id ?? ""}`;
+    }
+  }, [post]);
+
+  async function handleNativeShare() {
+    if (!navigator?.share) return false;
+    try {
+      await navigator.share({
+        title: post.titulo || "Publicação",
+        text: (post.descricao ?? "").slice(0, 200),
+        url: shareUrl,
+      });
+      onShare?.(post._id ?? post.id ?? "");
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setToast("Link copiado para a área de transferência");
+      onShare?.(post._id ?? post.id ?? "");
+    } catch (err) {
+      setToast("Falha ao copiar link");
+    } finally {
+      setShareOpen(false);
+    }
+  }
+
+  function openWindow(url: string) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    onShare?.(post._id ?? post.id ?? "");
+    setShareOpen(false);
+  }
+
+  async function onShareClick() {
+    const usedNative = await handleNativeShare();
+    if (!usedNative) {
+      setShareOpen((s) => !s);
+    }
+  }
+
+  const whatsappText = encodeURIComponent(`${post.titulo ?? ""}\n\n${post.descricao ?? ""}\n\n${shareUrl}`);
+  const twitterText = encodeURIComponent(`${post.titulo ?? ""} — ${shareUrl}`);
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
 
   return (
     <>
@@ -45,7 +161,11 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
               aria-label={`Abrir perfil de ${personName}`}
               title={`Abrir perfil de ${personName}`}
             >
-              <img src={`http://localhost:3001${avatar}`} alt={personName} className={styles.avatar} />
+              {avatar ? (
+                <img src={`http://localhost:3001${avatar}`} alt={personName} className={styles.avatar} />
+              ) : (
+                <div className={styles.avatarPlaceholder}>{(personName || "U").charAt(0).toUpperCase()}</div>
+              )}
             </button>
 
             <div style={{ minWidth: 0 }}>
@@ -54,7 +174,8 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
               </div>
 
               <div className={styles.meta}>
-                <span className={styles.title} id={`post-${post._id}-title`}>{post.titulo || "Sem título"}</span>
+                {/* <<< aqui mostramos o nome da organização (orgName) em vez do título >>> */}
+                <span className={styles.title} id={`post-${post._id}-title`}>{orgName}</span>
                 <span className={styles.dot}>•</span>
                 <time className={styles.time}>{computeTimeAgo()}</time>
               </div>
@@ -62,20 +183,90 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
           </div>
 
           <div className={styles.headerRight}>
-            <button className={styles.iconButton} onClick={() => onShare?.(post.id)} aria-label={`Compartilhar publicação ${post.id}`} type="button">
-              <FiShare2 size={18} />
-            </button>
+            <div ref={shareRef} style={{ position: "relative" }}>
+              <button
+                className={styles.iconButton}
+                onClick={onShareClick}
+                aria-haspopup="menu"
+                aria-expanded={shareOpen}
+                aria-label={`Compartilhar publicação ${post._id ?? post.id}`}
+                type="button"
+              >
+                <FiShare2 size={18} />
+              </button>
 
-            <button className={styles.iconButton} onClick={() => onToggleSave?.(post.id)} aria-label={post.status ? "Remover dos salvos" : "Salvar publicação"} type="button">
+              {shareOpen && (
+                <div role="menu" aria-label="Opções de compartilhamento" className={styles.shareMenu}>
+                  <button
+                    className={styles.shareItem}
+                    onClick={() => {
+                      openWindow(`https://wa.me/?text=${whatsappText}`);
+                    }}
+                  >
+                    <img src="/icons/whatsapp.svg" alt="" className={styles.shareIcon} /> WhatsApp
+                  </button>
+
+                  <button
+                    className={styles.shareItem}
+                    onClick={() => {
+                      openWindow(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.titulo ?? "")}`);
+                    }}
+                  >
+                    <img src="/icons/telegram.svg" alt="" className={styles.shareIcon} /> Telegram
+                  </button>
+
+                  <button
+                    className={styles.shareItem}
+                    onClick={() => {
+                      openWindow(`${facebookUrl}`);
+                    }}
+                  >
+                    <img src="/icons/facebook.svg" alt="" className={styles.shareIcon} /> Facebook
+                  </button>
+
+                  <button
+                    className={styles.shareItem}
+                    onClick={() => {
+                      openWindow(`https://twitter.com/intent/tweet?text=${twitterText}`);
+                    }}
+                  >
+                    <img src="/icons/twitter.svg" alt="" className={styles.shareIcon} /> Twitter
+                  </button>
+
+                  <div className={styles.shareDivider} />
+
+                  <button className={styles.shareItem} onClick={handleCopyLink}>
+                    <FiBookmark size={16} style={{ marginRight: 8 }} /> Copiar link
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              className={styles.iconButton}
+              onClick={() => onToggleSave?.(post._id ?? post.id ?? "")}
+              aria-label={post.status ? "Remover dos salvos" : "Salvar publicação"}
+              type="button"
+            >
               {post.status ? <BsFillBookmarkFill size={18} /> : <FiBookmark size={18} />}
             </button>
 
             {isMine && (
               <>
-                <button className={styles.iconButton} onClick={() => onEdit?.(post)} aria-label="Editar postagem" type="button">
+                <button
+                  className={styles.iconButton}
+                  onClick={() => onEdit?.(post)}
+                  aria-label="Editar postagem"
+                  type="button"
+                >
                   <FiEdit size={18} />
                 </button>
-                <button className={styles.iconButton} onClick={() => onDelete?.(post?._id)} aria-label="Excluir postagem" type="button">
+                <button
+                  className={styles.iconButton}
+                  onClick={() => onDelete?.(post?._id ?? post.id ?? "")}
+                  aria-label="Excluir postagem"
+                  type="button"
+                >
                   <FiTrash2 size={18} />
                 </button>
               </>
@@ -90,6 +281,13 @@ export default function PostCard({ post, onToggleSave, onShare, onEdit, onDelete
       </article>
 
       <ProfileModal visible={modalOpen} onClose={() => setModalOpen(false)} profile={post?.usuario} />
+
+      {/* toast */}
+      {toast && (
+        <div className={styles.toast} role="status" aria-live="polite">
+          <FiCheck style={{ marginRight: 8 }} /> {toast}
+        </div>
+      )}
     </>
   );
 }

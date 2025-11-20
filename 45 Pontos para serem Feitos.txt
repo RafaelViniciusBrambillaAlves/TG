@@ -1,91 +1,98 @@
-45 Pontos para serem Feitos
+52 Pontos para serem Feitos
 
-Foi: 4
+Foi: 22
 
+Essenciais = 25
 
-Essenciais = 23
-
-Foi: 12
+Foi: 13
 
 
 ================================================ FRONT ================================================
 
-LOGIN
-XXX - Fazer algo que mostre a senha
-Fazer algo se caso a pessoa errou a senha(aviso)
+1 - LOGIN
+XXX - 1.1 Fazer algo que mostre a senha
+XXX - 1.2 Fazer algo se caso a pessoa errou a senha(aviso)
 
-Right Card
-X - ***Tem que listar a Ong da pessoa ali
-X - ***Tem que ter a foto da Ong da pessoa ali
-O botão de Ver organização tem que funcionar
+2 - Right Card
+XXX - *** 2.1 Tem que listar a Ong da pessoa ali
+XXX - *** 2.2Tem que ter a foto da Ong da pessoa ali
+XXX - 2.3 O botão de Ver organização tem que funcionar
+XXX - 2.4 Tem que arrumar essa parte de listar da organização
+2.5 Tem que mostrar as informações da organização e não do Mock
+*** 2.6 Todo administrador tem que ter uma organização
 
-PUBLICAÇÂO
-XXX - ***Mostrar Foto do Perfil
-X - ***Arrumar Edição(Eu publico algo e não consigo editar nada, nem excluir nada?????, só estou conseguindo editar o que não é meu???????)
-***Melhorar a formatação das Publicações(eu escrevo algo com enter, ele tira enter)
-***Porque o titulo esta indo parar de baixo do Nome??? embaixo do Nome tem que ficar a organização da pessoa
-Botão de Salvar tem que funcionar
-(Menos)Botão de compartilhar tem que funcionar(nem se for para simulação)
-Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
+3 - PUBLICAÇÂO
+XXX - *** 3.1 Mostrar Foto do Perfil
+XXX - *** 3.2 Arrumar Edição(Não consigo substituir a imagem) (Só tem que recarregar o site)
+XXX - *** 3.3 Melhorar a formatação das Publicações(eu escrevo algo com enter, ele tira enter)
+*** 3.4 Porque o titulo esta indo parar de baixo do Nome??? embaixo do Nome tem que ficar a organização da pessoa
+3.5 Botão de Salvar tem que funcionar
+XXX - (Menos) 3.6 Botão de compartilhar tem que funcionar(nem se for para simulação)
+3.7 Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
 
-CENTROS
-Tem que poder editar e excluir os centros
+4 - CENTROS
+4.1 Tem que poder editar e excluir os centros
 
-EMERGENCIAS
-***Melhorar as distribuição dos textos em cada emergência
-X - ***Não consigo criar Emergência(Fica dando erro)
-X - ***Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
-X - ***Tem que ter um botão se minha organização quiser ajuda ou não
+5 - EMERGENCIAS
+XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
+XXX - *** 5.2 Não consigo criar Emergência(Fica dando erro)
+XXX - *** 5.3 Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
+X - *** 5.4 Tem que ter um botão se minha organização quiser ajuda ou não(botão não faz nada, tem que fazer alguma coisa)
+*** 5.5 Quando aperto para editar os campos que eram para ter texto nao tem nada 
+5.6 Não esta excluindo Emergência
 
-NECESSIDADES
-***Esse coração do lado tem que contar quantas pessoas tiveram a inteção de doar
-***Tem que poder adicionar imagem tambem
-Tem que poder editar e excluir
-***Tem que aparecer a que Emergência esta vinculado isso
+6 - NECESSIDADES
+*** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
+*** 6.2 Tem que poder adicionar imagem tambem
+6.3 Tem que poder editar e excluir
+*** 6.4 Tem que aparecer a que Emergência esta vinculado isso
 
-VOLUNTARIOS
-XXX - ***Precisa aparecer a imagen do Voluntario
-Eu preciso poder acessar o perfil dele para ver as informações como Nome, email, telefone e habilidades/resumo dele ali
-Tem que arrumar o formulario de criação do Voluntario (senha tem que vir depois do email)
+7 - VOLUNTARIOS
+XXX - *** 7.1 Precisa aparecer a imagen do Voluntario
+XXX - 7.2 Eu preciso poder acessar o perfil dele para ver as informações como Nome, email, telefone e habilidades/resumo dele ali
+XXX - 7.3 Tem que arrumar o formulario de criação do Voluntario (senha tem que vir depois do email)
+7.4 Tem que listar os Voluntarios daquela organização 
 
-PERFIL
-X - ***Arrume o ver Pefil(tem que aparecer foto, e as informações da pessoa)
-Tem que poder excluir aconta da pessoa
-***Arrumar toda a pagina de editar perfil(o ux/ ui, arrumar os campos, mostrar as fotos, poder editar as fotos)
+8 - PERFIL
+XXX - *** 8.1 Arrume o ver Pefil(tem que aparecer foto, e as informações da pessoa)
+8.2 Tem que poder excluir aconta da pessoa
+XXX - *** 8.3 Arrumar toda a pagina de editar perfil(o ux/ ui, arrumar os campos, mostrar as fotos, poder editar as fotos)
+8.4 Tem que poder editar as informações e a foto da pessoa
 
-CONFIGURAÇÔES
-Arrumar o que voce acha que tem que arrumar
+9 - CONFIGURAÇÔES
+9.1 Arrumar o que voce acha que tem que arrumar
 
 
 ================================================ APP ================================================
 O Filtro ali em cima tem que funcionar
 
-LOGIN
-XXX - Fazer algo para ver a senha
+10 - LOGIN
+XXX - 10.1 Fazer algo para ver a senha
+XXX - 10.2 Fazer algo se caso a pessoa errou a senha(aviso)
 
-CADASTRAR
-Erro na hora de cadastrar(não sei porque), ele cadastra mas da erro
-Quando tento cadastar um email já cadastrado (ele não aparece uma mensagem falando que esse email já esta sendo utilizando) ele só da erro
+11 - CADASTRAR
+11.1 Erro na hora de cadastrar(não sei porque), ele cadastra mas da erro, tem que aparecer mensagem se deu certo ou se deu errado
+11.2 Quando tento cadastar um email já cadastrado (ele não aparece uma mensagem falando que esse email já esta sendo utilizando) ele só da erro
 
-Organizações
-X - ***Eu deveria poder ver todas as organizações listadas
-X - ***Em expandir, eu deveria ver todas os centros da organização
-X ***E em cada Centro eu deveria poder ver todas as necessidades e ter um botão para se eu quiser ajudar
-O botão "faca parte" tem que salvar a publicação para se depois eu quiser ver
+12 - Organizações
+XXX - *** 12.1 Eu deveria poder ver todas as organizações listadas
+XXX - *** 12.2 Em expandir, eu deveria ver todas os centros da organização
+X *** 12.3 E em cada Centro eu deveria poder ver todas as necessidades e ter um botão para se eu quiser ajudar
+12.4 O botão "faca parte" tem que salvar a publicação para se depois eu quiser ver
 
-EMERGÊNCIAS
-***Tem que mostrar a emergência e a foto da emergência
-Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
-***Em ajudar tem que listar os centros que estão ajudando essa emergência e tem que poder ver o perfil desses centros que estão ajudando
-tem que pode salvar a emergência se quiser ver
-(Menos)tem que pode compartilhar em outras redes a emergência(nem que seja simulação)
+13 - EMERGÊNCIAS
+*** 13.1 Tem que mostrar a emergência e a foto da emergência
+13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
+*** 13.3 Em ajudar tem que listar os centros que estão ajudando essa emergência e tem que poder ver o perfil desses centros que estão ajudando
+13.4 tem que pode salvar a emergência se quiser ver
+13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem que seja simulação)
 
-PUBLICAÇÔES
-***Tem que poder ver a foto de que fez a publicação e o nome
-***Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
+14 - PUBLICAÇÔES
+*** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
+*** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
 
-NOTIFICAÇÂO
-Tem que funcionar, nem que seja simulação de algo  - Tem que fazer uma tabela no banco de notifications ai coloca o suubject, data e o tipo
+15 - NOTIFICAÇÂO
+15.1 Tem que funcionar, nem que seja simulação de algo  - Tem que fazer uma tabela no banco de notifications ai coloca o suubject, data e o tipo
 
-PERFIL
-Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
+16 - PERFIL
+16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros

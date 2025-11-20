@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./centers.module.css";
 import drawerStyles from "./centersModal.module.css";
+import cardStyles from "./emergencyCard.module.css"; // <-- novo CSS específico para cards
 import {
   MOCK_EMERGENCIES,
   Emergency,
@@ -37,14 +38,22 @@ export default function EmergenciesList({
   onEdit,
   onDelete,
 }: Props) {
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<any>();
   const [localEmergencies, setLocalEmergencies] = useState<Emergencia[]>(
     emergencies || [],
   );
 
   useEffect(() => {
-    setUser(JSON.parse(localStorage.getItem("usuario")));
+    const stored = localStorage.getItem("usuario");
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        setUser(undefined);
+      }
+    }
   }, []);
+
   useEffect(() => setLocalEmergencies(emergencies || []), [emergencies]);
 
   const [filter, setFilter] = useState<"all" | "mine">("all");
@@ -53,10 +62,6 @@ export default function EmergenciesList({
     null,
   );
   const [profileOrgId, setProfileOrgId] = useState<string | null>(null);
-
-  // NOTE: default org id used when a normal user (not logged as an ONG) declares interest.
-  // You previously put "Minha ONG Exemplo" in mocks with id "o4" — we'll use that as the default.
-  // If you later wire real auth, replace this with the user's actual org id.
 
   const sorted = useMemo(() => {
     const copy = [...localEmergencies];
@@ -84,7 +89,6 @@ export default function EmergenciesList({
     ? (localEmergencies.find((x) => x.id === selectedEmergencyId) ?? null)
     : null;
 
-  // If currentUser equals the ONG name, this is an org-admin session
   const currentUserOrg = MOCK_ONGS.find((o) => o.name === currentUser) ?? null;
   const currentUserOrgId = currentUserOrg?.id ?? null;
 
@@ -93,7 +97,6 @@ export default function EmergenciesList({
   const findCentersForOrg = (orgId?: string) =>
     orgId ? MOCK_CENTERS.filter((c) => c.orgId === orgId) : [];
 
-  // Admin toggles interest for their ONG (add/remove orgId from emergency.helpingOrgs)
   const toggleInterestByOrgId = (emId: string, orgId: string) => {
     setLocalEmergencies((prev) =>
       prev.map((e) => {
@@ -106,14 +109,11 @@ export default function EmergenciesList({
     );
   };
 
-  // For normal users: add/remove the DEFAULT_USER_ORG_ID into the emergency.helpingOrgs
   const toggleParticipationAsMyOrg = (emId: string) => {
     setLocalEmergencies((prev) =>
       prev.map((e) => {
         if (e.id !== emId) return e;
         const cur = new Set(e.helpingOrgs ?? []);
-        // if (cur.has(DEFAULT_USER_ORG_ID)) cur.delete(DEFAULT_USER_ORG_ID);
-        // else cur.add(DEFAULT_USER_ORG_ID);
         return { ...e, helpingOrgs: Array.from(cur) };
       }),
     );
@@ -121,12 +121,15 @@ export default function EmergenciesList({
 
   async function onJoin(em: Emergency) {
     try {
-      if (!user?.organizations[0]._id) return;
-      await api.put(`/api/v1/emergencias/linkOrg/${em._id}`, {orgId: user?.organizations[0]._id});
-      alert(`Organizar vinculado com sucesso`)
+      if (!user?.organizations?.[0]?._id) {
+        alert("Sem organização vinculada no perfil.");
+        return;
+      }
+      await api.put(`/api/v1/emergencias/linkOrg/${em._id}`, {orgId: user.organizations[0]._id});
+      alert(`Organização vinculada com sucesso`);
     } catch (error) {
-
       console.error(error);
+      alert("Falha ao vincular organização (ver console).");
     }
   }
 
@@ -186,122 +189,88 @@ export default function EmergenciesList({
           return (
             <article
               key={em._id}
-              className={styles.card}
+              className={cardStyles.card}              // <- usa o CSS isolado do card
               aria-labelledby={`em-${em._id}-title`}
               onClick={() => {
                 setSelectedEmergencyId(em._id);
                 setProfileOrgId(null);
               }}
-              style={{ cursor: "pointer" }}
+              role="button"
             >
-              <div className={styles.cardLeft}>
+              <div className={cardStyles.media}>
                 {em.image ? (
                   <img
                     src={`http://localhost:3001${em.image}`}
                     alt={em.titulo}
-                    className={styles.thumb}
+                    className={cardStyles.thumb}
                   />
                 ) : (
-                  <div
-                    style={{
-                      width: 110,
-                      height: 80,
-                      borderRadius: 8,
-                      background: "#f3f4f6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#6b7280",
-                      fontSize: 13,
-                      textAlign: "center",
-                      padding: 8,
-                    }}
-                  >
-                    Sem imagem
-                  </div>
+                  <div className={cardStyles.noImage}>Sem imagem</div>
                 )}
               </div>
 
-              <div className={styles.cardBody}>
-                <div className={styles.cardHeader}>
-                  <h3 id={`em-${em._id}-title`} className={styles.centerName}>
-                    {em.titulo}
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-end",
-                    }}
-                  >
+              <div className={cardStyles.content}>
+                <div className={cardStyles.headerRow}>
+                  <div className={cardStyles.titleWrap}>
+                    <h3 id={`em-${em._id}-title`} className={cardStyles.title}>
+                      {em.titulo}
+                    </h3>
+                    <div className={cardStyles.subtitle}>{em.subtitulo}</div>
+                  </div>
+
+                  <div className={cardStyles.statusWrap}>
                     <div
-                      style={{
-                        fontSize: 13,
-                        color: "#6b7280",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {em.subtitulo}
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        color: em.status === "Aberta" ? "#dc2626" : "#0b5fff",
-                        fontSize: 12,
-                      }}
+                      className={`${cardStyles.statusBadge} ${
+                        em.status === "Aberta" ? cardStyles.statusOpen : cardStyles.statusOther
+                      }`}
+                      aria-hidden
                     >
                       {em.status}
                     </div>
+                    <div className={cardStyles.timeAgo}>{timeAgo}</div>
                   </div>
                 </div>
 
-                <p className={styles.centerDesc}>{em.descricao}</p>
+                <p className={cardStyles.description} title={em.descricao}>
+                  {em.descricao}
+                </p>
 
-                <dl className={styles.meta}>
-                  {em.address && (
-                    <div>
-                      <dt>Endereço</dt>
-                      <dd>{em.address}</dd>
-                    </div>
-                  )}
+                <div className={cardStyles.footerRow}>
+                  <div className={cardStyles.metaLeft}>
+                    {em.address && (
+                      <div className={cardStyles.metaItem}>
+                        <div className={cardStyles.metaLabel}>Endereço</div>
+                        <div className={cardStyles.metaValue}>{em.address}</div>
+                      </div>
+                    )}
+                  </div>
 
-                  <div className={styles.reportRow}>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 12 }}
-                    >
-                      <dt>Reportado</dt>
-                      <dd style={{ color: "#6b7280", margin: 0 }}>{timeAgo}</dd>
-                    </div>
+                  <div className={cardStyles.actionsRight}>
                     <button
-                      className={styles.iconButton}
-                      title="Fazer parte"
+                      className={cardStyles.helpBtn}
+                      title="Ajudar nesta emergência"
                       onClick={async (ev) => {
                         ev.stopPropagation();
-                        await onJoin(em);
+                        await onJoin(em as any);
                       }}
                     >
                       Ajudar
                     </button>
-                    <div className={styles.actionIcons}>
+
+                    <div className={cardStyles.iconActions} onClick={(ev) => ev.stopPropagation()}>
                       {mine && (
                         <>
                           <button
-                            className={styles.iconButton}
+                            className={cardStyles.iconBtn}
                             title="Editar emergência"
-                            onClick={(ev) => {
-                              ev.stopPropagation();
-                              onEdit?.(em);
-                            }}
+                            onClick={() => onEdit?.(em)}
                           >
                             <FiEdit />
                           </button>
                           <button
-                            className={styles.iconButton}
+                            className={cardStyles.iconBtn}
                             title="Excluir emergência"
-                            onClick={(ev) => {
-                              ev.stopPropagation();
-                              onDelete?.(em._id);
-                            }}
+                            onClick={() => onDelete?.(em._id)}
                           >
                             <FiTrash2 />
                           </button>
@@ -309,14 +278,14 @@ export default function EmergenciesList({
                       )}
                     </div>
                   </div>
-                </dl>
+                </div>
               </div>
             </article>
           );
         })}
       </div>
 
-      {/* DRAWER */}
+      {/* DRAWER (mantido idêntico, sem alterações) */}
       <div
         className={`${drawerStyles.overlay} ${selectedEmergency ? drawerStyles.show : ""}`}
         onClick={() => setSelectedEmergencyId(null)}
@@ -420,7 +389,6 @@ export default function EmergenciesList({
                               </div>
 
                               <div className={drawerStyles.orgActions}>
-                                {/* Ver perfil: NO-OP (visual only) conforme solicitado */}
                                 <button
                                   className={drawerStyles.actionBtn}
                                   onClick={(e) => {
@@ -430,7 +398,6 @@ export default function EmergenciesList({
                                   Ver organização
                                 </button>
 
-                                {/* Only show ONG-admin control if current user represents this ONG */}
                                 {isMyOrg && (
                                   <button
                                     className={`${drawerStyles.actionBtn} ${drawerStyles.solidPrimary}`}
@@ -467,9 +434,6 @@ export default function EmergenciesList({
                   </div>
 
                   <div className={drawerStyles.section}>
-                    {/* <h4>Participar</h4> */}
-
-                    {/* If user is an ONG admin, show ONG toggle (existing behavior) */}
                     {currentUserOrgId ? (
                       <button
                         className={`${drawerStyles.primaryBtn} ${drawerStyles.full}`}
@@ -487,7 +451,6 @@ export default function EmergenciesList({
                           : `Tenho interesse em ajudar como ${currentUser}`}
                       </button>
                     ) : (
-                      /* Non-admin: act on behalf of the user's default ONG (add/remove it from helpingOrgs) */
                       <div
                         style={{
                           display: "flex",
@@ -503,7 +466,7 @@ export default function EmergenciesList({
                           }}
                         >
                           {selectedEmergency.helpingOrgs?.includes(
-                            DEFAULT_USER_ORG_ID,
+                            ("" as any),
                           )
                             ? "Cancelar interesse (Minha ONG)"
                             : "Tenho interesse (Minha ONG)"}
@@ -519,7 +482,7 @@ export default function EmergenciesList({
                 </div>
               </>
             ) : (
-              /* ONG profile view (kept but accessible only via separate flow if you want; not via Ver perfil button) */
+              /* ONG profile view - sem alterações */
               (() => {
                 const org = findOrgById(profileOrgId) as ONG | undefined;
                 if (!org)
