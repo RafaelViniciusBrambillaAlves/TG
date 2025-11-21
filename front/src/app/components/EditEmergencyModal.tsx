@@ -4,15 +4,17 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from "react";
 import styles from "./createEmergency.module.css";
 import type { Emergency } from "@/app/mocks";
+import { Emergencia } from "@/hooks/getEmergencias";
 
 type Props = {
   open: boolean;
-  emergency: Emergency | null;
+  emergency: Emergencia;
   onClose: () => void;
-  onUpdate: (e: Emergency) => void;
+  onUpdate: (e: Emergencia) => void;
 };
 
 export default function EditEmergencyModal({ open, emergency, onClose, onUpdate }: Props) {
+  console.log(emergency)
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -26,9 +28,9 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
   useEffect(() => {
     if (open && emergency) {
       setForm({
-        title: emergency.title || "",
-        subtitle: emergency.subtitle || "",
-        description: emergency.description || "",
+        title: emergency.titulo || "",
+        subtitle: emergency.subtitulo || "",
+        description: emergency.descricao || "",
         address: emergency.address || "",
         image: emergency.image || null,
         status: emergency.status || "Aberta",

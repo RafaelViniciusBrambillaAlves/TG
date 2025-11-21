@@ -60,7 +60,6 @@ export default function NotificationScreen() {
   };
 
   const share = (item: NotificationItem) => {
-    console.log("Compartilhar:", item.id);
   };
 
   const severityColor = (s?: NotificationItem["severity"]) =>

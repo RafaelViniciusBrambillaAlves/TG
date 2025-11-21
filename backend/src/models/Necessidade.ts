@@ -11,7 +11,8 @@ export interface INecessidade extends Document {
   quantidade_necessaria: string;
   quantidade_atingida: string;
   emergencyId?: string;
-  interestCount?: number;
+  image?: string;
+  interest: Array<string>;
 }
 
 export const necessidadeSchema = new Schema<INecessidade>(
@@ -32,8 +33,9 @@ export const necessidadeSchema = new Schema<INecessidade>(
       required: true,
     },
     centerId: { type: Schema.Types.ObjectId, ref: "Centro" },
-    emergencyId: { type: String, required: false },
-    interestCount: { type: Number, required: false },
+    interest: { type: [String], required: true, default: [] },
+    emergencyId: { type: Schema.Types.ObjectId, ref: "Emergencia" },
+    image: { type: String, required: false },
   },
   { timestamps: true },
 );

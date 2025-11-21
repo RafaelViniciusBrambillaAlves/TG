@@ -1,3 +1,5 @@
+import { Emergencia } from "@/hooks/getEmergencias";
+
 // app/mocks.ts
 export type Post = {
   _id?: string;
@@ -294,9 +296,11 @@ export type Need = {
   quantity?: string;
   status: "Aberta" | "Parcial" | "Atendida";
   centerId: string;
-  emergencyId: string;
+  emergencyId: Emergencia;
   createdAt: string;
+  image: string;
   interestCount?: number;
+  interest: Array<string>;
 };
 
 export const MOCK_NEEDS: Need[] = [

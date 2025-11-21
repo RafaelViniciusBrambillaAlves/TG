@@ -24,9 +24,6 @@ const SettingsPage = lazy(() => import("@/app/components/SettingsPage"));
 
 import Cookies from "js-cookie";
 
-// --- Debug: carregamento do login e forgot-password para teste sem alterar a rota principal ---
-// Ajuste o caminho abaixo se você guardou o componente em outro lugar.
-// Ex: "@/components/loginPage" ou "@/app/components/loginPage"
 const LoginPageLazy = lazy(() => import("@/app/components/LoginPage"));
 const ForgotPasswordPageLazy = lazy(
   () => import("@/app/components/ForgotPasswordPage"),
@@ -127,10 +124,8 @@ export default function Home() {
     try {
       const params = new URLSearchParams(window.location.search);
       const v = params.get("view");
-      console.log(params);
       if (v) setDebugView(v);
 
-      console.log(checkIsAuth());
       if (!checkIsAuth()) setDebugView("login");
     } catch {
       setDebugView(null);
@@ -146,7 +141,6 @@ export default function Home() {
         setSelectedOrg(orgDetail);
         setShowOrgModal(true);
       } catch (err) {
-        console.warn("view-org event handler failed", err);
       }
     };
 
@@ -225,7 +219,6 @@ export default function Home() {
 
     getNecessidades()
       .then(async (data) => {
-        console.log(data);
         setNeeds(data);
       })
       .catch((err) => console.warn("getNecessidades failed:", err));
@@ -557,7 +550,6 @@ export default function Home() {
       }
     });
   }, [searchQuery, needs]);
-  console.log(needs);
   const filteredVolunteers = useMemo(() => {
     const base = volunteers ?? [];
     if (!searchQuery) return base;
@@ -568,7 +560,6 @@ export default function Home() {
       return name.includes(q) || email.includes(q);
     });
   }, [searchQuery, volunteers]);
-
   function handleUpdatePostInParent(updated: PostType) {
     setPosts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
   }

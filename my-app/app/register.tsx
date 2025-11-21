@@ -64,7 +64,6 @@ export default function Register() {
 
     try {
       const res: any = await signUp(payload);
-      console.log("[signUp] resposta:", res);
 
       // suporte para vários shapes de resposta
       const status = res?.status || res?.statusCode || (res?.ok ? 201 : undefined);
@@ -100,7 +99,6 @@ export default function Register() {
         Alert.alert("Problema", "Erro desconhecido ao registrar.");
       }
     } catch (err: any) {
-      console.log("[signUp] erro capturado:", err);
 
       const serverStatus = err?.response?.status || err?.status;
       if (serverStatus === 400) {

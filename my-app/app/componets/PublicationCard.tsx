@@ -41,12 +41,8 @@ export default function PublicationCard({
     publication.titulo ||
     "Usuário";
 
-  const authorAvatar =
-    (publication as any).author?.avatar ||
-    (publication as any).publisher?.avatar ||
-    publication.centro?.thumbnail ||
-    undefined;
-
+  const authorAvatar = publication.author?.image;
+  console.log(authorAvatar)
   const authorEmail =
     (publication as any).author?.email ||
     (publication as any).publisher?.email ||
@@ -82,13 +78,7 @@ export default function PublicationCard({
   };
 
   const openProfile = () => {
-    const p: ProfileData = {
-      name: authorName,
-      email: authorEmail ?? null,
-      phone: publication.centro?.telefone ?? null,
-      organization: publication.centro?.nome_centro ?? null,
-      avatar: authorAvatar ?? null,
-    };
+    const p = publication.author;
     setProfileToView(p);
     setProfileVisible(true);
   };
@@ -102,7 +92,7 @@ export default function PublicationCard({
             <TouchableOpacity onPress={openProfile} accessibilityLabel={`Abrir perfil de ${authorName}`} activeOpacity={0.85}>
               <View style={styles.avatarWrap}>
                 {authorAvatar ? (
-                  <Image source={{ uri: authorAvatar }} style={styles.avatar} />
+                  <Image source={{ uri: `http://localhost:3001${authorAvatar}` }} style={styles.avatar} />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
                     <Feather name="user" size={18} color="#fff" />

@@ -14,6 +14,7 @@ export type User = {
   email: string;
   telefone?: string | null;
   id_perfil?: number | null;
+  image?: string;
   token?: string;
 };
 export type SignInRequestData = {

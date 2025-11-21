@@ -4,7 +4,7 @@ Foi: 22
 
 Essenciais = 25
 
-Foi: 13
+Foi: 24
 
 
 ================================================ FRONT ================================================
@@ -25,7 +25,7 @@ XXX - 2.4 Tem que arrumar essa parte de listar da organização
 XXX - *** 3.1 Mostrar Foto do Perfil
 XXX - *** 3.2 Arrumar Edição(Não consigo substituir a imagem) (Só tem que recarregar o site)
 XXX - *** 3.3 Melhorar a formatação das Publicações(eu escrevo algo com enter, ele tira enter)
-*** 3.4 Porque o titulo esta indo parar de baixo do Nome??? embaixo do Nome tem que ficar a organização da pessoa
+X *** 3.4 Porque o titulo esta indo parar de baixo do Nome??? embaixo do Nome tem que ficar a organização da pessoa
 3.5 Botão de Salvar tem que funcionar
 XXX - (Menos) 3.6 Botão de compartilhar tem que funcionar(nem se for para simulação)
 3.7 Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
@@ -38,20 +38,20 @@ XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
 XXX - *** 5.2 Não consigo criar Emergência(Fica dando erro)
 XXX - *** 5.3 Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
 X - *** 5.4 Tem que ter um botão se minha organização quiser ajuda ou não(botão não faz nada, tem que fazer alguma coisa)
-*** 5.5 Quando aperto para editar os campos que eram para ter texto nao tem nada 
+X - *** 5.5 Quando aperto para editar os campos que eram para ter texto nao tem nada
 5.6 Não esta excluindo Emergência
 
 6 - NECESSIDADES
-*** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
-*** 6.2 Tem que poder adicionar imagem tambem
+X - *** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
+X - *** 6.2 Tem que poder adicionar imagem tambem
 6.3 Tem que poder editar e excluir
-*** 6.4 Tem que aparecer a que Emergência esta vinculado isso
+X - *** 6.4 Tem que aparecer a que Emergência esta vinculado isso
 
 7 - VOLUNTARIOS
 XXX - *** 7.1 Precisa aparecer a imagen do Voluntario
 XXX - 7.2 Eu preciso poder acessar o perfil dele para ver as informações como Nome, email, telefone e habilidades/resumo dele ali
 XXX - 7.3 Tem que arrumar o formulario de criação do Voluntario (senha tem que vir depois do email)
-7.4 Tem que listar os Voluntarios daquela organização 
+7.4 Tem que listar os Voluntarios daquela organização
 
 8 - PERFIL
 XXX - *** 8.1 Arrume o ver Pefil(tem que aparecer foto, e as informações da pessoa)
@@ -88,7 +88,7 @@ X *** 12.3 E em cada Centro eu deveria poder ver todas as necessidades e ter um 
 13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem que seja simulação)
 
 14 - PUBLICAÇÔES
-*** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
+X - *** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
 *** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
 
 15 - NOTIFICAÇÂO

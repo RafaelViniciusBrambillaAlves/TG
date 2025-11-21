@@ -1,5 +1,4 @@
 import api from '@/services/api'
-import { useQuery, UseQueryResult } from '@tanstack/react-query'
 
 export interface Emergencia {
   _id?: string;

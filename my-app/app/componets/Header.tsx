@@ -50,7 +50,7 @@ const mapEmergenciasToCard = (list: any[]): EmergencyType[] =>
             : "info"),
       timeLabel: formatTimeLabel(createdAtRaw),
       createdAtRaw,
-      image: e.imagem ?? (Array.isArray(e.images) ? e.images[0] : undefined),
+      image: e.image,
       images: e.images ?? undefined,
       descricao: e.descricao ?? "",
       // NOVO: centros (array) e organizacao (opcional)

@@ -7,19 +7,47 @@ import UsuarioModel from "../models/Usuario";
 export const publicidadeController = {
   async getAll(req: Request, res: Response) {
     try {
-      const publicidades = await Publicidade.find()
-        .sort({ data_criacao: -1 }) // opcional
-        .populate({
-          path: "necessidades"
-        })
-        .populate("usuario", "-senha")
+      const publicidades = await Publicidade.aggregate([
+        { $sort: { data_criacao: -1 } },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "usuario",
+            foreignField: "_id",
+            as: "usuario"
+          }
+        },
+        { $unwind: "$usuario" },
+        {
+          $lookup: {
+            from: "organizacaousuarios",
+            localField: "usuario._id",
+            foreignField: "user_id",
+            as: "organizacaousuarios"
+          }
+        },
+        {
+          $lookup: {
+            from: "organizacaos",
+            localField: "organizacaousuarios.organization_id",
+            foreignField: "_id",
+            as: "usuario.organizacoes"
+          }
+        },
+        {
+          $project: {
+            "usuario.senha": 0,
+            "organizacaousuarios": 0
+          }
+        }
+      ]);
+
       return res.json(publicidades);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: 'Erro ao buscar publicidades' });
     }
   },
-
 
   async getById(req: Request, res: Response) {
     const publicidade = await Publicidade.findOne({ id_postagem: req.params.id });

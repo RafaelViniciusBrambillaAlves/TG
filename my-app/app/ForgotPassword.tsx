@@ -35,7 +35,6 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       const payload = { email: email.trim().toLowerCase() };
-      console.log("Solicitação de envio de código:", payload);
 
       // Ex.: await api.post('/auth/forgot-password', payload);
 

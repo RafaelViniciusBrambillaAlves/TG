@@ -1,6 +1,7 @@
 // src/hooks/usePublications.ts
 import { Necessidade } from "@/app/componets/CenterNeeds";
 import { useCallback, useEffect, useState } from "react";
+import { User } from "./useLogin";
 
 export type NecessidadeMock = {
   id_necessidade: number;
@@ -29,9 +30,10 @@ export type PublicationMock = {
   data_criacao: string;
   data_validade?: string | null;
   status?: string | null;
-  timeLabel?: string | null; // ex: "13 h"
-  centro: CentroMini | null; // payload pronto já com centro embutido
-  necessidades: Necessidade[] | null; // payload pronto já com necessidades
+  timeLabel?: string | null;
+  centro: CentroMini | null;
+  necessidades: Necessidade[] | null;
+  author: User;
 };
 
 const MOCK_RESPONSE: PublicationMock[] = [

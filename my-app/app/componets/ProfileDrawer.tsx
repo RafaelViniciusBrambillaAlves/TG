@@ -39,7 +39,6 @@ export const ProfileDrawer = ({
   const [showSettings, setShowSettings] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  console.log(user);
   // profile data (local) -> será usado quando estiver visualizando o "próprio" perfil
   const [profile, setProfile] = useState<ProfileData>({
     name: user?.username || "",
@@ -77,7 +76,6 @@ export const ProfileDrawer = ({
     setShowLogoutConfirm(false);
     onClose();
     if (onLogout) onLogout();
-    else console.log("Usuário deslogou (placeholder)");
     signOut();
     router.replace("/");
   };
@@ -89,11 +87,6 @@ export const ProfileDrawer = ({
 
   const handleSaveSettings = () => {
     // persist settings if needed
-    console.log("Salvar configurações:", {
-      notificationsEnabled,
-      darkModeEnabled,
-      language,
-    });
     setShowSettings(false);
   };
 
@@ -107,10 +100,6 @@ export const ProfileDrawer = ({
         console.warn("Erro ao chamar onViewSaved:", e);
       }
     } else {
-      // fallback visível para desenvolvimento
-      console.log(
-        "Ver salvos: callback não fornecido. Passe onViewSaved para navegar para a tela de salvos.",
-      );
       Alert.alert("Salvos", "Abrir salvos (callback não configurado).");
     }
   };

@@ -132,7 +132,7 @@ export default function EmergencyCard({ item }: Props) {
       </View>
     );
   };
-
+  console.log(item)
   return (
     <View style={styles.card}>
       <View style={[styles.accent, { backgroundColor: severityColor }]} />
@@ -167,8 +167,14 @@ export default function EmergencyCard({ item }: Props) {
             </TouchableOpacity>
           </View>
         </View>
+        {item.image &&
+          <Image
+            source={{ uri: `http://localhost:3001${item.image}` }}
+            style={[styles.image]}
+          />
+        }
 
-        {renderCarousel()}
+        {/*{renderCarousel()}*/}
 
         <View style={styles.tabRow}>
           <TouchableOpacity

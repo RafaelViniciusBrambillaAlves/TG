@@ -9,17 +9,18 @@ import {
   TouchableOpacity,
   Pressable,
   Linking,
-  Platform,
   Alert,
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
+import { Organizacao } from "./OrganizationCard";
 
 export type ProfileData = {
-  name: string;
+  nome: string;
   email?: string | null;
   phone?: string | null;
-  organization?: string | null;
-  avatar?: string | null;
+  organizacoes?: Organizacao[];
+  image?: string | null;
+  telefone?: string | null;
 };
 
 export default function ProfileModal({
@@ -49,6 +50,7 @@ export default function ProfileModal({
       .catch(() => Alert.alert("Erro", "Não foi possível abrir o WhatsApp."));
   };
 
+  console.log(profile)
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Fechar perfil">
@@ -61,10 +63,9 @@ export default function ProfileModal({
                 <AntDesign name="close" size={20} color="#333" />
               </TouchableOpacity>
             </View>
-
             <View style={styles.avatarRow}>
-              {profile.avatar ? (
-                <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+              {profile.image ? (
+                <Image source={{ uri: `http://localhost:3001${profile?.image}` }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Feather name="user" size={28} color="#fff" />
@@ -72,10 +73,22 @@ export default function ProfileModal({
               )}
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.name} numberOfLines={1}>
-                  {profile.name}
+                  {profile.nome}
                 </Text>
+              </View>
+            </View>
+            <Text style={styles.title}>Organização do autor</Text>
+            <View style={styles.avatarRow}>
+              {profile?.organizacoes?.[0]?.logo ? (
+                <Image source={{ uri: profile?.organizacoes?.[0]?.logo }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Feather name="user" size={28} color="#fff" />
+                </View>
+              )}
+              <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.org} numberOfLines={1}>
-                  {profile.organization ?? "Organização não informada"}
+                  {profile?.organizacoes?.[0]?.name}
                 </Text>
               </View>
             </View>
@@ -85,7 +98,7 @@ export default function ProfileModal({
               <Text style={styles.value}>{profile.email ?? "—"}</Text>
 
               <Text style={[styles.label, { marginTop: 12 }]}>Telefone</Text>
-              <Text style={styles.value}>{profile.phone ?? "—"}</Text>
+              <Text style={styles.value}>{profile.telefone ?? "—"}</Text>
             </View>
 
             <View style={styles.actionsRow}>

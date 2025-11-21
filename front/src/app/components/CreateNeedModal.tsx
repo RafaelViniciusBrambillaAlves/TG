@@ -41,6 +41,11 @@ export default function CreateNeedModal({
   const [centerId, setCenterId] = useState(editData.centerId);
   const [emergencyId, setEmergencyId] = useState(editData.emergencyId);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   useEffect(() => {
     if (!open) {
       setTitle(editData.title ?? "");
@@ -51,43 +56,142 @@ export default function CreateNeedModal({
       setCenterId(editData.centerId);
       setEmergencyId(editData.emergencyId);
       setError(null);
+      setLoading(false);
+
+      // Limpar preview da imagem
+      if (imagePreview) {
+        try {
+          URL.revokeObjectURL(imagePreview);
+        } catch {}
+      }
+      setImageFile(null);
+      setImagePreview(null);
     }
-  }, [open, editData]);
+  }, [open, editData, imagePreview]);
+
+  // Cleanup preview URL quando componente desmonta
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        try {
+          URL.revokeObjectURL(imagePreview);
+        } catch {}
+      }
+    };
+  }, [imagePreview]);
 
   const center = centersFilterOrgId
     ? centers.filter((c) => c.orgId === centersFilterOrgId)
     : centers;
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    if (!f) return;
+
+    // Tamanho máximo client-side (8MB)
+    const MAX = 8 * 1024 * 1024;
+    if (f.size > MAX) {
+      alert("Arquivo muito grande. Tamanho máximo: 8MB.");
+      e.currentTarget.value = "";
+      return;
+    }
+
+    // Revoga preview anterior se houver
+    if (imagePreview) {
+      try {
+        URL.revokeObjectURL(imagePreview);
+      } catch {}
+    }
+
+    const url = URL.createObjectURL(f);
+    setImageFile(f);
+    setImagePreview(url);
+  }
+
+  async function uploadFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await api.post("/api/v1/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    const data = res.data ?? {};
+    if (typeof data === "string") {
+      return data;
+    }
+    if (data.url) return data.url;
+    if (data.fileId) return `/api/v1/files/${data.fileId}`;
+    if (data.file?._id) return `/api/v1/files/${data.file._id}`;
+    if (data._id) return `/api/v1/files/${data._id}`;
+
+    throw new Error("Resposta de upload inválida");
+  }
+
   const handleSubmit = async (ev?: React.FormEvent) => {
     ev?.preventDefault();
     setError(null);
-    if (!title.trim()) return setError("Título é obrigatório");
-    if (!description.trim()) return setError("Descrição é obrigatória");
-    if (!centerId) return setError("Selecione um centro");
-    const newNeed: Need = {
-      _id: editData._id, // Inclua _id para edição
-      title: title.trim(),
-      description: description.trim(),
-      type,
-      quantity: quantity.trim() || undefined,
-      status,
-      centerId,
-      emergencyId: emergencyId!,
-      createdAt: editData.createdAt ?? new Date().toISOString(),
-      interestCount: editData.interestCount ?? 0,
-    };
-    // Use PUT para edição, POST para criação
-    const method = editData._id ? "PUT" : "POST";
-    const url = editData._id
-      ? `/api/v1/necessidades/${editData._id}`
-      : "/api/v1/necessidades";
-    await api({
-      url,
-      method,
-      data: newNeed,
-    });
-    onCreate(newNeed);
-    onClose();
+    setLoading(true);
+
+    try {
+      if (!title.trim()) return setError("Título é obrigatório");
+      if (!description.trim()) return setError("Descrição é obrigatória");
+      if (!centerId) return setError("Selecione um centro");
+
+      // 1. Upload da imagem se existir
+      let imageUrl: string | undefined = undefined;
+      if (imageFile) {
+        try {
+          imageUrl = await uploadFile(imageFile);
+        } catch (err) {
+          console.error("Erro ao enviar imagem:", err);
+          setError("Falha ao enviar a imagem. Tente novamente.");
+          return;
+        }
+      }
+
+      // 2. Criar necessidade
+      const newNeed: Need = {
+        _id: editData._id,
+        title: title.trim(),
+        description: description.trim(),
+        type,
+        quantity: quantity.trim() || undefined,
+        status,
+        centerId,
+        emergencyId: emergencyId!,
+        createdAt: editData.createdAt ?? new Date().toISOString(),
+        interestCount: editData.interestCount ?? 0,
+        image: imageUrl, // Adicionar URL da imagem
+      };
+
+      const method = editData._id ? "PUT" : "POST";
+      const url = editData._id
+        ? `/api/v1/necessidades/${editData._id}`
+        : "/api/v1/necessidades";
+
+      await api({
+        url,
+        method,
+        data: newNeed,
+      });
+
+      onCreate(newNeed);
+
+      // Limpar preview
+      if (imagePreview) {
+        try {
+          URL.revokeObjectURL(imagePreview);
+        } catch {}
+      }
+
+      onClose();
+    } catch (err: any) {
+      console.error('Error creating/updating need:', err);
+      setError(err.response?.data?.message || err.message || 'Erro ao salvar necessidade');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!open) return null;
@@ -103,6 +207,7 @@ export default function CreateNeedModal({
             className={styles.close}
             onClick={onClose}
             aria-label="Fechar"
+            disabled={loading}
           >
             ×
           </button>
@@ -117,6 +222,7 @@ export default function CreateNeedModal({
               className={styles.input}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              disabled={loading}
             />
           </label>
 
@@ -126,6 +232,7 @@ export default function CreateNeedModal({
               className={styles.textarea}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              disabled={loading}
             />
           </label>
 
@@ -136,6 +243,7 @@ export default function CreateNeedModal({
                 className={styles.select}
                 value={type}
                 onChange={(e) => setType(e.target.value as any)}
+                disabled={loading}
               >
                 <option>Doação</option>
                 <option>Voluntário</option>
@@ -151,6 +259,7 @@ export default function CreateNeedModal({
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="ex: 10 unidades / 50kg"
+                disabled={loading}
               />
             </label>
           </div>
@@ -162,6 +271,7 @@ export default function CreateNeedModal({
                 className={styles.select}
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
+                disabled={loading}
               >
                 <option>Aberta</option>
                 <option>Parcial</option>
@@ -175,6 +285,7 @@ export default function CreateNeedModal({
                 className={styles.select}
                 value={centerId}
                 onChange={(e) => setCenterId(e.target.value)}
+                disabled={loading}
               >
                 <option value="">-- selecione --</option>
                 {center?.map((c) => (
@@ -192,6 +303,7 @@ export default function CreateNeedModal({
               className={styles.select}
               value={emergencyId}
               onChange={(e) => setEmergencyId(e.target.value)}
+              disabled={loading}
             >
               <option value="">-- nenhuma --</option>
               {emergencies?.map((em) => (
@@ -202,16 +314,59 @@ export default function CreateNeedModal({
             </select>
           </label>
 
+          {/* Campo de imagem */}
+          <div className={styles.row}>
+            <div className={styles.label}>Imagem (opcional)</div>
+            <div className={styles.fileRow}>
+              <label className={styles.fileLabel}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+                Selecionar imagem
+              </label>
+
+              {imagePreview && (
+                <div className={styles.previewWrap}>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className={styles.preview}
+                  />
+                  <button
+                    type="button"
+                    className={styles.removePreview}
+                    onClick={() => {
+                      if (imagePreview) {
+                        try {
+                          URL.revokeObjectURL(imagePreview);
+                        } catch {}
+                      }
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    disabled={loading}
+                  >
+                    Remover
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.secondary}
               onClick={onClose}
+              disabled={loading}
             >
               Cancelar
             </button>
-            <button type="submit" className={styles.primary}>
-              {editData._id ? "Salvar alterações" : "Criar necessidade"}
+            <button type="submit" className={styles.primary} disabled={loading}>
+              {loading ? "Salvando..." : (editData._id ? "Salvar alterações" : "Criar necessidade")}
             </button>
           </div>
         </form>

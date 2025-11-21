@@ -62,35 +62,7 @@ export default function PostCard({
 
   // --- nova função: busca o nome da organização com várias tentativas de fallback ---
   const getOrgName = () => {
-    const u = post?.usuario as any;
-    if (!u) return "Organização não informada";
-
-    // possíveis campos onde a organização pode estar no mock / API:
-    const candidates = [
-      u.organization,
-      u.organizationName,
-      u.orgName,
-      u.ongName,
-      u.ong?.name,
-      u.organizations?.[0]?.name,
-      u.organizations?.[0]?.nome,
-      u.organization?.name,
-      u.organization?.nome,
-      u.company,
-      u.institution,
-      u.ong,
-      u.organization_title,
-    ];
-
-    for (const c of candidates) {
-      if (typeof c === "string" && c.trim().length > 0) return c;
-      if (c && typeof c === "object" && (c.name || c.nome)) {
-        return (c.name ?? c.nome) as string;
-      }
-    }
-
-    // se não encontrou, tenta usar o próprio nome do usuário (como fallback)
-    return u.nome ? `${u.nome}` : "Organização não informada";
+    return post?.usuario?.organizacoes[0]?.name;
   };
 
   const orgName = getOrgName();

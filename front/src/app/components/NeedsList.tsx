@@ -13,9 +13,12 @@ import {
   MOCK_ONGS,
 } from "@/app/mocks";
 import { FiHeart, FiMapPin, FiClock, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
 import { getNecessidades } from "@/hooks/getNecessidades";
 import { Centro, getCentros } from "@/hooks/getCentros";
 import { Emergencia, getEmergencias } from "@/hooks/getEmergencias";
+import api from "@/services/api";
+import { Usuario } from "@/hooks/getVoluntarios";
 
 type Props = {
   needs?: Need[];
@@ -30,11 +33,11 @@ export default function NeedsList({
   onEdit,
   onDelete,
 }: Props) {
-  console.log(needs);
   const [localNeeds, setLocalNeeds] = useState<Need[]>(needs ?? []);
   const [centers, setCenters] = useState<Centro[]>([]);
   const [emergencies, setEmergencies] = useState<Emergencia[]>([]);
   const [editingNeed, setEditingNeed] = useState<Need | null>(null);
+  const [user, setUser] = useState<Usuario | null>(null);
   const [filters, setFilters] = useState({
     type: "",
     status: "",
@@ -62,7 +65,8 @@ export default function NeedsList({
   const currentOrg = useMemo(() => {
     // Exemplo: pegar do localStorage (ajuste para sua estrutura)
     const user = JSON.parse(localStorage.getItem("usuario") || "{}");
-    return user.organizations?.[0] || { _id: "o4", nome: "Minha ONG Exemplo" }; // Fallback
+    setUser(user);
+    return user.organizations?.[0]; // Fallback
   }, [currentUser]);
   // Corrigido: filtrar centros pela ONG atual
   const centersOfMyOrg = useMemo(() => {
@@ -174,11 +178,14 @@ export default function NeedsList({
           </div>
         ) : (
           filteredNeeds.map((n) => {
-            const center = findCenter(n.centerId);
+            const center = findCenter(n.centerId._id);
             const emergency = findEmergency(n.emergencyId);
 
             return (
               <article key={n.id} className={styles.card}>
+                {n.image &&
+                  <img src={`http://localhost:3001${n.image}`} alt="Imagem da necessidade" />
+                }
                 <div className={styles.cardHeader}>
                   <div>
                     <div className={styles.titleRow}>
@@ -202,14 +209,25 @@ export default function NeedsList({
                   </div>
 
                   <div className={styles.stats}>
-                    <div className={styles.interestCount}>
-                      <FiHeart /> <span>{n.interestCount ?? 0}</span>
-                    </div>
+                    <button onClick={async () => {
+                        await api.post(`/api/v1/necessidades/ajudar/${n._id}`, {
+                          userId: user?._id,
+                        });
+                      }}
+                      className={styles.interestCount}
+                    >
+                      {n.interest.find(e => e === user?._id) ?
+                        <FaHeart /> :
+                        <FiHeart />
+                      }
+                    <span>{n.interest.length ?? 0}</span>
+                    </button>
                     <div className={styles.status}>{n.status}</div>
                   </div>
                 </div>
 
                 <p className={styles.description}>{n.description}</p>
+                <p className={styles.description}>Emergencia: {n.emergencyId.titulo}</p>
 
                 <div className={styles.footer}>
                   <div className={styles.quantity}>

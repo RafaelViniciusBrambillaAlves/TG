@@ -120,3 +120,8 @@
   border-radius: 8px;
   font-size: 13px;
 }
+
+.fileRow {
+  max-width: 400px;
+  max-height: 400px;
+}

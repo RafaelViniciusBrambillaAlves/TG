@@ -29,9 +29,11 @@ type Centro = {
   emergencias?: any[];
 };
 
-type Organizacao = {
+export type Organizacao = {
   id_organizacao: number | string;
   nome_organizacao: string;
+  name?: string;
+  logo?: string;
   descricao?: string;
   thumbnail?: string;
   email?: string | null;
@@ -135,8 +137,6 @@ export default function OrganizationCard({
     </View>
   );
 
-  // console.log(organization); // opcional — remova em produção
-  console.log(organization.centros)
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={toggleExpand}>

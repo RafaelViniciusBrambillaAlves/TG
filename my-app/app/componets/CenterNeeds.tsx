@@ -111,7 +111,6 @@ function NeedItem({
     ]).start();
 
     if (onHelp) onHelp(need.id_necessidade);
-    console.log("Quero Ajudar:", need.id_necessidade, "liked:", next);
   };
 
   // interpolação de cor do botão (usamos cores RGB para interpolar)

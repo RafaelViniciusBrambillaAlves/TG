@@ -13,16 +13,19 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 import { useNavigation, CommonActions } from "@react-navigation/native";
+import useDonate from "@/hooks/useDonate";
+import { useAuth } from "@/context/auth.context";
 
 type Necessidade = {
   title?: string;
   description?: string;
+  emergencyId?: string;
   type?: string;
   quantity?: string;
   status?: string;
   quantidade_necessaria?: string;
   quantidade_atingida?: string;
-  interestCount?: number;
+  interest?: string[];
   _id?: string | number;
 };
 
@@ -52,6 +55,8 @@ export default function CenterDetails({
   id: number;
   centerProp: Centro;
 }) {
+  const { user } = useAuth();
+  const {donate, loading} = useDonate();
   const [tab, setTab] = useState<"localizacao" | "necessidades" | "emergencias" | null>(
     "localizacao"
   );
@@ -83,25 +88,6 @@ export default function CenterDetails({
     });
   };
 
-  /**
-   * handleGoToEmergency
-   *
-   * Comportamento desejado:
-   *  - Trocar para a aba "Emergências"
-   *  - Selecionar/abrir a emergência cujo id foi passado
-   *
-   * Estratégia:
-   * 1) Tenta navegar diretamente para uma rota de detalhe (EmergencyDetail).
-   * 2) Tenta navegar para a aba "Emergencias" e abrir "EmergencyDetail" dentro dela (nested).
-   * 3) Tenta disparar uma navegação no parent (útil quando estamos dentro de um Stack dentro de Tabs).
-   * 4) Fallback: envia param `selectedId` para a aba/lista de emergências (sua lista deve ler esse param e rolar/abrir).
-   *
-   * Ajuste os nomes das rotas abaixo se sua app usar nomes diferentes:
-   *  - Aba de emergências: "Emergencias" (ou "Emergências", "Emergencies" etc)
-   *  - Tela de detalhe: "EmergencyDetail"
-   *
-   * Se você me disser os nomes exatos das rotas, eu ajusto esse trecho para ficar 100% idêntico.
-   */
   const handleGoToEmergency = async (emergencyId?: number | string) => {
     if (!emergencyId) {
       Alert.alert("Erro", "ID da emergência não disponível.");
@@ -258,13 +244,29 @@ export default function CenterDetails({
                   renderItem={({ item }) => (
                     <View style={styles.itemCard}>
                       <View style={styles.itemHeader}>
-                        <Text style={styles.itemTitle}>{item.title ?? item.type ?? "Recurso"}</Text>
+                        <Text style={styles.itemTitle}>{item.title}</Text>
+                        <TouchableOpacity
+                          disabled={loading}
+                          onPress={async () => {
+                            if (!user?._id) {
+                              Alert.alert("Atenção", "Usuário não autenticado.");
+                              return;
+                            }
+                            await donate(user?._id, item._id)
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={{ color: primary, fontWeight: "700" }}>
+                            Doar
+                          </Text>
+                        </TouchableOpacity>
                         {item.quantidade_necessaria != null ? (
                           <Text style={styles.itemQty}>{String(item.quantidade_necessaria)}</Text>
                         ) : null}
                       </View>
                       {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                      {item.interestCount ? <Text style={styles.itemDesc}>Interessados: {item.interestCount}</Text> : null}
+                      <Text style={styles.itemDesc}>Quantidade de pessoas que doaram: {item.interest?.length}</Text>
+                      {/*<Text style={styles.itemDesc}>Emergengia: {emergencias.find(e => e._id === item.emergencyId)?.titulo}</Text>*/}
                     </View>
                   )}
                 />
@@ -272,7 +274,6 @@ export default function CenterDetails({
             </View>
           )}
 
-          {/* EMERGÊNCIAS (TOQUE NO ITEM NAVEGA PARA A ABA/DETALHE) */}
           {tab === "emergencias" && (
             <View>
               <Text style={styles.sectionTitle}>Emergências</Text>
