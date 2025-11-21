@@ -257,7 +257,7 @@ export default function CenterDetails({
                           activeOpacity={0.8}
                         >
                           <Text style={{ color: primary, fontWeight: "700" }}>
-                            Doar
+                            Ajudar
                           </Text>
                         </TouchableOpacity>
                         {item.quantidade_necessaria != null ? (
@@ -265,7 +265,7 @@ export default function CenterDetails({
                         ) : null}
                       </View>
                       {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                      <Text style={styles.itemDesc}>Quantidade de pessoas que doaram: {item.interest?.length}</Text>
+                      <Text style={styles.itemDesc}>Quantidade de pessoas que querem ajudar: {item.interest?.length}</Text>
                       {/*<Text style={styles.itemDesc}>Emergengia: {emergencias.find(e => e._id === item.emergencyId)?.titulo}</Text>*/}
                     </View>
                   )}

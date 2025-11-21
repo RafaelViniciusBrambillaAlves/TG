@@ -181,7 +181,7 @@ export default function PostCard({
                   <button
                     className={styles.shareItem}
                     onClick={() => {
-                      openWindow(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.titulo ?? "")}`);
+                      openWindow(`https://computeTimeAgo.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.titulo ?? "")}`);
                     }}
                   >
                     <img src="/icons/telegram.svg" alt="" className={styles.shareIcon} /> Telegram

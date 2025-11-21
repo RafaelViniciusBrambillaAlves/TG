@@ -4,13 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "./needs.module.css";
 import CreateNeedModal from "./CreateNeedModal";
 import {
-  MOCK_NEEDS,
   Need,
-  MOCK_CENTERS,
-  Center,
-  MOCK_EMERGENCIES,
-  Emergency,
-  MOCK_ONGS,
 } from "@/app/mocks";
 import { FiHeart, FiMapPin, FiClock, FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
@@ -49,36 +43,61 @@ export default function NeedsList({
     return localNeeds
       .filter((n) => !filters.type || n.type === filters.type)
       .filter((n) => !filters.status || n.status === filters.status)
-      .filter((n) => !filters.centerId || n.centerId === filters.centerId)
-      .filter(
-        (n) => !filters.emergencyId || n.emergencyId === filters.emergencyId,
-      );
+      .filter((n) => {
+        if (!filters.centerId) return true;
+        const nid = typeof n.centerId === "string" ? n.centerId : (n.centerId as any)?._id;
+        return nid === filters.centerId;
+      })
+      .filter((n) => {
+        if (!filters.emergencyId) return true;
+        const ne = typeof n.emergencyId === "string" ? n.emergencyId : (n.emergencyId as any)?._id;
+        return ne === filters.emergencyId;
+      });
   }, [localNeeds, filters]);
 
-  const findCenter = (id: string) =>
-    centers.find((c) => c._id === id) as Center | undefined;
-  const findEmergency = (id?: string) =>
-    id
-      ? (emergencies.find((e) => e._id === id) as Emergency | undefined)
-      : undefined;
+  // helpers para buscar center/emergency aceitando ambos os formatos
+  const findCenter = (id?: string | { _id?: string } | null) => {
+    const _id = typeof id === "string" ? id : id?._id;
+    if (!_id) return undefined;
+    return centers.find((c) => c._id === _id);
+  };
+
+  const findEmergency = (id?: string | { _id?: string } | null) => {
+    const _id = typeof id === "string" ? id : id?._id;
+    if (!_id) return undefined;
+    return emergencies.find((e) => e._id === _id);
+  };
 
   const currentOrg = useMemo(() => {
-    // Exemplo: pegar do localStorage (ajuste para sua estrutura)
-    const user = JSON.parse(localStorage.getItem("usuario") || "{}");
-    setUser(user);
-    return user.organizations?.[0]; // Fallback
+    // pegar user do localStorage (safe parse)
+    try {
+      const u = localStorage.getItem("usuario");
+      if (!u) return {} as any;
+      const parsed = JSON.parse(u);
+      setUser(parsed);
+      return parsed.organizations?.[0] ?? {};
+    } catch {
+      return {} as any;
+    }
   }, [currentUser]);
-  // Corrigido: filtrar centros pela ONG atual
+
+  // filtrar centros pela org atual (cuidado se currentOrg for {})
   const centersOfMyOrg = useMemo(() => {
-    return centers.filter((c) => c.orgId === currentOrg._id);
+    const orgId = (currentOrg as any)?._id;
+    if (!orgId) return centers;
+    return centers.filter((c) => c.orgId === orgId);
   }, [currentOrg, centers]);
 
   const timeAgo = (iso: string) => {
-    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (diff < 60) return `${diff}s`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-    if (diff < 3600 * 24) return `${Math.floor(diff / 3600)}h`;
-    return `${Math.floor(diff / (3600 * 24))}d`;
+    try {
+      const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (diff < 60) return `${diff}s`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+      if (diff < 3600 * 24) return `${Math.floor(diff / 3600)}h`;
+      return `${Math.floor(diff / (3600 * 24))}d`;
+    } catch {
+      return "algum tempo";
+    }
   };
 
   const internalDelete = (id: string) =>
@@ -117,7 +136,7 @@ export default function NeedsList({
         <h2 className={styles.title}>Necessidades — Meus centros</h2>
         <p className={styles.subtitle}>
           Lista de necessidades dos centros vinculados à sua ONG (
-          {currentOrg.nome}).
+          {(currentOrg as any)?.nome ?? "—"}).
         </p>
       </header>
 
@@ -165,7 +184,8 @@ export default function NeedsList({
           <option value="">Emergência: Todas</option>
           {emergencies.map((em) => (
             <option key={em._id} value={em._id}>
-              {em.titulo}
+              {/* suporte a 'titulo' ou 'title' */}
+              { (em as any).titulo ?? (em as any).title ?? `#${em._id}` }
             </option>
           ))}
         </select>
@@ -178,14 +198,37 @@ export default function NeedsList({
           </div>
         ) : (
           filteredNeeds.map((n) => {
-            const center = findCenter(n.centerId._id);
-            const emergency = findEmergency(n.emergencyId);
+            // n.centerId e n.emergencyId podem ser string ou objeto
+            const centerObj = findCenter(n.centerId as any);
+            const emergencyObj = findEmergency(n.emergencyId as any);
+
+            // nomes seguros
+            const centerName = centerObj?.nome ?? "Centro desconhecido";
+            const emergencyLabel =
+              (emergencyObj && ((emergencyObj as any).titulo ?? (emergencyObj as any).title)) ??
+              undefined;
 
             return (
-              <article key={n.id} className={styles.card}>
-                {n.image &&
-                  <img src={`http://localhost:3001${n.image}`} alt="Imagem da necessidade" />
-                }
+              <article key={n._id} className={styles.card}>
+                {n.image && (
+                  <img
+                    src={
+                      n.image.startsWith("http")
+                        ? n.image
+                        : `http://localhost:3001${n.image}`
+                    }
+                    alt="Imagem da necessidade"
+                    style={{
+                      width: 180,
+                      height: "auto",
+                      borderRadius: 8,
+                      marginBottom: 8,
+                      objectFit: "cover",
+                      margin: "0 auto",
+                    }}
+                  />
+                )}
+
                 <div className={styles.cardHeader}>
                   <div>
                     <div className={styles.titleRow}>
@@ -195,11 +238,11 @@ export default function NeedsList({
 
                     <div className={styles.metaRow}>
                       <div className={styles.centerInfo}>
-                        <FiMapPin /> {center?.nome ?? "Centro desconhecido"}
+                        <FiMapPin /> {centerName}
                       </div>
-                      {emergency ? (
+                      {emergencyLabel ? (
                         <div className={styles.emergencyInfo}>
-                          <FiClock /> Vinculado: {emergency.title}
+                          <FiClock /> Vinculado: {emergencyLabel}
                         </div>
                       ) : null}
                       <div className={styles.timeInfo}>
@@ -209,25 +252,38 @@ export default function NeedsList({
                   </div>
 
                   <div className={styles.stats}>
-                    <button onClick={async () => {
-                        await api.post(`/api/v1/necessidades/ajudar/${n._id}`, {
-                          userId: user?._id,
-                        });
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.post(`/api/v1/necessidades/ajudar/${n._id}`, {
+                            userId: user?._id,
+                          });
+                        } catch (err) {
+                          console.warn("Erro ao registrar interesse:", err);
+                        }
                       }}
                       className={styles.interestCount}
+                      aria-label="Ajudar / marcar interesse"
                     >
-                      {n.interest.find(e => e === user?._id) ?
-                        <FaHeart /> :
+                      {n.interest?.find((e) => e === user?._id) ? (
+                        <FaHeart />
+                      ) : (
                         <FiHeart />
-                      }
-                    <span>{n.interest.length ?? 0}</span>
+                      )}
+                      <span>{n.interest?.length ?? 0}</span>
                     </button>
                     <div className={styles.status}>{n.status}</div>
                   </div>
                 </div>
 
                 <p className={styles.description}>{n.description}</p>
-                <p className={styles.description}>Emergencia: {n.emergencyId.titulo}</p>
+
+                {/* substituí uso direto de n.emergencyId.titulo por uma versão segura */}
+                {emergencyLabel ? (
+                  <p className={styles.description}>Emergência: {emergencyLabel}</p>
+                ) : (
+                  <p className={styles.description}>Emergência: —</p>
+                )}
 
                 <div className={styles.footer}>
                   <div className={styles.quantity}>
@@ -268,15 +324,16 @@ export default function NeedsList({
           })
         )}
       </div>
+
       {/* MODAL DE EDIÇÃO */}
       {editingNeed && (
         <CreateNeedModal
           open={!!editingNeed}
           onClose={() => setEditingNeed(null)}
           onCreate={handleUpdate}
-          centersFilterOrgId={currentOrg._id}
-          centers={centersOfMyOrg} // Passe a lista filtrada
-          emergencies={emergencies} // Passe a lista de emergências
+          centersFilterOrgId={(currentOrg as any)?._id}
+          centers={centersOfMyOrg}
+          emergencies={emergencies}
           {...editingNeed}
         />
       )}

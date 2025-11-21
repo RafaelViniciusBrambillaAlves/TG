@@ -123,7 +123,7 @@ export const MOCK_CENTERS: Center[] = [
   {
     id: "c1",
     orgId: "o1",
-    name: "Abrigo Esperança - Unidade Central",
+    name: "Abrigo Esperança 11111 - Unidade Central",
     description:
       "Acolhimento temporário para famílias afetadas por emergências.",
     phone: "+55 21 91234-5678",

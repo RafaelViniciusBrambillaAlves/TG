@@ -91,7 +91,7 @@ const mapPublicacoesToCard = (list: any[]) =>
       descricao: p.descricao ?? "",
       timeLabel: formatTimeLabel(createdAtRaw),
       createdAtRaw,
-      image: p.imagem ?? (Array.isArray(p.images) ? p.images[0] : undefined),
+      image: p.image,
       images: p.images ?? undefined,
       author: p.author ?? p.usuario ?? undefined,
       local: p.local ?? p.location ?? undefined,
@@ -153,6 +153,7 @@ export default function Header() {
 
     return mapEmergenciasToCard(merged);
   }, [emergencias, organizations]);
+  console.log(publicacoes)
   const publications = useMemo(
     () => mapPublicacoesToCard(publicacoes),
     [publicacoes],
@@ -311,6 +312,7 @@ export default function Header() {
   }, [organizations, orgFilters, searchTerm, orgOrder]);
 
   const filteredPublications = useMemo(() => {
+    // console.log(publications)
     const q = (searchTerm || "").toLowerCase();
     const filtered = publications.filter((p) => {
       if (pubFilters.hasImage && !p.image && !(p.images && p.images.length))
