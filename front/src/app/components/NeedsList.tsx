@@ -3,9 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./needs.module.css";
 import CreateNeedModal from "./CreateNeedModal";
-import {
-  Need,
-} from "@/app/mocks";
+import { Need } from "@/app/mocks";
 import { FiHeart, FiMapPin, FiClock, FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
 import { getNecessidades } from "@/hooks/getNecessidades";
@@ -39,6 +37,11 @@ export default function NeedsList({
     emergencyId: "",
   });
 
+  // Mantém localNeeds em sincronia com o pai (se a prop 'needs' for usada pelo pai)
+  useEffect(() => {
+    if (needs) setLocalNeeds(needs);
+  }, [needs]);
+
   const filteredNeeds = useMemo(() => {
     return localNeeds
       .filter((n) => !filters.type || n.type === filters.type)
@@ -69,7 +72,6 @@ export default function NeedsList({
   };
 
   const currentOrg = useMemo(() => {
-    // pegar user do localStorage (safe parse)
     try {
       const u = localStorage.getItem("usuario");
       if (!u) return {} as any;
@@ -110,25 +112,22 @@ export default function NeedsList({
     if (onEdit) onEdit(updated);
   };
 
+  // Busca dados somente se o pai NÃO passar 'needs'
   useEffect(() => {
-    getNecessidades()
-      .then(async (data) => {
-        setLocalNeeds(data);
-      })
-      .catch((err) => console.warn("getNecessidades failed:", err));
+    if (!needs || needs.length === 0) {
+      getNecessidades()
+        .then((data) => setLocalNeeds(data))
+        .catch((err) => console.warn("getNecessidades failed:", err));
+    }
 
     getCentros()
-      .then(async (data) => {
-        setCenters(data);
-      })
+      .then((data) => setCenters(data))
       .catch((err) => console.warn("getCentros failed:", err));
 
     getEmergencias()
-      .then(async (data) => {
-        setEmergencies(data);
-      })
+      .then((data) => setEmergencies(data))
       .catch((err) => console.warn("getEmergencias failed:", err));
-  }, []);
+  }, [needs]);
 
   return (
     <section className={styles.wrap} aria-label="Necessidades">
@@ -184,8 +183,7 @@ export default function NeedsList({
           <option value="">Emergência: Todas</option>
           {emergencies.map((em) => (
             <option key={em._id} value={em._id}>
-              {/* suporte a 'titulo' ou 'title' */}
-              { (em as any).titulo ?? (em as any).title ?? `#${em._id}` }
+              {(em as any).titulo ?? (em as any).title ?? `#${em._id}`}
             </option>
           ))}
         </select>
@@ -198,14 +196,12 @@ export default function NeedsList({
           </div>
         ) : (
           filteredNeeds.map((n) => {
-            // n.centerId e n.emergencyId podem ser string ou objeto
             const centerObj = findCenter(n.centerId as any);
             const emergencyObj = findEmergency(n.emergencyId as any);
-
-            // nomes seguros
             const centerName = centerObj?.nome ?? "Centro desconhecido";
             const emergencyLabel =
-              (emergencyObj && ((emergencyObj as any).titulo ?? (emergencyObj as any).title)) ??
+              (emergencyObj &&
+                ((emergencyObj as any).titulo ?? (emergencyObj as any).title)) ??
               undefined;
 
             return (
@@ -278,7 +274,6 @@ export default function NeedsList({
 
                 <p className={styles.description}>{n.description}</p>
 
-                {/* substituí uso direto de n.emergencyId.titulo por uma versão segura */}
                 {emergencyLabel ? (
                   <p className={styles.description}>Emergência: {emergencyLabel}</p>
                 ) : (
@@ -304,14 +299,21 @@ export default function NeedsList({
                     <button
                       className={styles.iconBtn}
                       title="Excluir necessidade"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            "Tem certeza que deseja excluir esta necessidade?",
-                          )
-                        ) {
-                          if (onDelete) onDelete(n._id);
-                          else internalDelete(n._id);
+                      onClick={async () => {
+                        if (confirm("Tem certeza que deseja excluir esta necessidade?")) {
+                          // Exclusão otimista na lista local
+                          const prev = localNeeds;
+                          internalDelete(n._id);
+                          try {
+                            await api.delete(`/api/v1/necessidades/${n._id}`);
+                            // Notifica o pai (se quiser manter o estado no pai em sincronia)
+                            if (onDelete) onDelete(n._id);
+                          } catch (err) {
+                            // rollback se falhar
+                            setLocalNeeds(prev);
+                            console.warn("Erro ao excluir necessidade:", err);
+                            alert("Falha ao excluir. Tente novamente.");
+                          }
                         }
                       }}
                     >

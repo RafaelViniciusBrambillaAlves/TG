@@ -1,5 +1,5 @@
 // src/components/ProfileDrawer.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,9 +14,39 @@ import {
   Alert,
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
-import EditProfileModal, { ProfileData } from "./EditProfileModal";
 import { useAuth } from "@/context/auth.context";
 import { useRouter } from "expo-router";
+import { Organizacao } from "./OrganizationCard";
+import EditProfileModal, { ProfileData } from "./EditProfileModal";
+
+// Normaliza possíveis formatos de id (string, {_id}, {id}, {id_organizacao})
+function normalizeOrgId(input: any): string | null {
+  if (!input) return null;
+  if (typeof input === "string") return input || null;
+  if (typeof input === "object") return input._id || input.id || input.id_organizacao || null;
+  return null;
+}
+
+// Resolve imagem relativa em URL absoluta (ou devolve a original se já for http)
+function resolveServerImage(img?: string | null): string | null {
+  if (!img || typeof img !== "string" || img.trim() === "") return null;
+  if (/^https?:\/\//.test(img)) return img;
+  if (img.startsWith("/")) return `http://localhost:3001${img}`;
+  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+}
+
+function timeAgo(iso?: string) {
+  if (!iso) return "";
+  try {
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return `${diff}s`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 3600 * 24) return `${Math.floor(diff / 3600)}h`;
+    return `${Math.floor(diff / (3600 * 24))}d`;
+  } catch {
+    return "";
+  }
+}
 
 export const ProfileDrawer = ({
   visible,
@@ -24,12 +54,14 @@ export const ProfileDrawer = ({
   onLogout,
   viewedProfile,
   onViewSaved,
+  organizations,
 }: {
   visible: boolean;
   onClose: () => void;
   onLogout?: () => void;
   viewedProfile?: ProfileData | null; // se passar, mostra esse perfil em modo visualização
   onViewSaved?: () => void; // callback quando o usuário clicar em "Ver salvos"
+  organizations?: Organizacao[]; // agregado vindo do servidor com centros por organização
 }) => {
   const [animation] = useState(new Animated.Value(0));
   const { user, signOut } = useAuth();
@@ -39,8 +71,10 @@ export const ProfileDrawer = ({
   const [showSettings, setShowSettings] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // profile data (local) -> será usado quando estiver visualizando o "próprio" perfil
+
+  // profile data (local) -> usado quando estiver visualizando o "próprio" perfil
   const [profile, setProfile] = useState<ProfileData>({
+    _id: user?._id || "",
     name: user?.username || "",
     email: user?.email || "",
     phone: user?.telefone || "",
@@ -87,12 +121,10 @@ export const ProfileDrawer = ({
   };
 
   const handleSaveSettings = () => {
-    // persist settings if needed
     setShowSettings(false);
   };
 
   const handleViewSaved = () => {
-    // Fecha o drawer e chama callback (se informado)
     onClose();
     if (onViewSaved) {
       try {
@@ -105,36 +137,30 @@ export const ProfileDrawer = ({
     }
   };
 
-  // language button helper
-  const LanguageButton = ({
-    lang,
-    label,
-  }: {
-    lang: "pt" | "en";
-    label: string;
-  }) => (
-    <TouchableOpacity
-      style={[
-        styles.langButton,
-        language === lang ? styles.langButtonActive : undefined,
-      ]}
-      onPress={() => setLanguage(lang)}
-    >
-      <Text
-        style={[
-          styles.langButtonText,
-          language === lang && styles.langButtonTextActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  // if viewedProfile is provided, we show it and disable edit/settings/logout
   const viewingOther = !!viewedProfile;
   const shownProfile = viewedProfile ?? profile;
-  console.log(shownProfile)
+
+  // Determina o orgId ativo a partir do perfil (primeira organização do usuário)
+  const activeOrgId = useMemo(() => {
+    const fromProfile = normalizeOrgId(shownProfile?.organizations?.[0]);
+    if (fromProfile) return fromProfile;
+    const fromProp = normalizeOrgId(organizations?.[0]);
+    return fromProp;
+  }, [shownProfile?.organizations, organizations]);
+
+  // Encontra a organização no agregado (organizations prop) e pega os centros (sem renomear campos)
+  const centersFromActiveOrg = useMemo(() => {
+    if (!organizations || !activeOrgId) return [] as any[];
+    const found = (organizations as any[]).find(
+      (o) =>
+        (o && (o as any).id_organizacao === activeOrgId) ||
+        (o && (o as any)._id === activeOrgId),
+    );
+    const centros = (found as any)?.centros ?? [];
+    return Array.isArray(centros) ? centros : [];
+  }, [organizations, activeOrgId]);
+
+  const uri = resolveServerImage(shownProfile.avatar);
   return (
     <>
       <Modal
@@ -169,8 +195,7 @@ export const ProfileDrawer = ({
                 <View style={styles.avatarContainer}>
                   <Image
                     source={{
-                      uri:
-                        `http://localhost:3001${shownProfile.avatar}`,
+                      uri: uri ? `${uri}?v=${Date.now()}` : "",
                     }}
                     style={styles.avatar}
                   />
@@ -191,7 +216,6 @@ export const ProfileDrawer = ({
                       <Text style={styles.optionText}>Editar Perfil</Text>
                     </TouchableOpacity>
 
-                    {/* NOVO: botão "Ver salvos" no mesmo estilo do Editar Perfil */}
                     <TouchableOpacity
                       style={styles.option}
                       onPress={handleViewSaved}
@@ -201,8 +225,10 @@ export const ProfileDrawer = ({
                     </TouchableOpacity>
                   </>
                 )}
+
+                {/* Bloco da Organização do usuário */}
                 {(() => {
-                  const org = shownProfile?.organizations?.[0];
+                  const org = shownProfile?.organizations?.[0] as any;
                   const hasOrg =
                     !!org && (org.name || org.description || org.phone || org.website);
 
@@ -248,27 +274,125 @@ export const ProfileDrawer = ({
                           </Text>
                         </View>
                       )}
+
                       {!!org?.logo && (
-                        <Image
-                          source={{ uri: org.logo }}
-                          style={styles.orgLogo}
-                        />
+                        <Image source={{ uri: org.logo }} style={styles.orgLogo} />
                       )}
                     </View>
                   );
                 })()}
-                {/* se estamos vendo outro perfil, podemos mostrar botão de contato */}
+
+                {/* Centros da organização do perfil e suas necessidades (usando campos originais) */}
+                <View style={styles.orgCard}>
+                  <Text style={styles.orgHeader}>Centros da organização</Text>
+                  {!activeOrgId ? (
+                    <Text style={styles.orgEmpty}>
+                      Não foi possível identificar a organização do usuário.
+                    </Text>
+                  ) : organizations && organizations.length > 0 ? (
+                    centersFromActiveOrg.length > 0 ? (
+                      <View style={styles.centersList}>
+                        {centersFromActiveOrg.map((c: any) => {
+                          const centerImg = resolveServerImage(c.image);
+                          const necessidades = Array.isArray(c.necessidades) ? c.necessidades : [];
+                          return (
+                            <View key={c.id_centro || c._id || c.id} style={styles.centerBlock}>
+                              <View style={styles.centerRow}>
+                                {centerImg ? (
+                                  <Image source={{ uri: centerImg }} style={styles.centerThumb} />
+                                ) : (
+                                  <View style={[styles.centerThumb, styles.centerThumbEmpty]}>
+                                    <Text style={{ color: "#666", fontSize: 10 }}>Sem foto</Text>
+                                  </View>
+                                )}
+                                <View style={{ flex: 1 }}>
+                                  <Text style={styles.centerName}>{c.nome}</Text>
+                                  {!!c.endereco && (
+                                    <Text style={styles.centerAddress}>{c.endereco}</Text>
+                                  )}
+                                  {!!c.telefone && (
+                                    <Text style={styles.centerAddress}>Tel: {c.telefone}</Text>
+                                  )}
+                                </View>
+                              </View>
+
+                              {/* Lista de necessidades desse centro (campos originais) */}
+                              {necessidades.length > 0 ? (
+                                <View style={styles.needsList}>
+                                  {necessidades.map((n: any) => {
+                                    const needImg = resolveServerImage(n.image);
+                                    return (
+                                      <View key={n._id} style={styles.needCard}>
+                                        <View style={styles.needHeader}>
+                                          <Text style={styles.needTitle}>{n.title}</Text>
+                                          <View style={styles.badgesRow}>
+                                            {!!n.type && (
+                                              <Text style={styles.badge}>{n.type}</Text>
+                                            )}
+                                            {!!n.status && (
+                                              <Text style={[styles.badge, styles.badgeMuted]}>
+                                                {n.status}
+                                              </Text>
+                                            )}
+                                          </View>
+                                        </View>
+
+                                        {!!needImg && (
+                                          <Image
+                                            source={{ uri: needImg }}
+                                            style={styles.needImage}
+                                          />
+                                        )}
+
+                                        {!!n.description && (
+                                          <Text style={styles.needDesc}>{n.description}</Text>
+                                        )}
+
+                                        <View style={styles.needFooter}>
+                                          {!!n.quantity && (
+                                            <Text style={styles.needMeta}>
+                                              Quantidade: {n.quantity}
+                                            </Text>
+                                          )}
+                                          {!!n.createdAt && (
+                                            <Text style={styles.needMeta}>
+                                              Criado há {timeAgo(n.createdAt)}
+                                            </Text>
+                                          )}
+                                          <Text style={styles.needMeta}>
+                                            Interessados: {Array.isArray(n.interest) ? n.interest.length : 0}
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    );
+                                  })}
+                                </View>
+                              ) : (
+                                <Text style={styles.orgEmpty}>
+                                  Nenhuma necessidade cadastrada para este centro.
+                                </Text>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ) : (
+                      <Text style={styles.orgEmpty}>Nenhum centro encontrado para esta organização.</Text>
+                    )
+                  ) : (
+                    <Text style={styles.orgEmpty}>
+                      Lista de organizações não fornecida ao componente.
+                    </Text>
+                  )}
+                </View>
+
+                {/* se estamos vendo outro perfil, mostramos botão de contato */}
                 {viewingOther && (
                   <TouchableOpacity
                     style={[styles.option, { marginTop: 8 }]}
                     onPress={() => {
-                      // exemplo: abrir email quando disponível
                       if (shownProfile.email) {
-                        // Linking can be used here if desired
-                        Alert.alert(
-                          "Contato",
-                          `Enviar email para ${shownProfile.email}`,
-                        );
+                        Alert.alert("Contato", `Enviar email para ${shownProfile.email}`);
                       } else {
                         Alert.alert("Contato", "Contato não disponível.");
                       }
@@ -354,8 +478,8 @@ export const ProfileDrawer = ({
                 <View style={{ marginTop: 12 }}>
                   <Text style={styles.settingLabel}>Idioma</Text>
                   <View style={{ flexDirection: "row", marginTop: 8 }}>
-                    <LanguageButton lang="pt" label="Português" />
-                    <LanguageButton lang="en" label="English" />
+                    {/*<LanguageButton lang="pt" label="Português" />
+                    <LanguageButton lang="en" label="English" />*/}
                   </View>
                 </View>
 
@@ -553,6 +677,7 @@ const styles = StyleSheet.create({
   langButtonActive: { backgroundColor: "#007aff", borderColor: "#007aff" },
   langButtonText: { color: "#333" },
   langButtonTextActive: { color: "#fff", fontWeight: "700" },
+
   orgCard: {
     marginTop: 16,
     backgroundColor: "#fff",
@@ -592,5 +717,105 @@ const styles = StyleSheet.create({
   orgValueLink: {
     color: "#0b82ff",
     fontWeight: "600",
+  },
+
+  // Lista de centros e necessidades
+  centersList: {
+    marginTop: 8,
+    gap: 12,
+  },
+  centerBlock: {
+    paddingVertical: 8,
+  },
+  centerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  centerThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: "#f0f3f8",
+    borderWidth: 1,
+    borderColor: "#e8edf4",
+    marginRight: 4,
+  },
+  centerThumbEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  centerName: {
+    color: "#0b1220",
+    fontWeight: "700",
+  },
+  centerAddress: {
+    color: "#6B7280",
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // Necessidades
+  needsList: {
+    marginTop: 8,
+    gap: 8,
+  },
+  needCard: {
+    borderWidth: 1,
+    borderColor: "#EAEEF6",
+    borderRadius: 8,
+    padding: 8,
+    backgroundColor: "#fafcff",
+    marginTop: 6,
+  },
+  needHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  needTitle: {
+    color: "#0b1220",
+    fontWeight: "800",
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  badgesRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  badge: {
+    backgroundColor: "#0b82ff",
+    color: "#fff",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    overflow: "hidden",
+    fontSize: 11,
+  },
+  badgeMuted: {
+    backgroundColor: "#9aa5b1",
+  },
+  needImage: {
+    width: "100%",
+    height: 140,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  needDesc: {
+    color: "#334155",
+    marginTop: 8,
+  },
+  needFooter: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginTop: 8,
+  },
+  needMeta: {
+    color: "#64748b",
+    fontSize: 12,
   },
 });

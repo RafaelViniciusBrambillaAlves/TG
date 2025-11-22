@@ -178,7 +178,6 @@ export default function CreateVolunteerModal({ open, onClose, onCreate }: Props)
         image: imageUrl || undefined,
       };
 
-      // 3) POST para criar (adapte endpoint se necessário)
       const res = await api.post("/api/v1/usuarios/register", payload);
 
       const serverData = res.data ?? null;

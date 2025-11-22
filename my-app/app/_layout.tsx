@@ -31,7 +31,7 @@ export default function RootLayout() {
               <Stack.Screen
                 name="screens"
                 options={{
-                  tabBarLabel: "Organizações", // <-- muda aqui
+                  tabBarLabel: "Organizações",
                 }}
               />
               <Stack.Screen

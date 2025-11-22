@@ -12,8 +12,17 @@ type EditCenterData = {
   email?: string;
   address?: string;
   imageFile?: File | null;
-  imagePreview?: string | null;
+  imagePreview?: string | null; // pode ser blob:... ou URL do servidor
+  imageRemoved?: boolean;       // controla remoção explícita
 };
+
+// Gera uma URL válida ou null quando não houver imagem
+function resolveServerImage(img?: string | null): string | null {
+  if (!img || typeof img !== "string" || img.trim() === "") return null;
+  if (/^https?:\/\//.test(img)) return img;
+  if (img.startsWith("/")) return `http://localhost:3001${img}`;
+  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+}
 
 type Props = {
   open: boolean;
@@ -36,16 +45,18 @@ export default function EditCenterModal({
     address: "",
     imageFile: null,
     imagePreview: null,
+    imageRemoved: false,
   });
 
   const [loading, setLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // sempre revoga previews antigos ao desmontar
+  // sempre revoga previews antigos ao desmontar (apenas se for blob:)
   useEffect(() => {
     return () => {
-      if (form.imagePreview) {
+      if (form.imagePreview && form.imagePreview.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(form.imagePreview);
         } catch {}
@@ -58,19 +69,19 @@ export default function EditCenterModal({
   useEffect(() => {
     if (open && center) {
       setForm({
-        nome: // fallback entre 'nome' e 'name'
+        nome:
           // @ts-ignore
-          center.nome ?? // prefer 'nome'
+          center.nome ??
           // @ts-ignore
           center.name ?? "",
         description:
           // @ts-ignore
-          center.description ?? // prefer 'description'
+          center.description ??
           // @ts-ignore
           center.descricao ?? "",
         phone:
           // @ts-ignore
-          center.phone ?? // prefer 'phone'
+          center.phone ??
           // @ts-ignore
           center.telefone ?? "",
         email:
@@ -81,10 +92,11 @@ export default function EditCenterModal({
           center.address ?? "",
         imageFile: null,
         // mostra a imagem atual se existir (pode ser url relativa)
-        imagePreview:
-          // @ts-ignore
-          'http://localhost:3001'+`${center.image}` ?? null,
+        // @ts-ignore
+        imagePreview: resolveServerImage(center.image),
+        imageRemoved: false, // reset do estado de remoção
       });
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setTimeout(() => firstInputRef.current?.focus(), 0);
       document.body.style.overflow = "hidden";
     } else {
@@ -111,7 +123,6 @@ export default function EditCenterModal({
     const f = e.target.files?.[0] ?? null;
     if (!f) return;
 
-    // limite client-side (8MB)
     const MAX = 8 * 1024 * 1024;
     if (f.size > MAX) {
       alert("Arquivo muito grande. Tamanho máximo: 8MB.");
@@ -119,15 +130,18 @@ export default function EditCenterModal({
       return;
     }
 
-    // revoga preview anterior
-    if (form.imagePreview) {
+    // revoga preview anterior, se era objectURL
+    if (form.imagePreview && form.imagePreview.startsWith("blob:")) {
       try {
         URL.revokeObjectURL(form.imagePreview);
       } catch {}
     }
 
     const url = URL.createObjectURL(f);
-    setForm((s) => ({ ...s, imageFile: f, imagePreview: url }));
+    setForm((s) => ({ ...s, imageFile: f, imagePreview: url, imageRemoved: false }));
+
+    // limpa o input para permitir re-escolher o mesmo arquivo
+    e.currentTarget.value = "";
   }
 
   function handleChange<K extends keyof EditCenterData>(key: K, value: EditCenterData[K]) {
@@ -168,30 +182,15 @@ export default function EditCenterModal({
 
       setLoading(true);
 
-      // 1) se trocou a imagem, faz upload e obtém url
-      let imageUrl: string | undefined = undefined;
-      if (form.imageFile) {
-        try {
-          imageUrl = await uploadFile(form.imageFile);
-        } catch (err) {
-          console.error("Erro ao enviar imagem:", err);
-          alert("Falha ao enviar a imagem. Tente novamente.");
-          setLoading(false);
-          return;
-        }
-      } else {
-        // se não enviou novo arquivo, mantemos o preview atual (que pode ser url já salva)
-        imageUrl = form.imagePreview ?? undefined;
-      }
+      // Identificador do registro (preserva _id ou id original)
+      // @ts-ignore
+      const uid = (center as any)?._id ?? (center as any)?.id;
 
-      // 2) montar objeto atualizado (mantém chaves originais de center)
-      const updatedCenter: Center = {
-        // copia campos existentes — spread garante que preenchimentos não descritos persitam
+      // Monta payload base
+      const payload: any = {
         // @ts-ignore
         ...center,
         // sobrescreve campos editáveis
-        // mantemos o mesmo formato de campo do objeto original (nome, description, phone, email, address, image)
-        // usamos trimmed values
         // @ts-ignore
         nome: form.nome.trim(),
         // @ts-ignore
@@ -202,43 +201,67 @@ export default function EditCenterModal({
         email: form.email?.trim() || undefined,
         // @ts-ignore
         address: form.address?.trim() || undefined,
-        // @ts-ignore
-        image: imageUrl || undefined,
+        // IDs garantidos
+        _id: uid,
+        id: uid,
       };
 
-      // 3) tenta enviar update ao backend se houver _id
-      let serverUpdated: any = null;
-      // @ts-ignore
-      const id = (center as any)?._id ?? (center as any)?.id;
-      if (id) {
+      // Regras para imagem:
+      // - se escolheu nova imagem, faz upload e envia payload.image = nova URL
+      // - se removeu a imagem e não escolheu outra, envia payload.image = null (para limpar)
+      // - se não mudou nada, NÃO envie a chave image (deixe como está no servidor)
+      if (form.imageFile) {
         try {
-          // tenta PUT; se sua API usar PATCH, altere para .patch
-          const res = await api.put(`/api/v1/centros/${id}`, updatedCenter);
+          const imageUrl = await uploadFile(form.imageFile);
+          payload.image = imageUrl;
+        } catch (err) {
+          console.error("Erro ao enviar imagem:", err);
+          alert("Falha ao enviar a imagem. Tente novamente.");
+          setLoading(false);
+          return;
+        }
+      } else if (form.imageRemoved) {
+        payload.image = null; // chave explícita para o backend limpar
+      } else {
+        // não envia image para preservar a existente
+        delete payload.image;
+      }
+
+      let serverUpdated: any = null;
+      if (uid) {
+        try {
+          const res = await api.put(`/api/v1/centros/${uid}`, payload);
           serverUpdated = res.data ?? null;
         } catch (err) {
           console.warn("Falha ao atualizar no servidor, atualizando localmente:", err);
-          // não retorna — vamos atualizar localmente mesmo assim
+          // segue com atualização local
         }
       }
 
-      // 4) preferir a resposta do servidor caso exista, senão usar updatedCenter
-      const finalCenter: Center = serverUpdated
-        ? // merge servidor com o objeto local (servidor tem prioridade)
-          {
-            // @ts-ignore
-            ...updatedCenter,
-            ...(typeof serverUpdated === "object" ? serverUpdated : {}),
-          }
-        : updatedCenter;
+      // Merge final
+      let finalCenter: Center = serverUpdated && typeof serverUpdated === "object"
+        ? { ...(center as any), ...serverUpdated }
+        : { ...(center as any), ...payload };
 
-      // 5) revoga preview se houver (limpeza)
-      if (form.imagePreview && form.imageFile) {
+      // Garante que o identificador permaneça
+      // @ts-ignore
+      finalCenter._id = uid;
+      // @ts-ignore
+      finalCenter.id = uid;
+
+      // Se marcamos remoção e o servidor ainda retornou imagem, força limpar na UI
+      if (form.imageRemoved) {
+        // @ts-ignore
+        finalCenter.image = null;
+      }
+
+      // Revoga preview se era blob:
+      if (form.imagePreview && form.imagePreview.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(form.imagePreview);
         } catch {}
       }
 
-      // 6) notifica parent
       onUpdate(finalCenter);
       onClose();
     } catch (error) {
@@ -343,6 +366,7 @@ export default function EditCenterModal({
             <div className={styles.fileRow}>
               <label className={styles.fileLabel}>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
@@ -357,18 +381,27 @@ export default function EditCenterModal({
                     src={form.imagePreview}
                     alt="Preview"
                     className={styles.preview}
+                    onError={() =>
+                      setForm((s) => ({
+                        ...s,
+                        imagePreview: null,
+                        imageFile: null,
+                        imageRemoved: true,
+                      }))
+                    }
                   />
                   <button
                     type="button"
                     className={styles.removePreview}
                     onClick={() =>
                       setForm((s) => {
-                        if (s.imagePreview && s.imageFile) {
+                        if (s.imagePreview && s.imagePreview.startsWith("blob:")) {
                           try {
                             URL.revokeObjectURL(s.imagePreview);
                           } catch {}
                         }
-                        return { ...s, imageFile: null, imagePreview: null };
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                        return { ...s, imageFile: null, imagePreview: null, imageRemoved: true };
                       })
                     }
                     disabled={loading}

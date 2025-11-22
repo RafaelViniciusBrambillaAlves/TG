@@ -8,14 +8,51 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 type Props = {
   centers: Centro[];
   onEdit: (center: Centro) => void;
+  onDelete?: (id: string) => Promise<void> | void;
 };
 
-export default function CentersList({ centers = [], onEdit }: Props) {
+export default function CentersList({ centers = [], onEdit, onDelete }: Props) {
+  const [toDelete, setToDelete] = React.useState<Centro | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   const resolveImage = (img?: string) => {
     if (!img) return null;
     if (/^https?:\/\//.test(img)) return img;
     if (img.startsWith("/")) return `http://localhost:3001${img}`;
     return img;
+  };
+
+  const closeModal = () => {
+    setToDelete(null);
+    setIsDeleting(false);
+    setError(null);
+  };
+
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    if (toDelete) {
+      document.addEventListener("keydown", onKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [toDelete]);
+
+  const handleConfirmDelete = async () => {
+    if (!toDelete) return;
+
+    try {
+      setIsDeleting(true);
+      if (onDelete) await onDelete(toDelete._id);
+      closeModal();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Falha ao excluir.";
+      setError(msg);
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -70,6 +107,7 @@ export default function CentersList({ centers = [], onEdit }: Props) {
                       aria-label={`Excluir ${c.nome}`}
                       type="button"
                       title="Excluir"
+                      onClick={() => setToDelete(c)}
                     >
                       <FiTrash2 />
                     </button>
@@ -100,7 +138,6 @@ export default function CentersList({ centers = [], onEdit }: Props) {
                     </div>
                   )}
 
-                  {/* caso não tenha nenhum meta, mostra uma linha neutra */}
                   {!c.telefone && !c.email && !c.address && (
                     <div>
                       <dt>Info</dt>
@@ -113,6 +150,112 @@ export default function CentersList({ centers = [], onEdit }: Props) {
           );
         })}
       </div>
+
+      {toDelete && (
+        <div
+          style={modalStyles.overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-delete-title"
+          onClick={closeModal}
+        >
+          <div style={modalStyles.dialog} onClick={(e) => e.stopPropagation()}>
+            <h3 id="confirm-delete-title" style={modalStyles.title}>
+              Excluir centro
+            </h3>
+            <p style={modalStyles.text}>
+              Tem certeza que deseja excluir "<strong>{toDelete.nome}</strong>"?
+              Esta ação não poderá ser desfeita.
+            </p>
+
+            {error && (
+              <div style={modalStyles.alert} role="alert">
+                {error}
+              </div>
+            )}
+
+            <div style={modalStyles.actions}>
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={isDeleting}
+                style={modalStyles.cancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={modalStyles.danger}
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+
+const modalStyles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    zIndex: 1000,
+  } as React.CSSProperties,
+  dialog: {
+    background: "#fff",
+    borderRadius: "8px",
+    padding: "20px",
+    width: "min(520px, 100%)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  } as React.CSSProperties,
+  title: {
+    color: "#333",
+    margin: "0 0 8px 0",
+    fontSize: "1.25rem",
+    fontWeight: 600,
+  } as React.CSSProperties,
+  text: {
+    margin: "0 0 16px 0",
+    lineHeight: 1.5,
+    color: "#333",
+  } as React.CSSProperties,
+  actions: {
+    display: "flex",
+    gap: "12px",
+    justifyContent: "flex-end",
+    marginTop: "16px",
+  } as React.CSSProperties,
+  cancel: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    background: "#fff",
+    color: "#333",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  danger: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid",
+    background: "#f43f5e",
+    color: "#fff",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  alert: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    border: "1px solid #fecaca",
+    borderRadius: "6px",
+    padding: "8px 10px",
+    marginTop: "8px",
+  } as React.CSSProperties,
+};

@@ -527,6 +527,7 @@ export default function Header() {
       <ProfileDrawer
         visible={drawerVisible}
         onClose={() => setDrawerVisible(false)}
+        organizations={organizations}
       />
 
       {/* Filters modal — backdrop fecha ao tocar fora; .filtersBox consome toque */}
@@ -891,7 +892,6 @@ export default function Header() {
   );
 }
 
-/* ---------- estilos (mantive como antes) ---------- */
 const styles = StyleSheet.create({
   container: {
     paddingTop: 8,

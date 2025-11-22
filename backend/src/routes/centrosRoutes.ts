@@ -7,5 +7,7 @@ const router = Router();
 
 router.post('/', asyncHandler(centrosController.create));
 router.get('/', asyncHandler(centrosController.getAll));
+router.put('/:_id', asyncHandler(centrosController.update));
+router.delete('/:_id', asyncHandler(centrosController.delete));
 
 export default router;

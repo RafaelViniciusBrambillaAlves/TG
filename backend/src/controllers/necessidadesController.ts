@@ -67,6 +67,51 @@ export const necessidadesController = {
       console.error('Error updating necessidade:', err);
       res.status(500).json({ message: err.message ?? 'Erro ao atualizar necessidade' });
     }
-  }
+  },
 
+  async update(req: Request, res: Response) {
+    try {
+      const updateData = {
+        title: req.body.title,
+        description: req.body.description,
+        type: req.body.type,
+        quantity: req.body.quantity,
+        status: req.body.status,
+        centerId: req.body.centerId,
+        emergencyId: req.body.emergencyId,
+        quantidade_necessaria: req.body.quantidade_necessaria,
+        quantidade_atingida: req.body.quantidade_atingida,
+        image: req.body.image
+      };
+
+      const centro = await NecessidadeModel.findOneAndUpdate({ _id: req.params._id }, updateData);
+      return res.json(centro);
+    } catch (err: any) {
+      if (err.message === 'Publicidade não encontrada') {
+        return res.status(404).json({ message: err.message });
+      }
+      console.error("Erro ao atualizar parcialmente publicidade:", err);
+      return res.status(500).json({
+        error: "Erro ao atualizar parcialmente publicidade",
+        message: err.message
+      });
+    }
+  },
+
+  async delete(req: Request, res: Response) {
+    try {
+      const result = await NecessidadeModel.findOneAndDelete({ _id: req.params._id });
+      return res.json(result);
+    } catch (err: any) {
+      console.log(err)
+      if (err.message === 'Publicidade não encontrada') {
+        return res.status(404).json({ message: err.message });
+      }
+      console.error("Erro ao remover publicidade:", err);
+      return res.status(500).json({
+        error: "Erro ao remover publicidade",
+        message: err.message
+      });
+    }
+  },
 };

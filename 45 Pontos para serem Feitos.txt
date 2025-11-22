@@ -31,7 +31,7 @@ XXX - (Menos) 3.6 Botão de compartilhar tem que funcionar(nem se for para simul
 3.7 Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
 
 4 - CENTROS: 1
-*** 4.1 Tem que poder editar e excluir os centros
+X - *** 4.1 Tem que poder editar e excluir os centros
 
 5 - EMERGENCIAS: 6
 XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
@@ -44,7 +44,7 @@ XXX - 5.6 Não esta excluindo Emergência
 6 - NECESSIDADES: 5
 XXX - *** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
 XXX - *** 6.2 Tem que poder adicionar imagem tambem
-*** 6.3 Tem que poder editar e excluir
+X - *** 6.3 Tem que poder editar e excluir
 XXX - *** 6.4 Tem que aparecer a que Emergência esta vinculado isso
 XXX - 6.5 Arrumar formulario de Criação e edição
 
@@ -59,7 +59,7 @@ XXX - *** 8.1 Arrume o ver Pefil(tem que aparecer foto, e as informações da pe
 8.2 Tem que poder excluir aconta da pessoa
 XXX - *** 8.3 Arrumar toda a pagina de editar perfil(o ux/ ui, arrumar os campos, mostrar as fotos, poder editar as fotos)
 XXX - 8.4 Tem que poder editar as informações e a foto da pessoa
-*** 8.5 Fica aparecendo nome não informado 
+X - *** 8.5 Fica aparecendo nome não informado
 
 
 9 - CONFIGURAÇÔES: 1
@@ -93,7 +93,7 @@ XXX - 13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem qu
 
 14 - PUBLICAÇÔES: 4
 XXX - *** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
-*** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
+X - *** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
 XXX - *** 14.3 Tem que mostrar o nome da pessoa, os textos estão ficando duplicados e tem que aparecer imagem e o tempo da publicação
 XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Local Não informado
 

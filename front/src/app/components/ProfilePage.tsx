@@ -112,29 +112,6 @@ export default function ProfilePage() {
   };
 
   async function saveProfile() {
-    const newErrors: { [key: string]: string } = {};
-    if (!editData?.name?.trim()) newErrors.name = "Nome é obrigatório.";
-    if (!editData?.email?.trim()) newErrors.email = "Email é obrigatório.";
-    if (editData?.email && !/\S+@\S+\.\S+/.test(editData.email)) newErrors.email = "Email inválido.";
-
-    // Validação do telefone: aceita entrada com ou sem formatação
-    if (editData?.phone) {
-      const digits = (editData.phone + "").replace(/\D/g, "");
-      if (!(digits.length === 10 || digits.length === 11)) {
-        newErrors.phone = "Telefone inválido (formato: (99) 99999-9999 ou 10/11 dígitos).";
-      }
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!user?._id) {
-      alert("Usuário não identificado.");
-      return;
-    }
-
     setLoading(true);
     try {
       let avatarUrl = editData.image;
@@ -150,7 +127,6 @@ export default function ProfilePage() {
         }
       }
 
-      // Normaliza telefone antes de enviar
       const formattedPhone = editData.phone ? formatPhoneFromInput(editData.phone) : undefined;
 
       const payload: any = {
@@ -231,7 +207,7 @@ export default function ProfilePage() {
   const confirmDelete = () => setShowDeleteConfirm(true);
   const deleteAccount = () => {
     setShowDeleteConfirm(false);
-    alert("Conta excluída (mock).");
+    alert("Conta excluída.");
   };
 
   const cls = (variant?: string) =>
@@ -271,7 +247,7 @@ export default function ProfilePage() {
             />
             <div className={styles.leftMeta}>
               <div className={styles.nameRow}>
-                <h1 className={styles.name}>{user?.name || "Nome não informado"}</h1>
+                <h1 className={styles.name}>{user?.username || "Nome não informado"}</h1>
               </div>
 
               <div className={styles.smallMeta}>

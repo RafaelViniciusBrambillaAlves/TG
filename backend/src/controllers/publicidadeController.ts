@@ -105,8 +105,6 @@ export const publicidadeController = {
   },
 
   async update(req: Request, res: Response) {
-    console.log(req.body)
-    console.log(req.params)
     try {
       const updateData = {
         titulo: req.body.titulo,

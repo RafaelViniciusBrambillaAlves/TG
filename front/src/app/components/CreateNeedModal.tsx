@@ -5,7 +5,7 @@ import styles from "./createNeedModal.module.css";
 import { Centro } from "@/hooks/getCentros";
 import { Emergencia } from "@/hooks/getEmergencias";
 import api from "@/services/api";
-import type { Need } from "@/app/mocks"; // ajuste conforme sua tipagem real
+import type { Need } from "@/app/mocks";
 
 type Props = {
   open: boolean;
@@ -18,79 +18,119 @@ type Props = {
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
 
-export default function CreateNeedModal({
-  open,
-  onClose,
-  onCreate,
-  centersFilterOrgId,
-  centers,
-  emergencies,
-  ...editData
-}: Props) {
+function resolveServerImage(img?: string | null): string | null {
+  if (!img || typeof img !== "string" || img.trim() === "") return null;
+  if (/^https?:\/\//.test(img)) return img;
+  if (img.startsWith("/")) return `http://localhost:3001${img}`;
+  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+}
+
+function fileNameFromPath(path?: string | null): string | null {
+  if (!path) return null;
+  try {
+    const u = new URL(resolveServerImage(path) || path);
+    const last = u.pathname.split("/").filter(Boolean).pop();
+    return last || null;
+  } catch {
+    const last = path.split("/").filter(Boolean).pop();
+    return last || null;
+  }
+}
+
+export default function CreateNeedModal({ ...props }: Props) {
+  const {
+    open,
+    onClose,
+    onCreate,
+    centersFilterOrgId,
+    centers,
+    emergencies,
+    ...editData
+  } = props;
+
   const [title, setTitle] = useState(editData.title ?? "");
   const [description, setDescription] = useState(editData.description ?? "");
   const [type, setType] = useState<Need["type"]>(editData.type ?? "Doação");
   const [quantity, setQuantity] = useState(editData.quantity ?? "");
   const [status, setStatus] = useState<Need["status"]>(editData.status ?? "Aberta");
-  const [centerId, setCenterId] = useState<string | undefined>(editData.centerId);
-  const [emergencyId, setEmergencyId] = useState<string | undefined>(editData.emergencyId);
+  const [centerId, setCenterId] = useState<string | undefined>(
+    (editData as any)?.centerId?._id || (editData as any)?.centerId || undefined,
+  );
+  const [emergencyId, setEmergencyId] = useState<string | undefined>(
+    (editData as any)?.emergencyId?._id || (editData as any)?.emergencyId || undefined,
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // imagem
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null); // blob ou URL do servidor
   const [imageName, setImageName] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
 
-  // centers filter
-  const centerList = centersFilterOrgId ? centers.filter((c) => c.orgId === centersFilterOrgId) : centers;
-
+  // Preenche o formulário e mostra o preview existente (se houver) quando abrir para edição
   useEffect(() => {
-    if (open) {
-      // focus no primeiro campo
-      setTimeout(() => firstInputRef.current?.focus(), 0);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-      // reset quando fechar
-      resetFormToEditData();
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    if (!open) return;
 
-  // cleanup preview URL quando desmonta
-  useEffect(() => {
-    return () => {
-      if (imagePreview) {
-        try { URL.revokeObjectURL(imagePreview); } catch {}
-      }
-    };
-  }, [imagePreview]);
-
-  function resetFormToEditData() {
     setTitle(editData.title ?? "");
     setDescription(editData.description ?? "");
     setType(editData.type ?? "Doação");
     setQuantity(editData.quantity ?? "");
     setStatus(editData.status ?? "Aberta");
-    setCenterId(editData.centerId);
-    setEmergencyId(editData.emergencyId);
+    setCenterId((editData as any)?.centerId?._id || (editData as any)?.centerId || undefined);
+    setEmergencyId((editData as any)?.emergencyId?._id || (editData as any)?.emergencyId || undefined);
     setError(null);
     setLoading(false);
-    // limpar image preview
-    if (imagePreview) {
-      try { URL.revokeObjectURL(imagePreview); } catch {}
+
+    // limpar preview anterior se era blob
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(imagePreview);
+      } catch {}
     }
+
+    // Preview a partir da imagem que já existe no backend
+    const existing = (editData as any)?.image as string | undefined;
+    const resolved = resolveServerImage(existing);
     setImageFile(null);
-    setImagePreview(null);
-    setImageName(null);
-  }
+    setImagePreview(resolved);
+    setImageName(fileNameFromPath(existing));
+
+    // foco e bloqueio de scroll
+    setTimeout(() => firstInputRef.current?.focus(), 0);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+    // re-sync quando trocar o item sendo editado
+  }, [open, (editData as any)?._id]);
+
+  // cleanup preview URL quando desmonta
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(imagePreview);
+        } catch {}
+      }
+    };
+  }, [imagePreview]);
+
+  // centers filtrados, mas garante incluir o selecionado atual (para o select não ficar vazio)
+  const centerListBase = centersFilterOrgId
+    ? centers.filter((c) => c.orgId === centersFilterOrgId)
+    : centers;
+
+  const centerList = React.useMemo(() => {
+    if (!centerId) return centerListBase;
+    const hasSelected = centerListBase.some((c) => (c as any)._id === centerId);
+    if (hasSelected) return centerListBase;
+    const fromAll = centers.find((c) => (c as any)._id === centerId);
+    return fromAll ? [...centerListBase, fromAll] : centerListBase;
+  }, [centers, centerListBase, centerId]);
 
   function handleOutsideClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose();
@@ -101,20 +141,24 @@ export default function CreateNeedModal({
     if (!f) return;
     if (f.size > MAX_IMAGE_BYTES) {
       alert("Arquivo muito grande. Tamanho máximo 8MB.");
-      // limpar o input
       e.currentTarget.value = "";
       return;
     }
 
-    // revoga preview anterior
-    if (imagePreview) {
-      try { URL.revokeObjectURL(imagePreview); } catch {}
+    // revoga preview anterior se era objectURL
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(imagePreview);
+      } catch {}
     }
 
     const url = URL.createObjectURL(f);
     setImageFile(f);
     setImagePreview(url);
     setImageName(f.name);
+
+    // permitir selecionar o mesmo arquivo novamente no futuro
+    e.currentTarget.value = "";
   }
 
   function triggerFilePicker() {
@@ -122,8 +166,10 @@ export default function CreateNeedModal({
   }
 
   function removeImage() {
-    if (imagePreview) {
-      try { URL.revokeObjectURL(imagePreview); } catch {}
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(imagePreview);
+      } catch {}
     }
     setImageFile(null);
     setImagePreview(null);
@@ -148,9 +194,18 @@ export default function CreateNeedModal({
   }
 
   function validate() {
-    if (!title.trim()) { setError("Título é obrigatório"); return false; }
-    if (!description.trim()) { setError("Descrição é obrigatória"); return false; }
-    if (!centerId) { setError("Selecione um centro"); return false; }
+    if (!title.trim()) {
+      setError("Título é obrigatório");
+      return false;
+    }
+    if (!description.trim()) {
+      setError("Descrição é obrigatória");
+      return false;
+    }
+    if (!centerId) {
+      setError("Selecione um centro");
+      return false;
+    }
     setError(null);
     return true;
   }
@@ -160,7 +215,7 @@ export default function CreateNeedModal({
     if (!validate()) return;
     setLoading(true);
     try {
-      // upload da imagem (se houver)
+      // upload da nova imagem (se houver)
       let imageUrl: string | undefined = undefined;
       if (imageFile) {
         try {
@@ -181,28 +236,36 @@ export default function CreateNeedModal({
         quantity: quantity.trim() || undefined,
         status,
         centerId,
-        emergencyId: emergencyId!,
+        // emergência é opcional; envie undefined se vazio
+        emergencyId: emergencyId || undefined,
         createdAt: editData.createdAt ?? new Date().toISOString(),
         interestCount: editData.interestCount ?? 0,
-        image: imageUrl,
+        // preserva a imagem existente se não selecionou outra
+        image: imageUrl ?? (editData as any)?.image,
       };
 
       const method = editData._id ? "PUT" : "POST";
-      const url = editData._id ? `/api/v1/necessidades/${editData._id}` : "/api/v1/necessidades";
+      const url = editData._id
+        ? `/api/v1/necessidades/${editData._id}`
+        : "/api/v1/necessidades";
 
       await api({ url, method, data: newNeed });
 
       onCreate(newNeed);
 
-      // cleanup preview
-      if (imagePreview) {
-        try { URL.revokeObjectURL(imagePreview); } catch {}
+      // cleanup preview se era blob
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(imagePreview);
+        } catch {}
       }
 
       onClose();
     } catch (err: any) {
       console.error("Error creating/updating need:", err);
-      setError(err.response?.data?.message || err.message || "Erro ao salvar necessidade");
+      setError(
+        err.response?.data?.message || err.message || "Erro ao salvar necessidade",
+      );
     } finally {
       setLoading(false);
     }
@@ -211,10 +274,21 @@ export default function CreateNeedModal({
   if (!open) return null;
 
   return (
-    <div className={styles.overlay} onMouseDown={handleOutsideClick} role="dialog" aria-modal="true">
-      <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()} role="document">
+    <div
+      className={styles.overlay}
+      onMouseDown={handleOutsideClick}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className={styles.modal}
+        onMouseDown={(e) => e.stopPropagation()}
+        role="document"
+      >
         <header className={styles.header}>
-          <h3 className={styles.title}>{editData._id ? "Editar necessidade" : "Criar necessidade"}</h3>
+          <h3 className={styles.title}>
+            {editData._id ? "Editar necessidade" : "Criar necessidade"}
+          </h3>
           <button
             className={styles.close}
             onClick={onClose}
@@ -332,7 +406,6 @@ export default function CreateNeedModal({
             </select>
           </label>
 
-          {/* ---------------- IMAGE FIELD ---------------- */}
           <div className={styles.row}>
             <span className={styles.label}>Imagem (opcional)</span>
 
@@ -354,15 +427,18 @@ export default function CreateNeedModal({
                 disabled={loading}
                 aria-label="Selecionar imagem"
               >
-                {/* Ícone simples via CSS pseudo-element ou emoji */}
-                <span className={styles.selectIcon} aria-hidden>🖼️</span>
+                <span className={styles.selectIcon} aria-hidden>
+                  🖼️
+                </span>
                 <span>Selecionar imagem</span>
               </button>
 
               <div className={styles.imageMeta}>
                 {imageName ? (
                   <div className={styles.fileInfo}>
-                    <span className={styles.fileName} title={imageName}>{imageName}</span>
+                    <span className={styles.fileName} title={imageName}>
+                      {imageName}
+                    </span>
                     <button
                       type="button"
                       className={styles.removeBtn}
@@ -381,17 +457,35 @@ export default function CreateNeedModal({
 
             {imagePreview && (
               <div className={styles.previewWrap}>
-                <img src={imagePreview} alt="Preview da imagem selecionada" className={styles.preview} />
+                <img
+                  src={imagePreview}
+                  alt="Preview da imagem selecionada"
+                  className={styles.preview}
+                  onError={() => {
+                    // se a URL existente estiver inválida, esconda o preview
+                    setImagePreview(null);
+                    setImageName(null);
+                  }}
+                />
               </div>
             )}
           </div>
 
           <footer className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose} disabled={loading}>
+            <button
+              type="button"
+              className={styles.secondary}
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancelar
             </button>
             <button type="submit" className={styles.primary} disabled={loading}>
-              {loading ? "Salvando..." : (editData._id ? "Salvar alterações" : "Criar necessidade")}
+              {loading
+                ? "Salvando..."
+                : editData._id
+                ? "Salvar alterações"
+                : "Criar necessidade"}
             </button>
           </footer>
         </form>

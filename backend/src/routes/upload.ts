@@ -10,6 +10,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // POST /api/v1/upload
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
+    console.log(req.file)
     if (!req.file) return res.status(400).json({ message: "Arquivo ausente" });
 
     const bucket = getBucket();
@@ -30,7 +31,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         res.status(500).json({ message: "Erro ao salvar arquivo" });
       })
       .on("finish", () => {
-        const fileId = uploadStream.id; 
+        const fileId = uploadStream.id;
         const url = `/api/v1/files/${fileId.toString()}`;
         res.json({ fileId: fileId.toString(), url });
       });

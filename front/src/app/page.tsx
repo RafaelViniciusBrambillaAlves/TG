@@ -181,8 +181,21 @@ export default function Home() {
 
   // handlers (mantidos)
   const handleCreateCenter = (c: Centro) => setCenters((s) => [c, ...s]);
-  const handleUpdateCenter = (c: Centro) =>
-    setCenters((s) => s.map((x) => (x._id === c._id ? c : x)));
+  const handleUpdateCenter = (c: Centro) => {
+    const cid = (c as any)?._id ?? (c as any)?.id;
+    setCenters((s) =>
+      s.map((x) => {
+        const xid = (x as any)?._id ?? (x as any)?.id;
+        return xid === cid ? { ...x, ...c } : x;
+      }),
+    );
+    getCentros()
+      .then(async (data) => {
+        setCenters(data);
+      })
+      .catch((err) => console.warn("getCentros failed:", err));
+  };
+
   const handleDeleteCenter = (id: string) => {
     if (confirm("Excluir centro?"))
       setCenters((s) => s.filter((x) => x._id !== id));
@@ -198,7 +211,14 @@ export default function Home() {
       setEmergencies((s) => s.filter((x) => x._id !== id));
   };
 
-  const handleCreateNeed = (n: Need) => setNeeds((s) => [n, ...s]);
+  const handleCreateNeed = (n: Need) => {
+    setNeeds((s) => [n, ...s])
+    getNecessidades()
+      .then(async (data) => {
+        setNeeds(data);
+      })
+      .catch((err) => console.warn("getNecessidades failed:", err));
+  };
   const handleUpdateNeed = (n: Need) =>
     setNeeds((s) => s.map((x) => (x.id === n.id ? n : x)));
   const handleDeleteNeed = (id: string) => {
@@ -565,6 +585,10 @@ export default function Home() {
   function handleUpdatePostInParent(updated: PostType) {
     setPosts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
   }
+  const handleDeleteCenterFromList = async (id: string) => {
+    await api.delete(`/api/v1/centros/${id}`);
+    setCenters((s) => s.filter((x) => x._id !== id));
+  };
   // --- DEBUG MODE: render login ou forgot-password only if requested via ?view=login ou ?view=forgot-password
   if (debugView === "login") {
     return (
@@ -630,6 +654,9 @@ export default function Home() {
                 setEditingCenter(c);
                 setShowEditCenter(true);
               }}
+              onDelete={(id) => {
+                handleDeleteCenterFromList(id);
+              }}
             />
           )}
 
@@ -659,9 +686,14 @@ export default function Home() {
                   prev.map((n) => (n._id === updated._id ? updated : n)),
                 )
               }
-              onDelete={(id) =>
+              onDelete={(id) => {
                 setNeeds((prev) => prev.filter((n) => n._id !== id))
-              }
+                getNecessidades()
+                  .then(async (data) => {
+                    setNeeds(data);
+                  })
+                  .catch((err) => console.warn("getNecessidades failed:", err));
+              }}
             />
           )}
 

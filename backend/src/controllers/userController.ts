@@ -155,8 +155,6 @@ export const userController = {
       if (email !== undefined) user.email = email;
       if (telefone !== undefined) user.telefone = telefone;
       if (image !== undefined) user.image = image;
-      // se quiser guardar 'bio' e não tem campo, adapte o model ou salve em outro lugar
-      // exemplo: user.bio = bio; (adapte o schema se necessário)
 
       await user.save(); // gatilha pre('save') se senha foi alterada
 
