@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
 import { AntDesign, Feather } from "@expo/vector-icons";
 import api from "@/services/api";
 import { useAuth } from "@/context/auth.context";
+import * as FileSystem from "expo-file-system";
 
 export type ProfileData = {
   _id?: string;
@@ -44,7 +45,7 @@ export type ProfileData = {
   }[];
 };
 
-// Resolve URL para preview (blob:, content:, file:, data:, http(s), relativo)
+// Resolve para preview (blob:, content://, file://, data:, http(s), relativo)
 function resolveUri(u?: string | null): string | null {
   if (!u || typeof u !== "string" || u.trim() === "") return null;
   if (u.startsWith("blob:")) return u;
@@ -55,71 +56,100 @@ function resolveUri(u?: string | null): string | null {
   return `http://localhost:3001/${u.replace(/^\/+/, "")}`;
 }
 function isLocalUri(u?: string | null) {
-  return !!u && (u.startsWith("blob:") || u.startsWith("content:") || u.startsWith("file:")
-    || u.startsWith("data:"));
+  return !!u && (u.startsWith("blob:") || u.startsWith("content:") || u.startsWith("file:") || u.startsWith("data:"));
 }
 
-// Upload do avatar usando FormData no estilo do ProfilePage.tsx
-async function uploadAvatar(uri: string, mime?: string): Promise<string> {
-  const name = uri.split("/").pop() || `avatar-${Date.now()}.jpg`;
-  const ext = (name.split(".").pop() || "jpg").toLowerCase();
-  const type = mime || (ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg");
-
-  const formData = new FormData();
-  formData.append("file", { uri, name, type } as any);
-
-  const res = await api.post("/api/v1/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-  const data = res.data ?? {};
-  if (typeof data === "string") return data;
-  if (data.url) return data.url;
-  if (data.path) return data.path;
-  if (data.fileId) return `/api/v1/files/${data.fileId}`;
-  if (data.file?._id) return `/api/v1/files/${data.file._id}`;
-  if (data._id) return `/api/v1/files/${data._id}`;
-  throw new Error("Resposta de upload inválida");
-}
-
-// Extensão para compatibilidade com o base URL do backend
+// base URL do backend a partir do axios instance
 function getApiBase() {
   // @ts-ignore
   const base = api?.defaults?.baseURL || "http://localhost:3001";
   return String(base).replace(/\/+$/, "");
 }
 
+// Upload 100% compatível com multer(memoryStorage):
+// - Em ambiente nativo (Android/iOS), usa expo-file-system uploadAsync com multipart
+//   sem setar manualmente Content-Type (o SDK adiciona boundary corretamente).
+// - Em web (caso compile para web), usa FormData + axios com "file" como Blob.
+async function uploadAvatar(uri: string, mime?: string, fileNameHint?: string): Promise<string> {
+  const uploadUrl = `${getApiBase()}/api/v1/upload`;
+
+  if (Platform.OS === "web") {
+    // Web: pegue o blob da URI e envie como File (igual ao ProfilePage.tsx)
+    const resp = await fetch(uri);
+    const blob = await resp.blob();
+    const name =
+      fileNameHint ||
+      (uri.split("/").pop() || `avatar-${Date.now()}.jpg`);
+    const file = new File([blob], name, { type: blob.type || mime || "image/jpeg" });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await api.post("/api/v1/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const data = res.data ?? {};
+    if (typeof data === "string") return data;
+    if (data.url) return data.url;
+    if (data.path) return data.path;
+    if (data.fileId) return `/api/v1/files/${data.fileId}`;
+    if (data.file?._id) return `/api/v1/files/${data.file._id}`;
+    if (data._id) return `/api/v1/files/${data._id}`;
+    throw new Error("Resposta de upload inválida (web)");
+  }
+
+  // Nativo (Android/iOS): expo-file-system (NÃO setar Content-Type manualmente!)
+  const result = await FileSystem.uploadAsync(uploadUrl, uri, {
+    httpMethod: "POST",
+    fieldName: "file", // nome do campo que o multer espera
+    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+    // headers: NÃO definir Content-Type aqui, o SDK define boundary corretamente
+    parameters: {}, // caso queira enviar algo mais no corpo
+  });
+
+  if (result.status !== 200) {
+    throw new Error(`Upload falhou (${result.status}): ${result.body || ""}`);
+  }
+  let data: any = {};
+  try {
+    data = JSON.parse(result.body);
+  } catch {
+    data = result.body;
+  }
+  if (typeof data === "string") return data;
+  if (data.url) return data.url;
+  if (data.path) return data.path;
+  if (data.fileId) return `/api/v1/files/${data.fileId}`;
+  if (data.file?._id) return `/api/v1/files/${data.file._id}`;
+  if (data._id) return `/api/v1/files/${data._id}`;
+  throw new Error("Resposta de upload inválida (nativo)");
+}
+
 type Props = {
-  open: boolean;
-  center?: any; // Centro a editar (não é usado no escopo deste patch, mantido para compat)
+  visible: boolean;
   onClose: () => void;
-  onUpdate?: (updated: any) => void;
+  onSave?: (updated: ProfileData) => void;
 };
 
-export default function EditProfileModal({
-  open,
-  center,
-  onClose,
-  onUpdate,
-}: Props) {
-  // usa o user do auth context (sem depender de center)
+export default function EditProfileModal({ visible, onClose, onSave }: Props) {
   const { user, updateUser } = useAuth();
 
-  // Campos básicos do perfil
-  const [name, setName] = useState<string>(user?.name ?? user?.username ?? "");
+  // Campos do formulário
+  const [name, setName] = useState<string>(user?.username ?? user?.name ?? "");
   const [email, setEmail] = useState<string>(user?.email ?? "");
   const [phone, setPhone] = useState<string>((user as any)?.telefone ?? "");
   const [bio, setBio] = useState<string>((user as any)?.bio ?? "");
 
   // Avatar
   const [avatar, setAvatar] = useState<string | null | undefined>(
-    (user as any)?.image ?? null
+    (user as any)?.image ?? null,
   );
   const [avatarFileUri, setAvatarFileUri] = useState<string | null>(null);
   const [avatarMime, setAvatarMime] = useState<string | undefined>(undefined);
-  const [avatarRemoved, setAvatarRemoved] = useState(false);
+  const [avatarName, setAvatarName] = useState<string | undefined>(undefined);
+  const [avatarRemoved, setAvatarRemoved] = useState<boolean>(false);
 
-  // Endereço (opcional para UI)
+  // Endereço (visual)
   const [street, setStreet] = useState<string>((user as any)?.address?.street ?? "");
   const [number, setNumber] = useState<string>((user as any)?.address?.number ?? "");
   const [complement, setComplement] = useState<string>((user as any)?.address?.complement ?? "");
@@ -129,20 +159,19 @@ export default function EditProfileModal({
   const [country, setCountry] = useState<string>((user as any)?.address?.country ?? "");
   const [zip, setZip] = useState<string>((user as any)?.address?.zip ?? "");
 
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Reset ao abrir
   useEffect(() => {
-    if (!open) return;
-    // carrega dados atuais
-    setName(user?.name ?? "");
+    if (!visible) return;
+    setName(user?.username ?? user?.name ?? "");
     setEmail(user?.email ?? "");
     setPhone((user as any)?.telefone ?? "");
     setBio((user as any)?.bio ?? "");
     setAvatar((user as any)?.image ?? null);
     setAvatarFileUri(null);
     setAvatarMime(undefined);
+    setAvatarName(undefined);
     setAvatarRemoved(false);
 
     setStreet((user as any)?.address?.street ?? "");
@@ -153,73 +182,149 @@ export default function EditProfileModal({
     setStateField((user as any)?.address?.state ?? "");
     setCountry((user as any)?.address?.country ?? "");
     setZip((user as any)?.address?.zip ?? "");
-  }, [open]);
+  }, [visible, user]);
 
-  // Avatar picker: galerias/câmera
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
-
-  const triggerAvatarPicker = () => {
-    fileInputRef.current?.click();
-  };
-
-  // onAvatarSelect (File input)
-  const onAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    if (!f) return;
-    const MAX = 8 * 1024 * 1024;
-    if (f.size > MAX) {
-      // manter consistência com ProfilePage: erro na UI
-      alert("Arquivo muito grande. Máx 8MB.");
-      e.currentTarget.value = "";
-      return;
+  // Image Picker
+  const loadImagePicker = async () => {
+    try {
+      const ImagePicker = await import("expo-image-picker");
+      return ImagePicker;
+    } catch {
+      Alert.alert(
+        "Módulo ausente",
+        "O recurso de imagem requer 'expo-image-picker'. Execute: expo install expo-image-picker",
+      );
+      return null;
     }
-    // atualiza avatar para preview
-    const url = URL.createObjectURL(f);
-    setAvatar(url);
-    setAvatarFileUri(url);
-    setAvatarMime(f.type);
-    setAvatarRemoved(false);
+  };
+  const requestPermissions = async (ImagePicker: any) => {
+    try {
+      if (Platform.OS !== "web") {
+        if (ImagePicker?.requestMediaLibraryPermissionsAsync) {
+          const { status } =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert(
+              "Permissão necessária",
+              "Precisamos de acesso à galeria/câmera para selecionar uma imagem.",
+            );
+            return false;
+          }
+        }
+        if (ImagePicker?.requestCameraPermissionsAsync) {
+          await ImagePicker.requestCameraPermissionsAsync();
+        }
+      }
+      return true;
+    } catch (e) {
+      console.warn("Erro de permissão:", e);
+      return false;
+    }
   };
 
-  // Remover avatar
+  const pickFromGallery = async () => {
+    const ImagePicker = await loadImagePicker();
+    if (!ImagePicker) return;
+    const ok = await requestPermissions(ImagePicker);
+    if (!ok) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+
+      if ("canceled" in result) {
+        if (result.canceled) return;
+        const asset = result.assets?.[0];
+        const uri = asset?.uri;
+        if (uri) {
+          setAvatar(uri);
+          setAvatarFileUri(uri);
+          setAvatarMime(asset?.mimeType);
+          setAvatarName(asset?.fileName);
+          setAvatarRemoved(false);
+        }
+        return;
+      }
+
+      const asset = (result as any).assets?.[0];
+      const uri = asset?.uri ?? (result as any).uri ?? null;
+      if (uri) {
+        setAvatar(uri);
+        setAvatarFileUri(uri);
+        setAvatarMime(asset?.mimeType);
+        setAvatarName(asset?.fileName);
+        setAvatarRemoved(false);
+      }
+    } catch (e) {
+      console.warn("Erro ao abrir galeria:", e);
+      Alert.alert("Erro", "Não foi possível abrir a galeria.");
+    }
+  };
+
+  const takePhoto = async () => {
+    const ImagePicker = await loadImagePicker();
+    if (!ImagePicker) return;
+    const ok = await requestPermissions(ImagePicker);
+    if (!ok) return;
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+
+      if ("canceled" in result) {
+        if (result.canceled) return;
+        const asset = result.assets?.[0];
+        const uri = asset?.uri;
+        if (uri) {
+          setAvatar(uri);
+          setAvatarFileUri(uri);
+          setAvatarMime(asset?.mimeType);
+          setAvatarName(asset?.fileName);
+          setAvatarRemoved(false);
+        }
+        return;
+      }
+
+      const asset = (result as any).assets?.[0];
+      const uri = asset?.uri ?? (result as any).uri ?? null;
+      if (uri) {
+        setAvatar(uri);
+        setAvatarFileUri(uri);
+        setAvatarMime(asset?.mimeType);
+        setAvatarName(asset?.fileName);
+        setAvatarRemoved(false);
+      }
+    } catch (e) {
+      console.warn("Erro ao abrir câmera:", e);
+      Alert.alert("Erro", "Não foi possível usar a câmera.");
+    }
+  };
+
   const handleRemoveAvatar = () => {
-    // confirma
-    if (avatar === null) {
-      // já removido
-      return;
-    }
-    // sinaliza remoção
-    setAvatar(null);
-    setAvatarFileUri(null);
-    setAvatarMime(undefined);
-    setAvatarRemoved(true);
+    Alert.alert("Remover imagem", "Deseja remover a imagem do perfil?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Remover",
+        style: "destructive",
+        onPress: () => {
+          setAvatar(null);
+          setAvatarFileUri(null);
+          setAvatarMime(undefined);
+          setAvatarName(undefined);
+          setAvatarRemoved(true);
+        },
+      },
+    ]);
   };
 
-  // Upload do avatar no estilo ProfilePage (FormData multipart)
-  async function uploadAvatarUri(uri: string, mime?: string): Promise<string> {
-    // similar ao ProfilePage: usa FormData com fieldName "file"
-    const name = uri.split("/").pop() || `avatar-${Date.now()}.jpg`;
-    const ext = (name.split(".").pop() || "jpg").toLowerCase();
-    const type = mime || (ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg");
-
-    const formData = new FormData();
-    formData.append("file", { uri, name, type } as any);
-
-    const res = await api.post("/api/v1/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    const data = res.data ?? {};
-    if (typeof data === "string") return data;
-    if (data.url) return data.url;
-    if (data.path) return data.path;
-    if (data.fileId) return `/api/v1/files/${data.fileId}`;
-    if (data.file?._id) return `/api/v1/files/${data.file._id}`;
-    if (data._id) return `/api/v1/files/${data._id}`;
-    throw new Error("Resposta de upload inválida");
-  }
-
-  // salvar (envia nome/email/telefone e imagem)
   async function handleSave() {
     if (saving) return;
     if (!user?._id) {
@@ -238,28 +343,29 @@ export default function EditProfileModal({
     try {
       setSaving(true);
 
-      // decide imagem a enviar
+      // Decide imagem a enviar
       let imageField: string | null | undefined = undefined;
       if (avatarRemoved && !avatar) {
         imageField = null; // remover
       } else if (avatarFileUri && isLocalUri(avatarFileUri)) {
-        imageField = await uploadAvatarUri(avatarFileUri, avatarMime);
+        // Upload com expo-file-system (nativo) ou com Blob (web), sem setar Content-Type manualmente no nativo
+        imageField = await uploadAvatar(avatarFileUri, avatarMime, avatarName);
       } else {
-        imageField = undefined; // não envia
+        imageField = undefined; // não enviar
       }
 
       const payload: any = {
         nome: name.trim(),
         email: email.trim(),
-        telefone: (phone ?? "").toString().trim() || undefined,
-        bio: bio?.trim() ?? undefined,
+        telefone: phone?.trim() || undefined,
+        bio: bio?.trim() || undefined,
       };
       if (imageField !== undefined) payload.image = imageField;
 
       const res = await api.put(`/api/v1/usuarios/usuarios/${user._id}`, payload);
       const data = res.data ?? {};
 
-      // atualiza o contexto
+      // Atualiza user no contexto
       updateUser({
         ...user,
         username: data.nome ?? name,
@@ -271,9 +377,11 @@ export default function EditProfileModal({
             : imageField !== undefined
             ? imageField
             : (user as any).image,
+        organizations: data.organizations ?? user.organizations,
+        role: data.role ?? user.role,
       });
 
-      // atualiza UI local opcional
+      // Notifica o pai (opcional, caso precise refletir imediatamente no Drawer)
       onSave?.({
         _id: user._id,
         name: data.nome ?? name,
@@ -298,100 +406,16 @@ export default function EditProfileModal({
       setSaving(false);
     }
   }
-  // helper: import dinâmico (evita crash quando o pacote não está instalado)
-  const loadImagePicker = async () => {
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      return ImagePicker;
-    } catch {
-      Alert.alert(
-        "Módulo ausente",
-        "O recurso de foto requer 'expo-image-picker'. Execute: expo install expo-image-picker"
-      );
-      return null;
-    }
-  };
 
-  // helper: pedir permissões (galeria e câmera)
-  const requestPermissions = async (ImagePicker: any) => {
-    try {
-      if (Platform.OS !== "web") {
-        if (ImagePicker?.requestMediaLibraryPermissionsAsync) {
-          const { status } =
-            await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== "granted") {
-            Alert.alert(
-              "Permissão necessária",
-              "Precisamos de acesso à galeria/câmera para escolher uma foto."
-            );
-            return false;
-          }
-        }
-        if (ImagePicker?.requestCameraPermissionsAsync) {
-          await ImagePicker.requestCameraPermissionsAsync();
-        }
-      }
-      return true;
-    } catch (e) {
-      console.warn("Permissão erro:", e);
-      return false;
-    }
-  };
-
-  // tirar foto com a câmera
-  const takePhoto = async () => {
-    const ImagePicker = await loadImagePicker();
-    if (!ImagePicker) return;
-    const ok = await requestPermissions(ImagePicker);
-    if (!ok) return;
-
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
-        allowsEditing: true,
-        aspect: [1, 1],
-      });
-
-      // SDKs mais novos retornam 'canceled'
-      if ("canceled" in result) {
-        if (result.canceled) return;
-        const asset = result.assets?.[0];
-        const uri = asset?.uri;
-        if (uri) {
-          setAvatar(uri);
-          setAvatarFileUri(uri);
-          setAvatarMime(asset?.mimeType);
-          setAvatarRemoved(false);
-        }
-        return;
-      }
-
-      // fallback compat
-      const asset = (result as any).assets?.[0];
-      const uri = asset?.uri ?? (result as any).uri ?? null;
-      if (uri) {
-        setAvatar(uri);
-        setAvatarFileUri(uri);
-        setAvatarMime(asset?.mimeType);
-        setAvatarRemoved(false);
-      }
-    } catch (err) {
-      console.warn("Erro ao tirar foto:", err);
-      Alert.alert("Erro", "Não foi possível tirar a foto.");
-    }
-  };
-
-  // Render
   const previewUri = resolveUri(avatar);
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.centeredOverlay}>
         <View style={styles.modalBox}>
           <View style={styles.modalHeaderRow}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TouchableOpacity onPress={onClose} aria-label="Fechar editar perfil">
+            <TouchableOpacity onPress={onClose} accessibilityLabel="Fechar editar perfil">
               <AntDesign name="close" size={18} color="#333" />
             </TouchableOpacity>
           </View>
@@ -409,19 +433,25 @@ export default function EditProfileModal({
               </View>
 
               <View style={styles.avatarActions}>
-                <TouchableOpacity style={styles.avatarBtn} onPress={triggerAvatarPicker} disabled={saving}>
+                <TouchableOpacity
+                  style={styles.avatarBtn}
+                  onPress={pickFromGallery}
+                  disabled={saving}
+                >
                   <Feather name="image" size={16} color="#007aff" />
-                  <Text style={styles.avatarBtnText}>Selecionar imagem</Text>
+                  <Text style={styles.avatarBtnText}>Galeria</Text>
                 </TouchableOpacity>
 
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={onAvatarSelect} style={{ display: "none" }} />
-
-                <TouchableOpacity style={styles.avatarBtn} onPress={takePhoto} disabled={saving}>
+                <TouchableOpacity
+                  style={styles.avatarBtn}
+                  onPress={takePhoto}
+                  disabled={saving}
+                >
                   <Feather name="camera" size={16} color="#007aff" />
                   <Text style={styles.avatarBtnText}>Câmera</Text>
                 </TouchableOpacity>
 
-                {avatar || avatarRemoved ? (
+                {(avatar || avatarRemoved) && (
                   <TouchableOpacity
                     style={[styles.avatarBtn, { marginTop: 8 }]}
                     onPress={handleRemoveAvatar}
@@ -432,45 +462,130 @@ export default function EditProfileModal({
                       Remover
                     </Text>
                   </TouchableOpacity>
-                ) : null}
+                )}
               </View>
             </View>
 
             <Text style={styles.label}>Nome</Text>
-            <TextInput value={name} onChangeText={setName} style={styles.input} placeholder="Seu nome" editable={!saving} />
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              style={styles.input}
+              placeholder="Seu nome"
+              editable={!saving}
+            />
 
             <Text style={[styles.label, { marginTop: 12 }]}>Email</Text>
-            <TextInput value={email} onChangeText={setEmail} style={styles.input} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" editable={!saving} />
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!saving}
+            />
 
             <Text style={[styles.label, { marginTop: 12 }]}>Telefone</Text>
-            <TextInput value={phone} onChangeText={setPhone} style={styles.input} placeholder="+55 (xx) x xxxx-xxxx" keyboardType="phone-pad" editable={!saving} />
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              style={styles.input}
+              placeholder="+55 (xx) x xxxx-xxxx"
+              keyboardType="phone-pad"
+              editable={!saving}
+            />
 
-            <Text style={[styles.sectionTitle, { marginTop: 14 }]}>Bio</Text>
-            <TextInput value={bio} onChangeText={setBio} style={styles.input} placeholder="Fale sobre você" editable={!saving} />
+            <Text style={[styles.label, { marginTop: 12 }]}>Bio</Text>
+            <TextInput
+              value={bio}
+              onChangeText={setBio}
+              style={styles.input}
+              placeholder="Fale um pouco sobre você"
+              editable={!saving}
+            />
 
             <View style={{ height: 12 }} />
-
             <View style={styles.separator} />
 
-            <Text style={styles.label}>Endereço</Text>
-            <TextInput value={street} onChangeText={setStreet} style={styles.input} placeholder="Rua / Avenida" editable={!saving} />
-            <TextInput value={number} onChangeText={setNumber} style={styles.input} placeholder="Número" editable={!saving} />
-            <TextInput value={complement} onChangeText={setComplement} style={styles.input} placeholder="Complemento" editable={!saving} />
-            <TextInput value={neighborhood} onChangeText={setNeighborhood} style={styles.input} placeholder="Bairro" editable={!saving} />
-            <TextInput value={city} onChangeText={setCity} style={styles.input} placeholder="Cidade" editable={!saving} />
-            <TextInput value={stateField} onChangeText={setStateField} style={styles.input} placeholder="Estado" editable={!saving} />
-            <TextInput value={country} onChangeText={setCountry} style={styles.input} placeholder="País" editable={!saving} />
-            <TextInput value={zip} onChangeText={setZip} style={styles.input} placeholder="CEP" keyboardType="numeric" editable={!saving} />
+            <Text style={styles.label}>Endereço (visual)</Text>
+            <TextInput
+              value={street}
+              onChangeText={setStreet}
+              style={styles.input}
+              placeholder="Rua / Avenida"
+              editable={!saving}
+            />
+            <TextInput
+              value={number}
+              onChangeText={setNumber}
+              style={styles.input}
+              placeholder="Número"
+              editable={!saving}
+            />
+            <TextInput
+              value={complement}
+              onChangeText={setComplement}
+              style={styles.input}
+              placeholder="Complemento"
+              editable={!saving}
+            />
+            <TextInput
+              value={neighborhood}
+              onChangeText={setNeighborhood}
+              style={styles.input}
+              placeholder="Bairro"
+              editable={!saving}
+            />
+            <TextInput
+              value={city}
+              onChangeText={setCity}
+              style={styles.input}
+              placeholder="Cidade"
+              editable={!saving}
+            />
+            <TextInput
+              value={stateField}
+              onChangeText={setStateField}
+              style={styles.input}
+              placeholder="Estado"
+              editable={!saving}
+            />
+            <TextInput
+              value={country}
+              onChangeText={setCountry}
+              style={styles.input}
+              placeholder="País"
+              editable={!saving}
+            />
+            <TextInput
+              value={zip}
+              onChangeText={setZip}
+              style={styles.input}
+              placeholder="CEP"
+              keyboardType="numeric"
+              editable={!saving}
+            />
 
             <View style={{ height: 16 }} />
 
             <View style={styles.modalButtonsRow}>
-              <button type="button" onClick={onClose} style={styles.btnSecondary as any} disabled={saving}>
-                <span style={styles.btnTextSecondary}>Cancelar</span>
-              </button>
-              <button type="button" onClick={handleSave} style={styles.btnPrimary as any} disabled={saving}>
-                <span style={styles.btnTextPrimary}>{saving ? "Salvando..." : "Salvar"}</span>
-              </button>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSecondary]}
+                onPress={onClose}
+                disabled={saving}
+              >
+                <Text style={styles.btnTextSecondary}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnPrimary]}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                <Text style={styles.btnTextPrimary}>
+                  {saving ? "Salvando..." : "Salvar"}
+                </Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -480,25 +595,84 @@ export default function EditProfileModal({
 }
 
 const styles = StyleSheet.create({
-  // ... mantenha aqui os estilos OCULTOS iguais aos anteriores
-  centeredOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.25)" },
-  modalBox: { width: "92%", maxHeight: "90%", backgroundColor: "#fff", borderRadius: 12, padding: 14 },
-  modalHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  centeredOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+  modalBox: {
+    width: "92%",
+    maxHeight: "92%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 14,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   modalTitle: { fontWeight: "700", fontSize: 16, color: "#222" },
   modalContentInner: { paddingBottom: 20 },
+
   avatarRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  avatarWrapper: { width: 86, height: 86, borderRadius: 44, overflow: "hidden", backgroundColor: "#f2f2f2", justifyContent: "center", alignItems: "center" },
+  avatarWrapper: {
+    width: 86,
+    height: 86,
+    borderRadius: 44,
+    overflow: "hidden",
+    backgroundColor: "#f2f2f2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   avatar: { width: "100%", height: "100%" },
-  avatarPlaceholder: { width: "100%", height: "100%", justifyContent: "center", alignItems: "center" },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   avatarActions: { marginLeft: 12, flex: 1, justifyContent: "center" },
-  avatarBtn: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+  avatarBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
   avatarBtnText: { marginLeft: 8, color: "#007aff", fontWeight: "600" },
+
   label: { fontSize: 13, color: "#444", marginBottom: 6 },
-  input: { height: 44, borderWidth: 1, borderColor: "#e0e0e0", borderRadius: 8, paddingHorizontal: 12, backgroundColor: "#fafafa" },
+
+  input: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fafafa",
+  },
+
   separator: { height: 1, backgroundColor: "#eee", marginVertical: 12 },
-  modalButtonsRow: { flexDirection: "row", justifyContent: "flex-end", gap: 8, marginTop: 12 },
-  btnSecondary: { backgroundColor: "#f2f2f2" },
+
+  modalButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 12,
+  },
+  btn: {
+    minWidth: 96,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   btnPrimary: { backgroundColor: "#007aff" },
-  btnTextSecondary: { color: "#333", fontWeight: "700" },
   btnTextPrimary: { color: "#fff", fontWeight: "700" },
+  btnSecondary: { backgroundColor: "#f2f2f2" },
+  btnTextSecondary: { color: "#333", fontWeight: "700" },
 });
