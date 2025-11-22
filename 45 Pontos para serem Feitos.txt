@@ -31,20 +31,20 @@ XXX - (Menos) 3.6 Botão de compartilhar tem que funcionar(nem se for para simul
 3.7 Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
 
 4 - CENTROS: 1
-4.1 Tem que poder editar e excluir os centros
+*** 4.1 Tem que poder editar e excluir os centros
 
 5 - EMERGENCIAS: 6
 XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
 XXX - *** 5.2 Não consigo criar Emergência(Fica dando erro)
 XXX - *** 5.3 Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
 XXX - *** 5.4 Tem que ter um botão se minha organização quiser ajuda ou não(botão não faz nada, tem que fazer alguma coisa)
-X - *** 5.5 Não esta editando emergencia
-5.6 Não esta excluindo Emergência
+XXX - *** 5.5 Não esta editando emergencia
+XXX - 5.6 Não esta excluindo Emergência
 
 6 - NECESSIDADES: 5
 XXX - *** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
 XXX - *** 6.2 Tem que poder adicionar imagem tambem
-6.3 Tem que poder editar e excluir
+*** 6.3 Tem que poder editar e excluir
 XXX - *** 6.4 Tem que aparecer a que Emergência esta vinculado isso
 XXX - 6.5 Arrumar formulario de Criação e edição
 
@@ -58,7 +58,9 @@ XXX - 7.3 Tem que arrumar o formulario de criação do Voluntario (senha tem que
 XXX - *** 8.1 Arrume o ver Pefil(tem que aparecer foto, e as informações da pessoa)
 8.2 Tem que poder excluir aconta da pessoa
 XXX - *** 8.3 Arrumar toda a pagina de editar perfil(o ux/ ui, arrumar os campos, mostrar as fotos, poder editar as fotos)
-8.4 Tem que poder editar as informações e a foto da pessoa
+XXX - 8.4 Tem que poder editar as informações e a foto da pessoa
+*** 8.5 Fica aparecendo nome não informado 
+
 
 9 - CONFIGURAÇÔES: 1
 9.1 Arrumar o que voce acha que tem que arrumar
@@ -102,4 +104,4 @@ XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Loca
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
 X - *** 16.2 Tem que poder ver a foto da pessoa no perfil
-16.3 Tem que poder editar a imagem da pessoa
+*** 16.3 Tem que poder editar a imagem da pessoa
