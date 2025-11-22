@@ -44,6 +44,7 @@ import { Centro, getCentros } from "@/hooks/getCentros";
 import { Emergencia, getEmergencias } from "@/hooks/getEmergencias";
 import { getNecessidades } from "@/hooks/getNecessidades";
 import { getPost } from "@/hooks/getPost";
+import api from "@/services/api";
 
 /* ---- ErrorBoundary simples para capturar exceptions de render ---- */
 class ErrorBoundary extends React.Component<
@@ -189,8 +190,9 @@ export default function Home() {
 
   const handleCreateEmergency = (e: Emergencia) =>
     setEmergencies((s) => [{ ...e, authorName: currentUser }, ...s]);
-  const handleUpdateEmergency = (e: Emergencia) =>
-    setEmergencies((s) => s.map((x) => (x._id === e._id ? e : x)));
+  const handleUpdateEmergency = async (e: Emergencia) => {
+    setEmergencies((s) => s.map((x) => (x._id === e._id ? e : x)))
+  };
   const handleDeleteEmergency = (id: string) => {
     if (confirm("Excluir emergência?"))
       setEmergencies((s) => s.filter((x) => x._id !== id));

@@ -22,6 +22,7 @@ import OrganizationCard from "./OrganizationCard";
 import PublicationCard from "./PublicationCard";
 import { ProfileDrawer } from "./ProfileDrawer";
 import { useData } from "@/context/DataContext";
+import { useAuth } from "@/context/auth.context";
 
 /* ---------- helpers ---------- */
 const formatTimeLabel = (iso?: string) => {
@@ -123,7 +124,7 @@ export default function Header() {
   const router = useRouter();
   const { emergencias, organizacoes, publicacoes, loading, reloadAll } =
     useData();
-
+  const {user} = useAuth()
   // listas originais mapeadas
   const organizations = useMemo(
     () => mapOrganizacoesToCard(organizacoes),
@@ -153,7 +154,7 @@ export default function Header() {
 
     return mapEmergenciasToCard(merged);
   }, [emergencias, organizations]);
-  console.log(publicacoes)
+
   const publications = useMemo(
     () => mapPublicacoesToCard(publicacoes),
     [publicacoes],
@@ -383,7 +384,10 @@ export default function Header() {
             style={styles.userPhoto}
             onPress={() => setDrawerVisible(true)}
           >
-            <AntDesign name="user" size={24} color="#555" />
+            <Image
+              source={{ uri:`http://localhost:3001${user?.image}`}}
+              style={{ width: 32, height: 32, marginLeft: 8, marginRight: 8 }}
+            />
           </TouchableOpacity>
 
           <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>

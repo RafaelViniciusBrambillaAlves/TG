@@ -18,7 +18,7 @@ export type ProfileData = {
   name: string;
   email: string;
   phone?: string;
-  avatarUri?: string | null; // NOVO: URI da foto de perfil
+  avatar?: string | null; // NOVO: URI da foto de perfil
   address?: {
     street?: string; // logradouro
     number?: string;
@@ -29,6 +29,14 @@ export type ProfileData = {
     country?: string;
     zip?: string; // cep
   };
+  organizations?: {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+    created_at: string;
+    updated_at: string;
+  }[];
 };
 
 /**
@@ -52,8 +60,8 @@ export default function EditProfileModal({
   const [name, setName] = useState(initialData?.name ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [phone, setPhone] = useState(initialData?.phone ?? "");
-  const [avatarUri, setAvatarUri] = useState<string | null | undefined>(
-    initialData?.avatarUri ?? null,
+  const [avatar, setavatar] = useState<string | null | undefined>(
+    initialData?.avatar ?? null,
   );
 
   const [street, setStreet] = useState(initialData?.address?.street ?? "");
@@ -76,7 +84,7 @@ export default function EditProfileModal({
     setName(initialData?.name ?? "");
     setEmail(initialData?.email ?? "");
     setPhone(initialData?.phone ?? "");
-    setAvatarUri(initialData?.avatarUri ?? null);
+    setavatar(initialData?.avatar ?? null);
 
     setStreet(initialData?.address?.street ?? "");
     setNumber(initialData?.address?.number ?? "");
@@ -157,12 +165,12 @@ export default function EditProfileModal({
       // new versions return { cancelled, assets } where assets is array
       if ("cancelled" in result) {
         if (!result.cancelled)
-          setAvatarUri((result as any).uri ?? (result as any).assets?.[0]?.uri);
+          setavatar((result as any).uri ?? (result as any).assets?.[0]?.uri);
       } else if ((result as any).assets) {
-        setAvatarUri((result as any).assets[0]?.uri ?? null);
+        setavatar((result as any).assets[0]?.uri ?? null);
       } else {
         // fallback
-        setAvatarUri((result as any).uri ?? null);
+        setavatar((result as any).uri ?? null);
       }
     } catch (err) {
       console.warn("Erro ao selecionar imagem:", err);
@@ -186,11 +194,11 @@ export default function EditProfileModal({
 
       if ("cancelled" in result) {
         if (!result.cancelled)
-          setAvatarUri((result as any).uri ?? (result as any).assets?.[0]?.uri);
+          setavatar((result as any).uri ?? (result as any).assets?.[0]?.uri);
       } else if ((result as any).assets) {
-        setAvatarUri((result as any).assets[0]?.uri ?? null);
+        setavatar((result as any).assets[0]?.uri ?? null);
       } else {
-        setAvatarUri((result as any).uri ?? null);
+        setavatar((result as any).uri ?? null);
       }
     } catch (err) {
       console.warn("Erro ao tirar foto:", err);
@@ -204,7 +212,7 @@ export default function EditProfileModal({
       {
         text: "Remover",
         style: "destructive",
-        onPress: () => setAvatarUri(null),
+        onPress: () => setavatar(null),
       },
     ]);
   };
@@ -224,7 +232,7 @@ export default function EditProfileModal({
       name: name.trim(),
       email: email.trim(),
       phone: phone.trim(),
-      avatarUri: avatarUri ?? null,
+      avatar: avatar ?? null,
       address: {
         street: street.trim(),
         number: number.trim(),
@@ -264,8 +272,8 @@ export default function EditProfileModal({
             {/* AVATAR */}
             <View style={styles.avatarRow}>
               <View style={styles.avatarWrapper}>
-                {avatarUri ? (
-                  <Image source={{ uri: avatarUri }} style={styles.avatar} />
+                {avatar ? (
+                  <Image source={{ uri: `http://localhost:3001${avatar}` }} style={styles.avatar} />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
                     <Feather name="user" size={36} color="#aaa" />
@@ -287,7 +295,7 @@ export default function EditProfileModal({
                   <Text style={styles.avatarBtnText}>Câmera</Text>
                 </TouchableOpacity>
 
-                {avatarUri ? (
+                {avatar ? (
                   <TouchableOpacity
                     style={[styles.avatarBtn, { marginTop: 8 }]}
                     onPress={handleRemoveAvatar}

@@ -4,7 +4,7 @@ Foi: 33
 
 Essenciais = 28
 
-Foi: 22
+Foi: 26
 
 
 ================================================ FRONT ================================================
@@ -18,7 +18,7 @@ XXX - *** 2.1 Tem que listar a Ong da pessoa ali
 XXX - *** 2.2Tem que ter a foto da Ong da pessoa ali
 XXX - 2.3 O botão de Ver organização tem que funcionar
 XXX - 2.4 Tem que arrumar essa parte de listar da organização
-2.5 Tem que mostrar as informações da organização 
+2.5 Tem que mostrar as informações da organização
 *** 2.6 Todo administrador tem que ter uma organização
 
 3 - PUBLICAÇÂO: 7
@@ -38,7 +38,7 @@ XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
 XXX - *** 5.2 Não consigo criar Emergência(Fica dando erro)
 XXX - *** 5.3 Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
 XXX - *** 5.4 Tem que ter um botão se minha organização quiser ajuda ou não(botão não faz nada, tem que fazer alguma coisa)
-*** 5.5 Não esta editando emergencia
+X - *** 5.5 Não esta editando emergencia
 5.6 Não esta excluindo Emergência
 
 6 - NECESSIDADES: 5
@@ -46,7 +46,7 @@ XXX - *** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a in
 XXX - *** 6.2 Tem que poder adicionar imagem tambem
 6.3 Tem que poder editar e excluir
 XXX - *** 6.4 Tem que aparecer a que Emergência esta vinculado isso
-XXX - 6.5 Arrumar formulario de Criação e edição 
+XXX - 6.5 Arrumar formulario de Criação e edição
 
 7 - VOLUNTARIOS: 4
 XXX - *** 7.1 Precisa aparecer a imagen do Voluntario
@@ -85,7 +85,7 @@ XXX - *** 12.3 E em cada Centro eu deveria poder ver todas as necessidades e ter
 13 - EMERGÊNCIAS: 5
 XXX - *** 13.1 Tem que mostrar a emergência e a foto da emergência
 13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
-*** 13.3 Em ajudar tem que listar os centros que estão ajudando essa emergência e tem que poder ver o perfil desses centros que estão ajudando
+X - *** 13.3 Em ajudar tem que listar os centros que estão ajudando essa emergência e tem que poder ver o perfil desses centros que estão ajudando
 13.4 tem que pode salvar a emergência se quiser ver
 XXX - 13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem que seja simulação)
 
@@ -93,7 +93,7 @@ XXX - 13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem qu
 XXX - *** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
 *** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
 XXX - *** 14.3 Tem que mostrar o nome da pessoa, os textos estão ficando duplicados e tem que aparecer imagem e o tempo da publicação
-XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Local Não informado 
+XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Local Não informado
 
 
 15 - NOTIFICAÇÂO: 1
@@ -101,5 +101,5 @@ XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Loca
 
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
-*** 16.2 Tem que poder ver a foto da pessoa no perfil
+X - *** 16.2 Tem que poder ver a foto da pessoa no perfil
 16.3 Tem que poder editar a imagem da pessoa

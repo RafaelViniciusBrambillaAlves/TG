@@ -45,7 +45,8 @@ export const ProfileDrawer = ({
     email: user?.email || "",
     phone: user?.telefone || "",
     address: {},
-    avatar: "https://placekitten.com/200/200",
+    avatar: user?.image,
+    organizations: user?.organizations || [],
   });
 
   // settings
@@ -133,7 +134,7 @@ export const ProfileDrawer = ({
   // if viewedProfile is provided, we show it and disable edit/settings/logout
   const viewingOther = !!viewedProfile;
   const shownProfile = viewedProfile ?? profile;
-
+  console.log(shownProfile)
   return (
     <>
       <Modal
@@ -169,8 +170,7 @@ export const ProfileDrawer = ({
                   <Image
                     source={{
                       uri:
-                        shownProfile.avatar ??
-                        "https://placekitten.com/200/200",
+                        `http://localhost:3001${shownProfile.avatar}`,
                     }}
                     style={styles.avatar}
                   />
@@ -201,7 +201,62 @@ export const ProfileDrawer = ({
                     </TouchableOpacity>
                   </>
                 )}
+                {(() => {
+                  const org = shownProfile?.organizations?.[0];
+                  const hasOrg =
+                    !!org && (org.name || org.description || org.phone || org.website);
 
+                  if (!hasOrg) {
+                    return (
+                      <View style={styles.orgCard}>
+                        <Text style={styles.orgHeader}>Organização</Text>
+                        <Text style={styles.orgEmpty}>Nenhuma organização vinculada.</Text>
+                      </View>
+                    );
+                  }
+
+                  return (
+                    <View style={styles.orgCard}>
+                      <Text style={styles.orgHeader}>Organização</Text>
+
+                      {!!org?.name && (
+                        <View style={styles.orgRow}>
+                          <Text style={styles.orgLabel}>Nome</Text>
+                          <Text style={styles.orgValue}>{org.name}</Text>
+                        </View>
+                      )}
+
+                      {!!org?.description && (
+                        <View style={styles.orgRow}>
+                          <Text style={styles.orgLabel}>Descrição</Text>
+                          <Text style={styles.orgValue}>{org.description}</Text>
+                        </View>
+                      )}
+
+                      {!!org?.phone && (
+                        <View style={styles.orgRow}>
+                          <Text style={styles.orgLabel}>Telefone</Text>
+                          <Text style={styles.orgValue}>{org.phone}</Text>
+                        </View>
+                      )}
+
+                      {!!org?.website && (
+                        <View style={styles.orgRow}>
+                          <Text style={styles.orgLabel}>Website</Text>
+                          <Text style={[styles.orgValue, styles.orgValueLink]}>
+                            {org.website}
+                          </Text>
+                        </View>
+                      )}
+                      {!!org?.logo && (
+                        <Image
+                          source={{ uri: org.logo }}
+                          style={styles.orgLogo}
+                        />
+                      )}
+                    </View>
+                  );
+                })()}
                 {/* se estamos vendo outro perfil, podemos mostrar botão de contato */}
                 {viewingOther && (
                   <TouchableOpacity
@@ -498,4 +553,44 @@ const styles = StyleSheet.create({
   langButtonActive: { backgroundColor: "#007aff", borderColor: "#007aff" },
   langButtonText: { color: "#333" },
   langButtonTextActive: { color: "#fff", fontWeight: "700" },
+  orgCard: {
+    marginTop: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#EAEEF6",
+  },
+  orgHeader: {
+    color: "#0b1220",
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  orgEmpty: {
+    color: "#6B7280",
+    fontSize: 13,
+  },
+  orgRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  orgLabel: {
+    color: "#6B7280",
+    fontWeight: "600",
+    minWidth: 88,
+  },
+  orgValue: {
+    color: "#111827",
+    flexShrink: 1,
+    textAlign: "right",
+  },
+  orgValueLink: {
+    color: "#0b82ff",
+    fontWeight: "600",
+  },
 });

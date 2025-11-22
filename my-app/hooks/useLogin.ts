@@ -34,6 +34,7 @@ export type UserProfile = {
   organizations: ONG[];
   avatarUrl?: string;
   bio?: string;
+  image?: string;
   role: {
     nome_perfil: String;
   };
