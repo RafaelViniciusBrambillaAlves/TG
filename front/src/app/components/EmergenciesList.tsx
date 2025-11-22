@@ -183,7 +183,7 @@ export default function EmergenciesList({
 
       <div className={styles.grid}>
         {filtered.map((em) => {
-          const mine = em.id_usuario._id === currentUser;
+          const mine = em?.id_usuario?._id === currentUser;
           const timeAgo = shortTimeAgo(em.createdAt);
 
           return (
