@@ -104,4 +104,4 @@ XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Loca
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
 X - *** 16.2 Tem que poder ver a foto da pessoa no perfil
-*** 16.3 Tem que poder editar a imagem da pessoa
+X - *** 16.3 Tem que poder editar a imagem da pessoa
