@@ -10,98 +10,59 @@ Foi: 26
 ================================================ FRONT ================================================
 
 1 - LOGIN: 2
-XXX - 1.1 Fazer algo que mostre a senha
-XXX - 1.2 Fazer algo se caso a pessoa errou a senha(aviso)
 
 2 - Right Card: 6
-XXX - *** 2.1 Tem que listar a Ong da pessoa ali
-XXX - *** 2.2Tem que ter a foto da Ong da pessoa ali
-XXX - 2.3 O botão de Ver organização tem que funcionar
-XXX - 2.4 Tem que arrumar essa parte de listar da organização
-2.5 Tem que mostrar as informações da organização
-*** 2.6 Todo administrador tem que ter uma organização
+Exibir informações da Organização
+(lembrar disso daqui)2.6 Todo administrador tem que ter uma organização
 
 3 - PUBLICAÇÂO: 7
-XXX - *** 3.1 Mostrar Foto do Perfil
-XXX - *** 3.2 Arrumar Edição(Não consigo substituir a imagem) (Só tem que recarregar o site)
-XXX - *** 3.3 Melhorar a formatação das Publicações(eu escrevo algo com enter, ele tira enter)
-XXX - *** 3.4 Porque o titulo esta indo parar de baixo do Nome??? embaixo do Nome tem que ficar a organização da pessoa
 3.5 Botão de Salvar tem que funcionar
-XXX - (Menos) 3.6 Botão de compartilhar tem que funcionar(nem se for para simulação)
-3.7 Tenho que poder entrar no perfil da pessoas e ir para ver a organização dela
+3.7 Tenho que poder entrar no perfil da pessoas, ver as informações da pessoa e sua organização
 
 4 - CENTROS: 1
-X - *** 4.1 Tem que poder editar e excluir os centros
 
 5 - EMERGENCIAS: 6
-XXX - *** 5.1 Melhorar as distribuição dos textos em cada emergência
-XXX - *** 5.2 Não consigo criar Emergência(Fica dando erro)
-XXX - *** 5.3 Porque esta aparecendo do lado de Reportado (Invalid Date), era para aparecer a Data
-XXX - *** 5.4 Tem que ter um botão se minha organização quiser ajuda ou não(botão não faz nada, tem que fazer alguma coisa)
-XXX - *** 5.5 Não esta editando emergencia
-XXX - 5.6 Não esta excluindo Emergência
 
 6 - NECESSIDADES: 5
-XXX - *** 6.1 Esse coração do lado tem que contar quantas pessoas tiveram a intenção de doar
-XXX - *** 6.2 Tem que poder adicionar imagem tambem
-X - *** 6.3 Tem que poder editar e excluir
-XXX - *** 6.4 Tem que aparecer a que Emergência esta vinculado isso
-XXX - 6.5 Arrumar formulario de Criação e edição
+Tirar imagem do que ja tinha 
 
 7 - VOLUNTARIOS: 4
-XXX - *** 7.1 Precisa aparecer a imagen do Voluntario
-XXX - 7.2 Eu preciso poder acessar o perfil dele para ver as informações como Nome, email, telefone e habilidades/resumo dele ali
-XXX - 7.3 Tem que arrumar o formulario de criação do Voluntario (senha tem que vir depois do email)
 7.4 Tem que listar os Voluntarios daquela organização
+Tem que aparecer as informações dele quandro clica nele
 
 8 - PERFIL: 4
-XXX - *** 8.1 Arrume o ver Pefil(tem que aparecer foto, e as informações da pessoa)
 8.2 Tem que poder excluir aconta da pessoa
-XXX - *** 8.3 Arrumar toda a pagina de editar perfil(o ux/ ui, arrumar os campos, mostrar as fotos, poder editar as fotos)
-XXX - 8.4 Tem que poder editar as informações e a foto da pessoa
-X - *** 8.5 Fica aparecendo nome não informado
-
 
 9 - CONFIGURAÇÔES: 1
 9.1 Arrumar o que voce acha que tem que arrumar
 
 
+(Olha, quando troco alguma informação da pessoa tenho que ficar recarregando a pagina)
+
 ================================================ APP ================================================
 O Filtro ali em cima tem que funcionar
 
 10 - LOGIN: 2
-XXX - 10.1 Fazer algo para ver a senha
-XXX - 10.2 Fazer algo se caso a pessoa errou a senha(aviso)
 
 11 - CADASTRAR: 2
 11.1 Erro na hora de cadastrar(não sei porque), ele cadastra mas da erro, tem que aparecer mensagem se deu certo ou se deu errado
 11.2 Quando tento cadastar um email já cadastrado (ele não aparece uma mensagem falando que esse email já esta sendo utilizando) ele só da erro
 
 12 - Organizações: 5
-XXX - *** 12.1 Eu deveria poder ver todas as organizações listadas
-XXX - *** 12.2 Em expandir, eu deveria ver todas os centros da organização
-XXX - *** 12.3 E em cada Centro eu deveria poder ver todas as necessidades e ter um botão para se eu quiser ajudar
-12.4 O botão "faca parte" tem que salvar a publicação para se depois eu quiser ver
-12.5 Coloca só o endereco normal da organização(sem maps)
+Tira essa botão de "faça parte", somente ajudar na organizações
+Coloca só o endereco normal da organização(sem maps)
 
 13 - EMERGÊNCIAS: 5
-XXX - *** 13.1 Tem que mostrar a emergência e a foto da emergência
 13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
-X - *** 13.3 Em ajudar tem que listar os centros que estão ajudando essa emergência e tem que poder ver o perfil desses centros que estão ajudando
 13.4 tem que pode salvar a emergência se quiser ver
-XXX - 13.5 (Menos)tem que pode compartilhar em outras redes a emergência(nem que seja simulação)
 
 14 - PUBLICAÇÔES: 4
-XXX - *** 14.1 Tem que poder ver a foto de que fez a publicação e o nome
-X - *** 14.2 Quando clicar no perfil tem que ver organização e poder entrar na organização ali para ver os centros, as necessidades e tudo mais
-XXX - *** 14.3 Tem que mostrar o nome da pessoa, os textos estão ficando duplicados e tem que aparecer imagem e o tempo da publicação
-XXX - *** 14.4 Embaixo tem que aparecer o nome da organização dele ali em Local Não informado
-
+Fazer algo para ver a organização
 
 15 - NOTIFICAÇÂO: 1
 15.1 Tem que funcionar, nem que seja simulação de algo  - Tem que fazer uma tabela no banco de notifications ai coloca o suubject, data e o tipo
 
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
-X - *** 16.2 Tem que poder ver a foto da pessoa no perfil
-X - *** 16.3 Tem que poder editar a imagem da pessoa
+
+*****Uma conta que acessa o front não acessa o app
