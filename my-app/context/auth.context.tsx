@@ -127,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // após cadastro, normalmente redireciona para login.
       // não fazemos login automático aqui porque o endpoint pode não retornar token.
     } catch (e) {
+      throw e;
     } finally {
       setLoading(false);
     }

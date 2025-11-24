@@ -50,7 +50,6 @@ export default function ProfileModal({
       .catch(() => Alert.alert("Erro", "Não foi possível abrir o WhatsApp."));
   };
 
-  console.log(profile)
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Fechar perfil">

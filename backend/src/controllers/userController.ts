@@ -6,36 +6,52 @@ import OrganizacaoUsuario from '../models/OrganizacaoUsuario';
 import Perfil from '../models/Perfil';
 
 export const userController = {
-  // Registro
-  async register(req: Request, res: Response) {
-    const { nome, email, senha, id_perfil, image } = req.body;
+  // Registro de Admin
+  async registerAdmin(req: Request, res: Response) {
+    const { nome, email, senha, image } = req.body;
+
+    const adminPerfil = await Perfil.findOne({ nome_perfil: 'Admin' });
+    if (!adminPerfil) {
+      res.status(400).json({ message: 'Admin profile not found' });
+      return;
+    }
+
     const userExists = await usuarioRepository.findByEmail(email);
     if (userExists) {
       res.status(400).json({ message: 'User already exists' });
       return;
     }
-    const user = await usuarioRepository.create({ nome, email, senha, id_perfil: id_perfil, image });
+
+    const user = await usuarioRepository.create({
+      nome,
+      email,
+      senha,
+      id_perfil: adminPerfil._id,
+      image
+    });
+
     const [links, perfil] = await Promise.all([
-        OrganizacaoUsuario.find({ user_id: user._id })
-          .populate<{ organization_id: any }>('organization_id')
-          .lean()
-          .exec(),
-        Perfil.findById(user.id_perfil).lean().exec()
-      ]);
-      const organizations = (links || [])
-        .map((l: any) => l.organization_id)
-        .filter(Boolean)
-        .map((org: any) => ({
-          _id: org._id,
-          name: org.name,
-          phone: org.phone,
-          email: org.email,
-          website: org.website,
-          short: org.short,
-          description: org.description,
-          logo: org.logo,
-          createdAt: org.createdAt
-        }));
+      OrganizacaoUsuario.find({ user_id: user._id })
+        .populate<{ organization_id: any }>('organization_id')
+        .lean()
+        .exec(),
+      Perfil.findById(user.id_perfil).lean().exec()
+    ]);
+
+    const organizations = (links || [])
+      .map((l: any) => l.organization_id)
+      .filter(Boolean)
+      .map((org: any) => ({
+        _id: org._id,
+        name: org.name,
+        phone: org.phone,
+        email: org.email,
+        website: org.website,
+        short: org.short,
+        description: org.description,
+        logo: org.logo,
+        createdAt: org.createdAt
+      }));
 
     res.status(201).json({
       _id: user._id,
@@ -48,7 +64,66 @@ export const userController = {
     });
   },
 
-  // Login
+  // Registro de Voluntário
+  async register(req: Request, res: Response) {
+    const { nome, email, senha, image } = req.body;
+
+    // Busca o perfil "voluntario"
+    const voluntarioPerfil = await Perfil.findOne({ nome_perfil: 'Voluntario' });
+    if (!voluntarioPerfil) {
+      res.status(400).json({ message: 'Voluntario profile not found' });
+      return;
+    }
+
+    const userExists = await usuarioRepository.findByEmail(email);
+    if (userExists) {
+      res.status(400).json({ message: 'User already exists' });
+      return;
+    }
+
+    const user = await usuarioRepository.create({
+      nome,
+      email,
+      senha,
+      id_perfil: voluntarioPerfil._id,
+      image
+    });
+
+    const [links, perfil] = await Promise.all([
+      OrganizacaoUsuario.find({ user_id: user._id })
+        .populate<{ organization_id: any }>('organization_id')
+        .lean()
+        .exec(),
+      Perfil.findById(user.id_perfil).lean().exec()
+    ]);
+
+    const organizations = (links || [])
+      .map((l: any) => l.organization_id)
+      .filter(Boolean)
+      .map((org: any) => ({
+        _id: org._id,
+        name: org.name,
+        phone: org.phone,
+        email: org.email,
+        website: org.website,
+        short: org.short,
+        description: org.description,
+        logo: org.logo,
+        createdAt: org.createdAt
+      }));
+
+    res.status(201).json({
+      _id: user._id,
+      username: user.nome,
+      email: user.email,
+      role: perfil,
+      image: user.image,
+      organizations,
+      token: generateToken(user.id.toString())
+    });
+  },
+
+  // Login comum (todos os perfis)
   async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
@@ -70,6 +145,7 @@ export const userController = {
           .exec(),
         Perfil.findById(user.id_perfil).lean().exec()
       ]);
+
       const organizations = (links || [])
         .map((l: any) => l.organization_id)
         .filter(Boolean)
@@ -101,26 +177,124 @@ export const userController = {
     }
   },
 
-  // Listar todos
+  // Login exclusivo para Admin
+  async loginAdmin(req: Request, res: Response) {
+    try {
+      const { email, password } = req.body;
+      const user = await usuarioRepository.findByEmail(email);
+
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      const perfil = await Perfil.findById(user.id_perfil).lean().exec();
+      if (!perfil || perfil.nome_perfil !== 'Admin') {
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      }
+
+      const links = await OrganizacaoUsuario.find({ user_id: user._id })
+        .populate<{ organization_id: any }>('organization_id')
+        .lean()
+        .exec();
+
+      const organizations = (links || [])
+        .map((l: any) => l.organization_id)
+        .filter(Boolean)
+        .map((org: any) => ({
+          _id: org._id,
+          name: org.name,
+          phone: org.phone,
+          email: org.email,
+          website: org.website,
+          short: org.short,
+          description: org.description,
+          logo: org.logo,
+          createdAt: org.createdAt
+        }));
+
+      res.json({
+        _id: user._id,
+        username: user.nome,
+        email: user.email,
+        role: perfil,
+        image: user.image,
+        organizations,
+        token: generateToken(user.id.toString())
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+
   async getAllVoluntarios(req: Request, res: Response) {
     try {
-      const users = await UsuarioModel.find()
-        .select('-senha') // opcional: não retornar senha
+      const voluntarioPerfil = await Perfil.findOne({ nome_perfil: 'Voluntario' }).lean();
+      if (!voluntarioPerfil) {
+        return res.status(404).json({ error: 'Perfil voluntario não encontrado' });
+      }
+
+      const allUsers = await UsuarioModel.find()
+        .select('-senha')
         .populate({ path: 'id_perfil', select: 'nome_perfil descricao' })
         .lean();
 
-      const result = users.map(u => ({
-        ...u,
+      const users = allUsers.filter((u: any) =>
+        u.id_perfil && u.id_perfil.nome_perfil === 'Voluntario'
+      );
+
+      const userIds = users.map((u: any) => u._id);
+      const allLinks = await OrganizacaoUsuario.find({ user_id: { $in: userIds } })
+        .populate<{ organization_id: any }>('organization_id')
+        .lean()
+        .exec();
+
+      const orgsByUserId = allLinks.reduce((acc: any, link: any) => {
+        const userId = link.user_id.toString();
+        if (!acc[userId]) acc[userId] = [];
+        if (link.organization_id) {
+          acc[userId].push({
+            _id: link.organization_id._id,
+            name: link.organization_id.name,
+            phone: link.organization_id.phone,
+            email: link.organization_id.email,
+            website: link.organization_id.website,
+            short: link.organization_id.short,
+            description: link.organization_id.description,
+            logo: link.organization_id.logo,
+            createdAt: link.organization_id.createdAt
+          });
+        }
+        return acc;
+      }, {});
+
+      const result = users.map((u: any) => ({
+        _id: u._id,
+        nome: u.nome,
+        email: u.email,
+        telefone: u.telefone,
+        image: u.image,
+        data_criacao: u.data_criacao,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
         perfil: u.id_perfil,
-        id_perfil: undefined,
+        organizacoes: orgsByUserId[u._id.toString()] || []
       }));
 
       res.json(result);
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: 'Erro ao listar voluntários' });
     }
   },
-  // Buscar por ID
+
+
   async getById(req: Request, res: Response) {
     const user = await usuarioRepository.findById(req.params.id);
     if (!user) {

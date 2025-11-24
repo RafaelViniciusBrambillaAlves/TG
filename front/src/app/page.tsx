@@ -147,8 +147,6 @@ export default function Home() {
 
     window.addEventListener("view-org", handler as EventListener);
 
-    // console.log("sortedCenters:", sortedCenters);
-
     return () =>
       window.removeEventListener("view-org", handler as EventListener);
   }, []);

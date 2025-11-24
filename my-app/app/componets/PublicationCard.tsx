@@ -33,7 +33,6 @@ export default function PublicationCard({
   onSave,
   onReport,
 }: Props) {
-  // console.log(publication)
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
@@ -163,7 +162,7 @@ export default function PublicationCard({
   );
 
   // ---------- TIME LABEL: computeTimeAgo similar ao PostCard.tsx ----------
-  
+
   const timeLabel = useMemo(() => {
     const raw =
 
@@ -219,7 +218,6 @@ export default function PublicationCard({
     setProfileToView(p);
     setProfileVisible(true);
   };
-  // console.log(publication)
   return (
     <>
       <View style={styles.card}>

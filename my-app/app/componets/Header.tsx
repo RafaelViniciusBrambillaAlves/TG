@@ -313,7 +313,6 @@ export default function Header() {
   }, [organizations, orgFilters, searchTerm, orgOrder]);
 
   const filteredPublications = useMemo(() => {
-    // console.log(publications)
     const q = (searchTerm || "").toLowerCase();
     const filtered = publications.filter((p) => {
       if (pubFilters.hasImage && !p.image && !(p.images && p.images.length))

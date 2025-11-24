@@ -99,7 +99,7 @@ export default function Register() {
         Alert.alert("Problema", "Erro desconhecido ao registrar.");
       }
     } catch (err: any) {
-
+      console.log(err)
       const serverStatus = err?.response?.status || err?.status;
       if (serverStatus === 400) {
         const payloadErr = err?.response?.data || {};

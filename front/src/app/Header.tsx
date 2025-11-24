@@ -10,6 +10,7 @@ import { BsFillPeopleFill } from "react-icons/bs";
 import Image from "next/image";
 import logo from "../../public/logo3.jpg";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 type NavItem = { key: string; label: string; icon: React.ReactNode };
 
@@ -33,18 +34,13 @@ export default function Header({
   onSearch,
 }: HeaderProps) {
   const router = useRouter();
+  const { user } = useAuth()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const avatarButtonRef = useRef<HTMLButtonElement | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const composingRef = useRef(false);
-  const [user, setUser] = useState();
 
-  useEffect(() => {
-    setUser(JSON.parse(localStorage.getItem("usuario")));
-  }, []);
-
-  // close when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -58,7 +54,6 @@ export default function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // close on ESC
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {

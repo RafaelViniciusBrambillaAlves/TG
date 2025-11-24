@@ -34,12 +34,12 @@ const delay = (amount = 750) =>
 export async function signInRequest(
   signInData: SignInData
 ): Promise<signInRequestResult> {
-  const { data } = await api.post<signInRequestResult>('/api/v1/usuarios/login', signInData)
+  const { data } = await api.post<signInRequestResult>('/api/v1/usuarios/loginAdmin', signInData)
   return data
 }
 
 export async function signUpRequest(signUpData: SignUpRequestData) {
-  const { data } = await api.post<string>('/api/v1/usuarios/login/register', signUpData)
+  const { data } = await api.post<string>('/api/v1/usuarios/registerAdmin', signUpData)
   return data
 }
 

@@ -5,7 +5,9 @@ import { userController } from '../controllers/userController';
 const router = Router();
 
 router.post('/register', asyncHandler(userController.register));
+router.post('/registerAdmin', asyncHandler(userController.registerAdmin));
 router.post('/login', asyncHandler(userController.login));
+router.post('/loginAdmin', asyncHandler(userController.loginAdmin));
 router.get('/', asyncHandler(userController.getAllVoluntarios));
 router.get('/:id', asyncHandler(userController.getById));
 router.post('/linkUserOrganization', asyncHandler(userController.linkUserOrganization));

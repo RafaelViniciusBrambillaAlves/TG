@@ -66,6 +66,7 @@ export default function CreateNeedModal({ ...props }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null); // blob ou URL do servidor
   const [imageName, setImageName] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false); // NOVO: rastreia se usuário removeu a imagem
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
@@ -83,6 +84,7 @@ export default function CreateNeedModal({ ...props }: Props) {
     setEmergencyId((editData as any)?.emergencyId?._id || (editData as any)?.emergencyId || undefined);
     setError(null);
     setLoading(false);
+    setImageRemoved(false); // NOVO: resetar flag ao abrir
 
     // limpar preview anterior se era blob
     if (imagePreview && imagePreview.startsWith("blob:")) {
@@ -156,6 +158,7 @@ export default function CreateNeedModal({ ...props }: Props) {
     setImageFile(f);
     setImagePreview(url);
     setImageName(f.name);
+    setImageRemoved(false); // NOVO: ao selecionar nova imagem, não está mais removida
 
     // permitir selecionar o mesmo arquivo novamente no futuro
     e.currentTarget.value = "";
@@ -174,6 +177,7 @@ export default function CreateNeedModal({ ...props }: Props) {
     setImageFile(null);
     setImagePreview(null);
     setImageName(null);
+    setImageRemoved(true); // NOVO: marcar que usuário removeu a imagem
     // limpar input value para permitir selecionar o mesmo arquivo depois
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -228,6 +232,19 @@ export default function CreateNeedModal({ ...props }: Props) {
         }
       }
 
+      // CORRIGIDO: Lógica de imagem
+      let finalImage: string | undefined = undefined;
+      if (imageFile) {
+        // Se selecionou uma nova imagem, usa ela
+        finalImage = imageUrl;
+      } else if (imageRemoved) {
+        // Se o usuário removeu a imagem, envia undefined/null para limpar
+        finalImage = undefined;
+      } else {
+        // Se não fez nada, preserva a existente
+        finalImage = (editData as any)?.image;
+      }
+
       const newNeed: Need = {
         _id: editData._id,
         title: title.trim(),
@@ -240,8 +257,7 @@ export default function CreateNeedModal({ ...props }: Props) {
         emergencyId: emergencyId || undefined,
         createdAt: editData.createdAt ?? new Date().toISOString(),
         interestCount: editData.interestCount ?? 0,
-        // preserva a imagem existente se não selecionou outra
-        image: imageUrl ?? (editData as any)?.image,
+        image: finalImage,
       };
 
       const method = editData._id ? "PUT" : "POST";

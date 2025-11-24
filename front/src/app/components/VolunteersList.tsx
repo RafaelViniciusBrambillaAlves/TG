@@ -34,14 +34,7 @@ export default function VolunteersList() {
 
   const openProfile = (v: Usuario) => {
     // map Usuario -> ProfileShape
-    const profile: ProfileShape = {
-      name: v.nome ?? v.name ?? "Usuário",
-      email: v.email ?? null,
-      phone: v.telefone ?? v.phone ?? null,
-      organization: v.organizations && v.organizations.length ? v.organizations[0].name : null,
-      image: v.image ?? null,
-    };
-    setSelectedProfile(profile);
+    setSelectedProfile(v);
     setModalVisible(true);
   };
 

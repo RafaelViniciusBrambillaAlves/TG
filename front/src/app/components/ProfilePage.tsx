@@ -4,6 +4,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./profilePage.module.css";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
 export type ONG = {
   _id: string;
@@ -19,6 +20,7 @@ export type ONG = {
 export type UserProfile = {
   _id?: string;
   name?: string;
+  username?: string;
   email?: string;
   phone?: string;
   organizations?: ONG[];
@@ -29,7 +31,7 @@ export type UserProfile = {
 };
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { user, updateUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<UserProfile>>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -38,19 +40,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  useEffect(() => {
-    const stored = localStorage.getItem("usuario");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setUser(parsed);
-        setEditData(parsed);
-      } catch (e) {
-        console.error("Erro ao parsear usuário do localStorage:", e);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     setEditData(user ?? {});
@@ -112,65 +101,68 @@ export default function ProfilePage() {
   };
 
   async function saveProfile() {
-    setLoading(true);
-    try {
-      let avatarUrl = editData.image;
+     setLoading(true);
+     try {
+       let avatarUrl = editData.image;
 
-      if (avatarFile) {
-        try {
-          avatarUrl = await uploadFile(avatarFile);
-        } catch (err) {
-          console.error("Falha upload avatar:", err);
-          setErrors({ avatar: "Falha ao enviar avatar. Tente novamente." });
-          setLoading(false);
-          return;
-        }
-      }
+       if (avatarFile) {
+         try {
+           avatarUrl = await uploadFile(avatarFile);
+         } catch (err) {
+           console.error("Falha upload avatar:", err);
+           setErrors({ avatar: "Falha ao enviar avatar. Tente novamente." });
+           setLoading(false);
+           return;
+         }
+       }
 
-      const formattedPhone = editData.phone ? formatPhoneFromInput(editData.phone) : undefined;
+       const formattedPhone = editData.phone ? formatPhoneFromInput(editData.phone) : undefined;
 
-      const payload: any = {
-        nome: editData.name,
-        email: editData.email,
-        telefone: formattedPhone ?? editData.phone,
-        bio: editData.bio,
-        image: avatarUrl,
-      };
+       const payload: any = {
+         nome: editData.name,
+         email: editData.email,
+         telefone: formattedPhone ?? editData.phone,
+         bio: editData.bio,
+         image: avatarUrl,
+       };
 
-      const res = await api.put(`/api/v1/usuarios/usuarios/${user._id}`, payload);
-      const updated = res.data ?? {};
+       const res = await api.put(`/api/v1/usuarios/usuarios/${user._id}`, payload);
+       const updated = res.data ?? {};
 
-      const normalized = {
-        ...user,
-        ...updated,
-        name: updated.nome ?? updated.name ?? editData.name,
-        email: updated.email ?? editData.email,
-        // garante que o phone no estado fique formatado se possível
-        phone:
-          updated.telefone ??
-          updated.phone ??
-          (formattedPhone ? formattedPhone : editData.phone ?? user?.phone),
-        avatarUrl: updated.avatarUrl ?? updated.image ?? avatarUrl,
-        bio: updated.bio ?? editData.bio,
-        organizations: updated.organizations ?? user?.organizations,
-        role: updated.role ?? user?.role,
-        _id: updated._id ?? user._id,
-      };
+       // Normaliza os dados retornados do backend
+       const normalized: UserProfile = {
+         _id: updated._id ?? user?._id,
+         name: updated.nome ?? updated.name ?? user?.name,
+         username: updated.nome ?? updated.username ?? user?.username,
+         email: updated.email ?? user?.email,
+         phone: updated.telefone ?? updated.phone ?? formattedPhone ?? user?.phone,
+         image: updated.avatarUrl ?? updated.image ?? avatarUrl ?? user?.image,
+         bio: updated.bio ?? user?.bio,
+         organizations: updated.organizations ?? user?.organizations ?? [],
+         role: updated.role ?? user?.role,
+       };
 
-      localStorage.setItem("usuario", JSON.stringify(normalized));
-      setUser(normalized as UserProfile);
-      setEditData(normalized);
-      setAvatarFile(null);
-      setIsEditing(false);
-      setErrors({});
-      alert("Perfil atualizado com sucesso.");
-    } catch (err: any) {
-      console.error(err);
-      setErrors({ general: err?.response?.data?.message ?? "Ocorreu um erro ao salvar o perfil." });
-    } finally {
-      setLoading(false);
-    }
-  }
+       // Atualiza localStorage
+       localStorage.setItem("usuario", JSON.stringify(normalized));
+
+       // Atualiza estados locais
+       updateUser(normalized);
+       setEditData(normalized);
+       setAvatarFile(null);
+       setIsEditing(false);
+       setErrors({});
+
+       // Dispara evento customizado para outros componentes que possam estar escutando
+       window.dispatchEvent(new CustomEvent('userUpdated', { detail: normalized }));
+
+       alert("Perfil atualizado com sucesso.");
+     } catch (err: any) {
+       console.error(err);
+       setErrors({ general: err?.response?.data?.message ?? "Ocorreu um erro ao salvar o perfil." });
+     } finally {
+       setLoading(false);
+     }
+   }
 
   async function changePassword() {
     const newErrors: { [key: string]: string } = {};
@@ -226,7 +218,7 @@ export default function ProfilePage() {
 
   // helper: full image url
   const resolveImage = (img?: string) => {
-    if (!img) return "/default-avatar.png";
+    if (!img) return "";
     if (/^https?:\/\//.test(img)) return img;
     if (img.startsWith("/")) {
       return `http://localhost:3001${img}`;
@@ -241,7 +233,7 @@ export default function ProfilePage() {
         <div className={styles.card}>
           <div className={styles.avatarBox}>
             <img
-              src={user?.image ? resolveImage(user?.image) : editData.image || "/default-avatar.png"}
+              src={editData.image ? resolveImage(editData.image) : editData.image || "/default-avatar.png"}
               alt="Avatar do usuário"
               className={styles.avatar}
             />
@@ -287,15 +279,11 @@ export default function ProfilePage() {
               <>
                 {/* edição: mantida igual */}
                 <div className={styles.avatarEdit}>
-                  <div className={styles.avatarPreviewWrap}>
-                    <img src={editData.image || "/default-avatar.png"} alt="Pré-visualização do avatar" className={styles.avatarPreview} />
-                  </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={onAvatarSelect} className={styles.fileInput} aria-label="Selecionar novo avatar" />
                   <div className={styles.avatarBtns}>
                     <button type="button" className={cls("outline")} onClick={triggerAvatarPicker}>
                       Trocar avatar
                     </button>
-                    {avatarFile && <span className={styles.hint}>{avatarFile.name}</span>}
                   </div>
                   {errors.avatar && <p className={styles.error}>{errors.avatar}</p>}
                 </div>
@@ -356,7 +344,7 @@ export default function ProfilePage() {
                     <input
                       id="name"
                       className={styles.input}
-                      value={editData.name ?? ""}
+                      value={editData.username ?? ""}
                       onChange={(e) => handleChange("name", e.target.value)}
                       placeholder="Nome completo"
                       aria-describedby={errors.name ? "name-error" : undefined}
