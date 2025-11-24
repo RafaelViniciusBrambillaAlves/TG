@@ -9,10 +9,15 @@ Foi: 26
 
 ================================================ FRONT ================================================
 
+TEM ALGUMA COISA MUITA ESQUISITA NESSA IDEIA DE USUARIO PERTENCER A UMA ORGANIZAÇÃO, 
+TEM QUE REVER ISSO DE QUEM TA EM QUE ORGANIZAÇÃO E COMO APARECE
+
+
 1 - LOGIN: 2
 
 2 - Right Card: 6
 Exibir informações da Organização
+Listar os centros, organizações, Necessidades
 (lembrar disso daqui)2.6 Todo administrador tem que ter uma organização
 
 3 - PUBLICAÇÂO: 7
@@ -21,17 +26,18 @@ X - 3.7 Tenho que poder entrar no perfil da pessoas, ver as informações da pes
 
 4 - CENTROS: 1
 
-5 - EMERGENCIAS: 6
+5 - EMERGENCIAS
+Não está excluindo emergências
 
 6 - NECESSIDADES: 5
-X - Tirar imagem do que ja tinha
 
 7 - VOLUNTARIOS: 4
 7.4 Tem que listar os Voluntarios daquela organização
-Tem que aparecer as informações dele quandro clica nele
+Tem que testar isso daqui, criar outras contas para ver se não aparece no mesmo 
 
 8 - PERFIL: 4
 8.2 Tem que poder excluir aconta da pessoa
+Esta aparecendo a mesma organização duas vezes para a pessoa
 
 9 - CONFIGURAÇÔES: 1
 9.1 Arrumar o que voce acha que tem que arrumar
@@ -46,11 +52,12 @@ O Filtro ali em cima tem que funcionar
 
 11 - CADASTRAR: 2
 X - 11.1 Erro na hora de cadastrar(não sei porque), ele cadastra mas da erro, tem que aparecer mensagem se deu certo ou se deu errado
-X - 11.2 Quando tento cadastar um email já cadastrado (ele não aparece uma mensagem falando que esse email já esta sendo utilizando) ele só da erro
+Esta dando algum erro na hora de criar conta
 
 12 - Organizações: 5
 Tira essa botão de "faça parte", somente ajudar na organizações
-Coloca só o endereco normal da organização(sem maps)
+Coloca só o endereco normal da organização(sem maps) tem que colocar endereco ali na organizações
+
 
 13 - EMERGÊNCIAS: 5
 13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo

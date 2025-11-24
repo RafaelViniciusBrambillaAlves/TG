@@ -4,64 +4,73 @@ import { usuarioRepository } from '../repositories/usuarioRepository';
 import UsuarioModel from '../models/Usuario';
 import OrganizacaoUsuario from '../models/OrganizacaoUsuario';
 import Perfil from '../models/Perfil';
+import { Types } from 'mongoose';
 
 export const userController = {
-  // Registro de Admin
   async registerAdmin(req: Request, res: Response) {
-    const { nome, email, senha, image } = req.body;
+    try {
+      const { nome, email, senha, image } = req.body;
 
-    const adminPerfil = await Perfil.findOne({ nome_perfil: 'Admin' });
-    if (!adminPerfil) {
-      res.status(400).json({ message: 'Admin profile not found' });
-      return;
+      // forçamos a tipagem como any/unknown tratado para evitar erro TS
+      const adminPerfil = (await Perfil.findOne({ nome_perfil: 'Admin' }).lean().exec()) as any;
+      if (!adminPerfil || !adminPerfil._id) {
+        res.status(400).json({ message: 'Admin profile not found' });
+        return;
+      }
+
+      const userExists = await usuarioRepository.findByEmail(email);
+      if (userExists) {
+        res.status(400).json({ message: 'Usuário já existe' });
+        return;
+      }
+
+      // cast explícito para Types.ObjectId
+      const perfilId = adminPerfil._id as Types.ObjectId;
+
+      const user = await usuarioRepository.create({
+        nome,
+        email,
+        senha,
+        id_perfil: perfilId,
+        image
+      });
+
+      const [links, perfil] = await Promise.all([
+        OrganizacaoUsuario.find({ user_id: user._id })
+          .populate<{ organization_id: any }>('organization_id')
+          .lean()
+          .exec(),
+        Perfil.findById(user.id_perfil).lean().exec()
+      ]);
+
+      const organizations = (links || [])
+        .map((l: any) => l.organization_id)
+        .filter(Boolean)
+        .map((org: any) => ({
+          _id: org._id,
+          name: org.name,
+          phone: org.phone,
+          email: org.email,
+          website: org.website,
+          short: org.short,
+          description: org.description,
+          logo: org.logo,
+          createdAt: org.createdAt
+        }));
+
+      res.status(201).json({
+        _id: user._id,
+        username: user.nome,
+        email: user.email,
+        role: perfil,
+        image: user.image,
+        organizations,
+        token: generateToken(user.id.toString())
+      });
+    } catch (err) {
+      console.error('Error in registerAdmin:', err);
+      res.status(500).json({ message: 'Server error' });
     }
-
-    const userExists = await usuarioRepository.findByEmail(email);
-    if (userExists) {
-      res.status(400).json({ message: 'User already exists' });
-      return;
-    }
-
-    const user = await usuarioRepository.create({
-      nome,
-      email,
-      senha,
-      id_perfil: adminPerfil._id,
-      image
-    });
-
-    const [links, perfil] = await Promise.all([
-      OrganizacaoUsuario.find({ user_id: user._id })
-        .populate<{ organization_id: any }>('organization_id')
-        .lean()
-        .exec(),
-      Perfil.findById(user.id_perfil).lean().exec()
-    ]);
-
-    const organizations = (links || [])
-      .map((l: any) => l.organization_id)
-      .filter(Boolean)
-      .map((org: any) => ({
-        _id: org._id,
-        name: org.name,
-        phone: org.phone,
-        email: org.email,
-        website: org.website,
-        short: org.short,
-        description: org.description,
-        logo: org.logo,
-        createdAt: org.createdAt
-      }));
-
-    res.status(201).json({
-      _id: user._id,
-      username: user.nome,
-      email: user.email,
-      role: perfil,
-      image: user.image,
-      organizations,
-      token: generateToken(user.id.toString())
-    });
   },
 
   // Registro de Voluntário
@@ -77,7 +86,7 @@ export const userController = {
 
     const userExists = await usuarioRepository.findByEmail(email);
     if (userExists) {
-      res.status(400).json({ message: 'User already exists' });
+      res.status(400).json({ message: 'Usuário já existe!' });
       return;
     }
 
@@ -85,7 +94,7 @@ export const userController = {
       nome,
       email,
       senha,
-      id_perfil: voluntarioPerfil._id,
+      id_perfil: voluntarioPerfil._id as Types.ObjectId,
       image
     });
 

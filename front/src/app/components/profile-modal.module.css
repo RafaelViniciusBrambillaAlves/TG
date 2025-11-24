@@ -69,7 +69,8 @@
 .avatarSection {
   padding: 2.5rem 2rem 1.5rem;
   text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* gradiente azul (ajuste os hex se tiver um azul de marca específico) */
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
   border-radius: 16px 16px 0 0;
 }
@@ -292,12 +293,13 @@
 }
 
 .whatsappBtn {
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
 }
 
 .whatsappBtn:hover:not(.disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  /* sombra com versão azul mais suave */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.32);
 }
 
 .actionBtn.disabled {

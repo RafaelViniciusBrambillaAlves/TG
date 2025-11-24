@@ -56,9 +56,11 @@ export default function CenterDetails({
   centerProp: Centro;
 }) {
   const { user } = useAuth();
-  const {donate, loading} = useDonate();
+  const { donate, loading } = useDonate();
+
+  // Inicialmente NENHUMA aba expandida (tudo colapsado)
   const [tab, setTab] = useState<"localizacao" | "necessidades" | "emergencias" | null>(
-    "localizacao"
+    null
   );
 
   const navigation = useNavigation<any>();
@@ -203,20 +205,25 @@ export default function CenterDetails({
         </TouchableOpacity>
       </View>
 
-      {/* Conteúdo */}
+      {/* Conteúdo: se tab for null, nada expande (tudo colapsado) */}
       {tab !== null ? (
         <View style={styles.content}>
           {/* LOCALIZAÇÃO */}
           {tab === "localizacao" && (
             <View>
-              <Text style={styles.sectionTitle}>{centerProp.nome_centro}</Text>
+              <Text style={styles.sectionTitle}>{(centerProp as any).nome_centro ?? centerProp.nome}</Text>
               {centerProp.descricao ? <Text style={styles.p}>{centerProp.descricao}</Text> : null}
 
               <View style={styles.row}>
                 <Feather name="map" size={16} color="#64748B" />
                 <Text style={styles.label}>Endereço</Text>
               </View>
-              <Text style={styles.value}>{centerProp.endereco ?? "Endereço não informado"}</Text>
+
+              {/* Aqui escrevemos o endereço da organização em texto simples */}
+              <Text style={styles.valueLabel}>Endereço da organização:</Text>
+              <Text style={styles.value}>
+                {centerProp.endereco ? centerProp.endereco : "Endereço não informado"}
+              </Text>
 
               <TouchableOpacity
                 accessibilityLabel="Abrir no mapa"
@@ -252,7 +259,7 @@ export default function CenterDetails({
                               Alert.alert("Atenção", "Usuário não autenticado.");
                               return;
                             }
-                            await donate(user?._id, item._id)
+                            await donate(user?._id, item._id);
                           }}
                           activeOpacity={0.8}
                         >
@@ -266,7 +273,6 @@ export default function CenterDetails({
                       </View>
                       {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
                       <Text style={styles.itemDesc}>Quantidade de pessoas que querem ajudar: {item.interest?.length}</Text>
-                      {/*<Text style={styles.itemDesc}>Emergengia: {emergencias.find(e => e._id === item.emergencyId)?.titulo}</Text>*/}
                     </View>
                   )}
                 />
@@ -274,6 +280,7 @@ export default function CenterDetails({
             </View>
           )}
 
+          {/* EMERGÊNCIAS */}
           {tab === "emergencias" && (
             <View>
               <Text style={styles.sectionTitle}>Emergências</Text>
@@ -341,6 +348,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   label: { fontWeight: "700", color: "#475569" },
   value: { color: "#374151", marginTop: 4, marginBottom: 8 },
+  valueLabel: { color: "#475569", fontWeight: "700", marginTop: 6 },
   link: { textDecorationLine: "underline", color: "#1D4ED8" },
 
   mapBtn: {

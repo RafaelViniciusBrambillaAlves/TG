@@ -31,6 +31,10 @@ export default function Register() {
   // mensagem visível no topo (fallback caso Alert não apareça)
   const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // === ADICIONADO: controle para mostrar/ocultar senha ===
+  const [showPassword, setShowPassword] = useState(false);
+  // ========================================================
+
   const validate = () => {
     const e: Record<string, string> = {};
     if (!nome.trim()) e.nome = "Nome é obrigatório";
@@ -52,7 +56,7 @@ export default function Register() {
     }
 
     setLoading(true);
-    setErrors({});
+    setErrors({}); 
     setBanner(null);
 
     const payload = {
@@ -178,20 +182,31 @@ export default function Register() {
           />
           {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
-          <TextInput
-            style={[styles.input, errors.senha ? styles.inputError : null]}
-            placeholder="Senha (mínimo 6 caracteres)"
-            value={senha}
-            onChangeText={(v) => {
-              setSenha(v);
-              if (errors.senha) setErrors((s) => ({ ...s, senha: undefined }));
-            }}
-            secureTextEntry
-            accessibilityLabel="Senha"
-            autoComplete="password"
-            returnKeyType="next"
-          />
+          {/* === ALTERADO: campo de senha com ícone de olho === */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.inputPassword, errors.senha ? styles.inputError : null]}
+              placeholder="Senha (mínimo 6 caracteres)"
+              value={senha}
+              onChangeText={(v) => {
+                setSenha(v);
+                if (errors.senha) setErrors((s) => ({ ...s, senha: undefined }));
+              }}
+              secureTextEntry={!showPassword}
+              accessibilityLabel="Senha"
+              autoComplete="password"
+              returnKeyType="next"
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword((s) => !s)}
+              accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              <AntDesign name={showPassword ? "eye-invisible" : "eye"} size={20} color="#888" />
+            </TouchableOpacity>
+          </View>
           {errors.senha && <Text style={styles.error}>{errors.senha}</Text>}
+          {/* ===================================================== */}
 
           <TextInput
             style={[styles.input, errors.telefone ? styles.inputError : null]}
@@ -324,6 +339,34 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 13,
   },
+
+  // === ADICIONADOS: estilos para o input de senha com ícone ===
+  inputContainer: {
+    position: "relative",
+    width: "100%",
+    height: 48,
+    marginBottom: 8,
+  },
+  inputPassword: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingRight: 44, // espaço para o ícone
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e6e9ef",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 12,
+    top: "41%",
+    transform: [{ translateY: -10 }],
+    padding: 4,
+  },
+  // ===========================================================
+
   button: {
     width: "100%",
     height: 48,
