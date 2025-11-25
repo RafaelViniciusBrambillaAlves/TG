@@ -1,63 +1,48 @@
-59 Pontos para serem Feitos
-
-Foi: 33
-
-Essenciais = 28
-
-Foi: 26
+20 
 
 
 ================================================ FRONT ================================================
 
-TEM ALGUMA COISA MUITA ESQUISITA NESSA IDEIA DE USUARIO PERTENCER A UMA ORGANIZAÇÃO, 
 TEM QUE REVER ISSO DE QUEM TA EM QUE ORGANIZAÇÃO E COMO APARECE
+TEM QUE VER TODAS AS PARTES QUE MOSTRA ENDERECO TANTO NO FRONT QUANTO NO APP 
+NA PARTE DO VOLUNTARIOS TODA CONTA QUE EU CRIO NO APP VAI JA PARA VOLUNTARIOS, EU TENHO QUE CLICAR EM FAZER PARTE PARA IR PARA LA
 
+1 - LOGIN: 
 
-1 - LOGIN: 2
-
-2 - Right Card: 6
-Exibir informações da Organização
+2 - Right Card: 
 Listar os centros, organizações, Necessidades
 (lembrar disso daqui)2.6 Todo administrador tem que ter uma organização
 
-3 - PUBLICAÇÂO: 7
+3 - PUBLICAÇÂO:
 3.5 Botão de Salvar tem que funcionar
-X - 3.7 Tenho que poder entrar no perfil da pessoas, ver as informações da pessoa e sua organização
+Não esta excluindo a publicação
 
-4 - CENTROS: 1
+4 - CENTROS:
 
 5 - EMERGENCIAS
 Não está excluindo emergências
 
-6 - NECESSIDADES: 5
+6 - NECESSIDADES: 
 
-7 - VOLUNTARIOS: 4
-7.4 Tem que listar os Voluntarios daquela organização
-Tem que testar isso daqui, criar outras contas para ver se não aparece no mesmo 
+7 - VOLUNTARIOS:    
 
 8 - PERFIL: 4
 8.2 Tem que poder excluir aconta da pessoa
-Esta aparecendo a mesma organização duas vezes para a pessoa
 
 9 - CONFIGURAÇÔES: 1
 9.1 Arrumar o que voce acha que tem que arrumar
 
-
-(Olha, quando troco alguma informação da pessoa tenho que ficar recarregando a pagina)
-
 ================================================ APP ================================================
 O Filtro ali em cima tem que funcionar
+A barra de pesquisa tem que funcionar(para organizações)
 
 10 - LOGIN: 2
 
 11 - CADASTRAR: 2
-X - 11.1 Erro na hora de cadastrar(não sei porque), ele cadastra mas da erro, tem que aparecer mensagem se deu certo ou se deu errado
 Esta dando algum erro na hora de criar conta
 
 12 - Organizações: 5
-Tira essa botão de "faça parte", somente ajudar na organizações
 Coloca só o endereco normal da organização(sem maps) tem que colocar endereco ali na organizações
-
 
 13 - EMERGÊNCIAS: 5
 13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
@@ -65,6 +50,7 @@ Coloca só o endereco normal da organização(sem maps) tem que colocar endereco
 
 14 - PUBLICAÇÔES: 4
 Fazer algo para ver a organização
+Tem que ir para centro 
 
 15 - NOTIFICAÇÂO: 1
 15.1 Tem que funcionar, nem que seja simulação de algo  - Tem que fazer uma tabela no banco de notifications ai coloca o suubject, data e o tipo
@@ -72,4 +58,3 @@ Fazer algo para ver a organização
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
 
-*****Uma conta que acessa o front não acessa o app
