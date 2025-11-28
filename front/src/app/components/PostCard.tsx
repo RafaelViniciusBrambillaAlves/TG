@@ -3,7 +3,13 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import styles from "./post.module.css";
 import { Post } from "@/app/mocks";
-import { FiShare2, FiBookmark, FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
+import {
+  FiShare2,
+  FiBookmark,
+  FiEdit,
+  FiTrash2,
+  FiCheck,
+} from "react-icons/fi";
 import { BsFillBookmarkFill } from "react-icons/bs";
 import ProfileModal from "./ProfileModal";
 import { Usuario } from "@/hooks/getVoluntarios";
@@ -70,7 +76,8 @@ export default function PostCard({
   // canonical share url (adjust path if your app uses different route)
   const shareUrl = useMemo(() => {
     try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
       const id = post._id ?? post.id ?? "";
       return origin ? `${origin}/post/${id}` : `/post/${id}`;
     } catch {
@@ -118,13 +125,18 @@ export default function PostCard({
     }
   }
 
-  const whatsappText = encodeURIComponent(`${post.titulo ?? ""}\n\n${post.descricao ?? ""}\n\n${shareUrl}`);
+  const whatsappText = encodeURIComponent(
+    `${post.titulo ?? ""}\n\n${post.descricao ?? ""}\n\n${shareUrl}`,
+  );
   const twitterText = encodeURIComponent(`${post.titulo ?? ""} — ${shareUrl}`);
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
 
   return (
     <>
-      <article className={styles.card} aria-labelledby={`post-${post._id}-title`}>
+      <article
+        className={styles.card}
+        aria-labelledby={`post-${post._id}-title`}
+      >
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <button
@@ -134,20 +146,35 @@ export default function PostCard({
               title={`Abrir perfil de ${personName}`}
             >
               {avatar ? (
-                <img src={`http://localhost:3001${avatar}`} alt={personName} className={styles.avatar} />
+                <img
+                  src={`http://localhost:3001${avatar}`}
+                  alt={personName}
+                  className={styles.avatar}
+                />
               ) : (
-                <div className={styles.avatarPlaceholder}>{(personName || "U").charAt(0).toUpperCase()}</div>
+                <div className={styles.avatarPlaceholder}>
+                  {(personName || "U").charAt(0).toUpperCase()}
+                </div>
               )}
             </button>
 
             <div style={{ minWidth: 0 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 <div className={styles.author}>{personName}</div>
               </div>
 
               <div className={styles.meta}>
                 {/* <<< aqui mostramos o nome da organização (orgName) em vez do título >>> */}
-                <span className={styles.title} id={`post-${post._id}-title`}>{orgName}</span>
+                <span className={styles.title} id={`post-${post._id}-title`}>
+                  {orgName}
+                </span>
                 <span className={styles.dot}>•</span>
                 <time className={styles.time}>{computeTimeAgo()}</time>
               </div>
@@ -168,23 +195,39 @@ export default function PostCard({
               </button>
 
               {shareOpen && (
-                <div role="menu" aria-label="Opções de compartilhamento" className={styles.shareMenu}>
+                <div
+                  role="menu"
+                  aria-label="Opções de compartilhamento"
+                  className={styles.shareMenu}
+                >
                   <button
                     className={styles.shareItem}
                     onClick={() => {
                       openWindow(`https://wa.me/?text=${whatsappText}`);
                     }}
                   >
-                    <img src="/icons/whatsapp.svg" alt="" className={styles.shareIcon} /> WhatsApp
+                    <img
+                      src="/icons/whatsapp.svg"
+                      alt=""
+                      className={styles.shareIcon}
+                    />{" "}
+                    WhatsApp
                   </button>
 
                   <button
                     className={styles.shareItem}
                     onClick={() => {
-                      openWindow(`https://computeTimeAgo.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.titulo ?? "")}`);
+                      openWindow(
+                        `https://computeTimeAgo.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.titulo ?? "")}`,
+                      );
                     }}
                   >
-                    <img src="/icons/telegram.svg" alt="" className={styles.shareIcon} /> Telegram
+                    <img
+                      src="/icons/telegram.svg"
+                      alt=""
+                      className={styles.shareIcon}
+                    />{" "}
+                    Telegram
                   </button>
 
                   <button
@@ -193,22 +236,35 @@ export default function PostCard({
                       openWindow(`${facebookUrl}`);
                     }}
                   >
-                    <img src="/icons/facebook.svg" alt="" className={styles.shareIcon} /> Facebook
+                    <img
+                      src="/icons/facebook.svg"
+                      alt=""
+                      className={styles.shareIcon}
+                    />{" "}
+                    Facebook
                   </button>
 
                   <button
                     className={styles.shareItem}
                     onClick={() => {
-                      openWindow(`https://twitter.com/intent/tweet?text=${twitterText}`);
+                      openWindow(
+                        `https://twitter.com/intent/tweet?text=${twitterText}`,
+                      );
                     }}
                   >
-                    <img src="/icons/twitter.svg" alt="" className={styles.shareIcon} /> Twitter
+                    <img
+                      src="/icons/twitter.svg"
+                      alt=""
+                      className={styles.shareIcon}
+                    />{" "}
+                    Twitter
                   </button>
 
                   <div className={styles.shareDivider} />
 
                   <button className={styles.shareItem} onClick={handleCopyLink}>
-                    <FiBookmark size={16} style={{ marginRight: 8 }} /> Copiar link
+                    <FiBookmark size={16} style={{ marginRight: 8 }} /> Copiar
+                    link
                   </button>
                 </div>
               )}
@@ -217,10 +273,16 @@ export default function PostCard({
             <button
               className={styles.iconButton}
               onClick={() => onToggleSave?.(post._id ?? post.id ?? "")}
-              aria-label={post.status ? "Remover dos salvos" : "Salvar publicação"}
+              aria-label={
+                post.status ? "Remover dos salvos" : "Salvar publicação"
+              }
               type="button"
             >
-              {post.status ? <BsFillBookmarkFill size={18} /> : <FiBookmark size={18} />}
+              {post.status ? (
+                <BsFillBookmarkFill size={18} />
+              ) : (
+                <FiBookmark size={18} />
+              )}
             </button>
 
             {isMine && (
@@ -248,11 +310,21 @@ export default function PostCard({
 
         <div className={styles.body}>
           <p className={styles.description}>{post.descricao}</p>
-          {post.image && <img src={`http://localhost:3001${post.image}`} alt={post.titulo ?? ""} className={styles.image} />}
+          {post.image && (
+            <img
+              src={`http://localhost:3001${post.image}`}
+              alt={post.titulo ?? ""}
+              className={styles.image}
+            />
+          )}
         </div>
       </article>
 
-      <ProfileModal visible={modalOpen} onClose={() => setModalOpen(false)} profile={post?.usuario} />
+      <ProfileModal
+        visible={modalOpen}
+        onClose={() => setModalOpen(false)}
+        profile={post?.usuario}
+      />
 
       {/* toast */}
       {toast && (

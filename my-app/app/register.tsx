@@ -16,6 +16,7 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/auth.context";
+import { AxiosResponse } from "axios";
 
 export default function Register() {
   const { signUp } = useAuth();
@@ -29,7 +30,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   // mensagem visível no topo (fallback caso Alert não apareça)
-  const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [banner, setBanner] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // === ADICIONADO: controle para mostrar/ocultar senha ===
   const [showPassword, setShowPassword] = useState(false);
@@ -40,8 +44,10 @@ export default function Register() {
     if (!nome.trim()) e.nome = "Nome é obrigatório";
     if (!email.trim()) e.email = "Email é obrigatório";
     else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = "Email inválido";
-    if (!senha || senha.length < 6) e.senha = "Senha deve ter ao menos 6 caracteres";
-    if (!telefone || telefone.replace(/\D/g, "").length < 8) e.telefone = "Telefone inválido";
+    if (!senha || senha.length < 6)
+      e.senha = "Senha deve ter ao menos 6 caracteres";
+    if (!telefone || telefone.replace(/\D/g, "").length < 8)
+      e.telefone = "Telefone inválido";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -50,13 +56,19 @@ export default function Register() {
     if (loading) return;
     if (!validate()) {
       // mostra alerta e banner local
-      setBanner({ type: "error", text: "Corrija os campos e tente novamente." });
-      Alert.alert("Corrija os campos", "Verifique os campos destacados e tente novamente.");
+      setBanner({
+        type: "error",
+        text: "Corrija os campos e tente novamente.",
+      });
+      Alert.alert(
+        "Corrija os campos",
+        "Verifique os campos destacados e tente novamente.",
+      );
       return;
     }
 
     setLoading(true);
-    setErrors({}); 
+    setErrors({});
     setBanner(null);
 
     const payload = {
@@ -67,10 +79,10 @@ export default function Register() {
     };
 
     try {
-      const res: any = await signUp(payload);
-
+      const res: AxiosResponse = await signUp(payload);
+      console.log(res);
       // suporte para vários shapes de resposta
-      const status = res?.status || res?.statusCode || (res?.ok ? 201 : undefined);
+      const status = res?.status;
 
       if (status === 201 || status === 200) {
         // mostra alerta com botão OK que navega ao ser pressionado
@@ -79,11 +91,9 @@ export default function Register() {
             text: "OK",
             onPress: () => {
               // navega apenas quando usuário confirmar
-              router.replace("/");
             },
           },
         ]);
-
         // também exibe banner imediatamente (fallback)
         setBanner({ type: "success", text: "Conta criada com sucesso!" });
 
@@ -93,9 +103,16 @@ export default function Register() {
         setSenha("");
         setTelefone("");
         setErrors({});
+
+        setTimeout(() => {
+          router.replace("/");
+        }, 2000);
       } else if (status === 400) {
         const message =
-          res?.data?.message || res?.message || res?.data?.error || "Email já cadastrado ou dados inválidos.";
+          res?.data?.message ||
+          res?.message ||
+          res?.data?.error ||
+          "Email já cadastrado ou dados inválidos.";
         setBanner({ type: "error", text: message });
         Alert.alert("Problema", message);
       } else {
@@ -103,11 +120,14 @@ export default function Register() {
         Alert.alert("Problema", "Erro desconhecido ao registrar.");
       }
     } catch (err: any) {
-      console.log(err)
+      console.log(err);
       const serverStatus = err?.response?.status || err?.status;
       if (serverStatus === 400) {
         const payloadErr = err?.response?.data || {};
-        const message = payloadErr?.message || payloadErr?.error || "Email já cadastrado ou dados inválidos.";
+        const message =
+          payloadErr?.message ||
+          payloadErr?.error ||
+          "Email já cadastrado ou dados inválidos.";
         setBanner({ type: "error", text: message });
         Alert.alert("Problema", message);
       } else {
@@ -126,14 +146,19 @@ export default function Register() {
       style={{ flex: 1 }}
       behavior={Platform.select({ ios: "padding", android: undefined })}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.card}>
           {/* BANNER VISÍVEL: aparece sempre (fallback caso Alert não seja mostrado) */}
           {banner && (
             <View
               style={[
                 styles.banner,
-                banner.type === "success" ? styles.bannerSuccess : styles.bannerError,
+                banner.type === "success"
+                  ? styles.bannerSuccess
+                  : styles.bannerError,
               ]}
               accessibilityLiveRegion="polite"
             >
@@ -150,7 +175,9 @@ export default function Register() {
           </View>
 
           <Text style={styles.title}>Crie sua conta</Text>
-          <Text style={styles.subtitle}>Preencha os dados abaixo para se cadastrar</Text>
+          <Text style={styles.subtitle}>
+            Preencha os dados abaixo para se cadastrar
+          </Text>
 
           <TextInput
             style={[styles.input, errors.nome ? styles.inputError : null]}
@@ -185,12 +212,16 @@ export default function Register() {
           {/* === ALTERADO: campo de senha com ícone de olho === */}
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.inputPassword, errors.senha ? styles.inputError : null]}
+              style={[
+                styles.inputPassword,
+                errors.senha ? styles.inputError : null,
+              ]}
               placeholder="Senha (mínimo 6 caracteres)"
               value={senha}
               onChangeText={(v) => {
                 setSenha(v);
-                if (errors.senha) setErrors((s) => ({ ...s, senha: undefined }));
+                if (errors.senha)
+                  setErrors((s) => ({ ...s, senha: undefined }));
               }}
               secureTextEntry={!showPassword}
               accessibilityLabel="Senha"
@@ -200,9 +231,15 @@ export default function Register() {
             <TouchableOpacity
               style={styles.eyeIcon}
               onPress={() => setShowPassword((s) => !s)}
-              accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              accessibilityLabel={
+                showPassword ? "Ocultar senha" : "Mostrar senha"
+              }
             >
-              <AntDesign name={showPassword ? "eye-invisible" : "eye"} size={20} color="#888" />
+              <AntDesign
+                name={showPassword ? "eye-invisible" : "eye"}
+                size={20}
+                color="#888"
+              />
             </TouchableOpacity>
           </View>
           {errors.senha && <Text style={styles.error}>{errors.senha}</Text>}
@@ -215,13 +252,16 @@ export default function Register() {
             onChangeText={(v) => {
               const digits = v.replace(/[^\d]/g, "");
               setTelefone(digits);
-              if (errors.telefone) setErrors((s) => ({ ...s, telefone: undefined }));
+              if (errors.telefone)
+                setErrors((s) => ({ ...s, telefone: undefined }));
             }}
             keyboardType="phone-pad"
             accessibilityLabel="Telefone"
             returnKeyType="done"
           />
-          {errors.telefone && <Text style={styles.error}>{errors.telefone}</Text>}
+          {errors.telefone && (
+            <Text style={styles.error}>{errors.telefone}</Text>
+          )}
 
           <TouchableOpacity
             style={[styles.button, loading ? styles.buttonDisabled : null]}
@@ -230,7 +270,11 @@ export default function Register() {
             accessibilityRole="button"
             accessibilityState={{ busy: loading }}
           >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Registrar</Text>}
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Registrar</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.dividerContainer}>
@@ -241,7 +285,9 @@ export default function Register() {
 
           <TouchableOpacity
             style={styles.googleButton}
-            onPress={() => Alert.alert("Atenção", "Registrar com Google não implementado.")}
+            onPress={() =>
+              Alert.alert("Atenção", "Registrar com Google não implementado.")
+            }
           >
             <AntDesign name="google" size={20} color="#4285F4" />
             <Text style={styles.googleButtonText}>Registrar com Google</Text>

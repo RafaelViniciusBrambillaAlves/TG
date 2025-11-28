@@ -13,7 +13,7 @@ type EditCenterData = {
   address?: string;
   imageFile?: File | null;
   imagePreview?: string | null; // pode ser blob:... ou URL do servidor
-  imageRemoved?: boolean;       // controla remoção explícita
+  imageRemoved?: boolean; // controla remoção explícita
 };
 
 // Gera uma URL válida ou null quando não houver imagem
@@ -21,7 +21,7 @@ function resolveServerImage(img?: string | null): string | null {
   if (!img || typeof img !== "string" || img.trim() === "") return null;
   if (/^https?:\/\//.test(img)) return img;
   if (img.startsWith("/")) return `http://localhost:3001${img}`;
-  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+  return `http://localhost:3001${img.replace(/^\/+/, "")}`;
 }
 
 type Props = {
@@ -73,17 +73,20 @@ export default function EditCenterModal({
           // @ts-ignore
           center.nome ??
           // @ts-ignore
-          center.name ?? "",
+          center.name ??
+          "",
         description:
           // @ts-ignore
           center.description ??
           // @ts-ignore
-          center.descricao ?? "",
+          center.descricao ??
+          "",
         phone:
           // @ts-ignore
           center.phone ??
           // @ts-ignore
-          center.telefone ?? "",
+          center.telefone ??
+          "",
         email:
           // @ts-ignore
           center.email ?? "",
@@ -138,13 +141,21 @@ export default function EditCenterModal({
     }
 
     const url = URL.createObjectURL(f);
-    setForm((s) => ({ ...s, imageFile: f, imagePreview: url, imageRemoved: false }));
+    setForm((s) => ({
+      ...s,
+      imageFile: f,
+      imagePreview: url,
+      imageRemoved: false,
+    }));
 
     // limpa o input para permitir re-escolher o mesmo arquivo
     e.currentTarget.value = "";
   }
 
-  function handleChange<K extends keyof EditCenterData>(key: K, value: EditCenterData[K]) {
+  function handleChange<K extends keyof EditCenterData>(
+    key: K,
+    value: EditCenterData[K],
+  ) {
     setForm((s) => ({ ...s, [key]: value }));
   }
 
@@ -233,15 +244,19 @@ export default function EditCenterModal({
           const res = await api.put(`/api/v1/centros/${uid}`, payload);
           serverUpdated = res.data ?? null;
         } catch (err) {
-          console.warn("Falha ao atualizar no servidor, atualizando localmente:", err);
+          console.warn(
+            "Falha ao atualizar no servidor, atualizando localmente:",
+            err,
+          );
           // segue com atualização local
         }
       }
 
       // Merge final
-      let finalCenter: Center = serverUpdated && typeof serverUpdated === "object"
-        ? { ...(center as any), ...serverUpdated }
-        : { ...(center as any), ...payload };
+      let finalCenter: Center =
+        serverUpdated && typeof serverUpdated === "object"
+          ? { ...(center as any), ...serverUpdated }
+          : { ...(center as any), ...payload };
 
       // Garante que o identificador permaneça
       // @ts-ignore
@@ -395,13 +410,22 @@ export default function EditCenterModal({
                     className={styles.removePreview}
                     onClick={() =>
                       setForm((s) => {
-                        if (s.imagePreview && s.imagePreview.startsWith("blob:")) {
+                        if (
+                          s.imagePreview &&
+                          s.imagePreview.startsWith("blob:")
+                        ) {
                           try {
                             URL.revokeObjectURL(s.imagePreview);
                           } catch {}
                         }
-                        if (fileInputRef.current) fileInputRef.current.value = "";
-                        return { ...s, imageFile: null, imagePreview: null, imageRemoved: true };
+                        if (fileInputRef.current)
+                          fileInputRef.current.value = "";
+                        return {
+                          ...s,
+                          imageFile: null,
+                          imagePreview: null,
+                          imageRemoved: true,
+                        };
                       })
                     }
                     disabled={loading}

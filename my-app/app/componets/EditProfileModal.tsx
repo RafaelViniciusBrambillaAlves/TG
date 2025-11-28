@@ -53,10 +53,16 @@ function resolveUri(u?: string | null): string | null {
   if (u.startsWith("file:") || u.startsWith("data:")) return u;
   if (/^https?:\/\//.test(u)) return u;
   if (u.startsWith("/")) return `http://localhost:3001${u}`;
-  return `http://localhost:3001/${u.replace(/^\/+/, "")}`;
+  return `http://localhost:3001${u.replace(/^\/+/, "")}`;
 }
 function isLocalUri(u?: string | null) {
-  return !!u && (u.startsWith("blob:") || u.startsWith("content:") || u.startsWith("file:") || u.startsWith("data:"));
+  return (
+    !!u &&
+    (u.startsWith("blob:") ||
+      u.startsWith("content:") ||
+      u.startsWith("file:") ||
+      u.startsWith("data:"))
+  );
 }
 
 // base URL do backend a partir do axios instance
@@ -70,7 +76,11 @@ function getApiBase() {
 // - Em ambiente nativo (Android/iOS), usa expo-file-system uploadAsync com multipart
 //   sem setar manualmente Content-Type (o SDK adiciona boundary corretamente).
 // - Em web (caso compile para web), usa FormData + axios com "file" como Blob.
-async function uploadAvatar(uri: string, mime?: string, fileNameHint?: string): Promise<string> {
+async function uploadAvatar(
+  uri: string,
+  mime?: string,
+  fileNameHint?: string,
+): Promise<string> {
   const uploadUrl = `${getApiBase()}/api/v1/upload`;
 
   if (Platform.OS === "web") {
@@ -78,9 +88,10 @@ async function uploadAvatar(uri: string, mime?: string, fileNameHint?: string): 
     const resp = await fetch(uri);
     const blob = await resp.blob();
     const name =
-      fileNameHint ||
-      (uri.split("/").pop() || `avatar-${Date.now()}.jpg`);
-    const file = new File([blob], name, { type: blob.type || mime || "image/jpeg" });
+      fileNameHint || uri.split("/").pop() || `avatar-${Date.now()}.jpg`;
+    const file = new File([blob], name, {
+      type: blob.type || mime || "image/jpeg",
+    });
 
     const formData = new FormData();
     formData.append("file", file);
@@ -150,13 +161,25 @@ export default function EditProfileModal({ visible, onClose, onSave }: Props) {
   const [avatarRemoved, setAvatarRemoved] = useState<boolean>(false);
 
   // Endereço (visual)
-  const [street, setStreet] = useState<string>((user as any)?.address?.street ?? "");
-  const [number, setNumber] = useState<string>((user as any)?.address?.number ?? "");
-  const [complement, setComplement] = useState<string>((user as any)?.address?.complement ?? "");
-  const [neighborhood, setNeighborhood] = useState<string>((user as any)?.address?.neighborhood ?? "");
+  const [street, setStreet] = useState<string>(
+    (user as any)?.address?.street ?? "",
+  );
+  const [number, setNumber] = useState<string>(
+    (user as any)?.address?.number ?? "",
+  );
+  const [complement, setComplement] = useState<string>(
+    (user as any)?.address?.complement ?? "",
+  );
+  const [neighborhood, setNeighborhood] = useState<string>(
+    (user as any)?.address?.neighborhood ?? "",
+  );
   const [city, setCity] = useState<string>((user as any)?.address?.city ?? "");
-  const [stateField, setStateField] = useState<string>((user as any)?.address?.state ?? "");
-  const [country, setCountry] = useState<string>((user as any)?.address?.country ?? "");
+  const [stateField, setStateField] = useState<string>(
+    (user as any)?.address?.state ?? "",
+  );
+  const [country, setCountry] = useState<string>(
+    (user as any)?.address?.country ?? "",
+  );
   const [zip, setZip] = useState<string>((user as any)?.address?.zip ?? "");
 
   const [saving, setSaving] = useState(false);
@@ -362,7 +385,10 @@ export default function EditProfileModal({ visible, onClose, onSave }: Props) {
       };
       if (imageField !== undefined) payload.image = imageField;
 
-      const res = await api.put(`/api/v1/usuarios/usuarios/${user._id}`, payload);
+      const res = await api.put(
+        `/api/v1/usuarios/usuarios/${user._id}`,
+        payload,
+      );
       const data = res.data ?? {};
 
       // Atualiza user no contexto
@@ -375,8 +401,8 @@ export default function EditProfileModal({ visible, onClose, onSave }: Props) {
           data.avatarUrl !== undefined
             ? data.avatarUrl
             : imageField !== undefined
-            ? imageField
-            : (user as any).image,
+              ? imageField
+              : (user as any).image,
         organizations: data.organizations ?? user.organizations,
         role: data.role ?? user.role,
       });
@@ -391,16 +417,21 @@ export default function EditProfileModal({ visible, onClose, onSave }: Props) {
           data.avatarUrl !== undefined
             ? data.avatarUrl
             : imageField !== undefined
-            ? imageField
-            : (user as any).image,
+              ? imageField
+              : (user as any).image,
       });
 
       onClose();
     } catch (err: any) {
-      console.error("Erro ao salvar perfil:", err?.response?.data || err?.message || err);
+      console.error(
+        "Erro ao salvar perfil:",
+        err?.response?.data || err?.message || err,
+      );
       Alert.alert(
         "Erro",
-        err?.response?.data?.message || err?.message || "Não foi possível salvar o perfil.",
+        err?.response?.data?.message ||
+          err?.message ||
+          "Não foi possível salvar o perfil.",
       );
     } finally {
       setSaving(false);
@@ -410,12 +441,20 @@ export default function EditProfileModal({ visible, onClose, onSave }: Props) {
   const previewUri = resolveUri(avatar);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.centeredOverlay}>
         <View style={styles.modalBox}>
           <View style={styles.modalHeaderRow}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TouchableOpacity onPress={onClose} accessibilityLabel="Fechar editar perfil">
+            <TouchableOpacity
+              onPress={onClose}
+              accessibilityLabel="Fechar editar perfil"
+            >
               <AntDesign name="close" size={18} color="#333" />
             </TouchableOpacity>
           </View>

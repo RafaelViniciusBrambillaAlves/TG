@@ -125,7 +125,9 @@ export default function EmergenciesList({
         alert("Sem organização vinculada no perfil.");
         return;
       }
-      await api.put(`/api/v1/emergencias/linkOrg/${em._id}`, {orgId: user.organizations[0]._id});
+      await api.put(`/api/v1/emergencias/linkOrg/${em._id}`, {
+        orgId: user.organizations[0]._id,
+      });
       alert(`Organização vinculada com sucesso`);
     } catch (error) {
       console.error(error);
@@ -189,7 +191,7 @@ export default function EmergenciesList({
           return (
             <article
               key={em._id}
-              className={cardStyles.card}              // <- usa o CSS isolado do card
+              className={cardStyles.card} // <- usa o CSS isolado do card
               aria-labelledby={`em-${em._id}-title`}
               onClick={() => {
                 setSelectedEmergencyId(em._id);
@@ -221,7 +223,9 @@ export default function EmergenciesList({
                   <div className={cardStyles.statusWrap}>
                     <div
                       className={`${cardStyles.statusBadge} ${
-                        em.status === "Aberta" ? cardStyles.statusOpen : cardStyles.statusOther
+                        em.status === "Aberta"
+                          ? cardStyles.statusOpen
+                          : cardStyles.statusOther
                       }`}
                       aria-hidden
                     >
@@ -257,7 +261,10 @@ export default function EmergenciesList({
                       Ajudar
                     </button>
 
-                    <div className={cardStyles.iconActions} onClick={(ev) => ev.stopPropagation()}>
+                    <div
+                      className={cardStyles.iconActions}
+                      onClick={(ev) => ev.stopPropagation()}
+                    >
                       {mine && (
                         <>
                           <button
@@ -465,9 +472,7 @@ export default function EmergenciesList({
                             toggleParticipationAsMyOrg(selectedEmergency.id);
                           }}
                         >
-                          {selectedEmergency.helpingOrgs?.includes(
-                            ("" as any),
-                          )
+                          {selectedEmergency.helpingOrgs?.includes("" as any)
                             ? "Cancelar interesse (Minha ONG)"
                             : "Tenho interesse (Minha ONG)"}
                         </button>

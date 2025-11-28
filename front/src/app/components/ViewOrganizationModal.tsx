@@ -28,88 +28,9 @@ export default function ViewOrganizationModal({
     "overview" | "centers" | "emergencies" | "needs"
   >("overview");
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
-  const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(null);
-
-  // --- use uma id segura (pode ser org undefined) para usar em memoizados ---
-  const orgId = org?.id ?? "__NO_ORG__";
-
-  // --- MOCK fallback (sempre declarados antes de qualquer return/condicional) ---
-  const mockCenters: Center[] =
-    centers && centers.length
-      ? centers
-      : [
-          {
-            id: "c1",
-            name: "Centro Esperança",
-            address: "Rua das Flores, 123 - São Paulo",
-            description:
-              "Suporte alimentar e psicológico para famílias em vulnerabilidade.",
-            orgId: orgId,
-            telefone: "(11) 99999-0001",
-            email: "contato@centroesperanca.org",
-          },
-          {
-            id: "c2",
-            name: "Centro Vida Nova",
-            address: "Av. Central, 456 - Rio de Janeiro",
-            description:
-              "Atendimento médico e triagem social para pessoas em situação de rua.",
-            orgId: orgId,
-            telefone: "(21) 98888-1111",
-            email: "contato@vidanova.org",
-          },
-        ];
-
-  const mockEmergencies: Emergency[] =
-    emergencies && emergencies.length
-      ? emergencies
-      : [
-          {
-            id: "e1",
-            title: "Enchentes na Zona Leste",
-            status: "Ativa",
-            helpingOrgs: [orgId],
-            description:
-              "Acúmulo de água e famílias desalojadas nas áreas ribeirinhas.",
-          },
-          {
-            id: "e2",
-            title: "Campanha de Agasalhos 2025",
-            status: "Concluída",
-            helpingOrgs: [orgId],
-            description:
-              "Arrecadação e distribuição de agasalhos para populações vulneráveis.",
-          },
-        ];
-
-  // --- Derivados memoizados (chamados sempre, mantendo ordem de hooks) ---
-  const orgCenters = useMemo(
-    () => (mockCenters || []).filter((c) => (c.orgId ?? "") === orgId),
-    [mockCenters, orgId]
-  );
-
-  const orgEmergencies = useMemo(
-    () =>
-      (mockEmergencies || []).filter((e) =>
-        (e.helpingOrgs ?? []).includes(orgId)
-      ),
-    [mockEmergencies, orgId]
-  );
-
-  const orgNeeds = useMemo(() => {
-    if (!needs || needs.length === 0) return [];
-    return needs.filter((n) => {
-      if (n.orgId && n.orgId === orgId) return true;
-      // também tentar casar por emergencyId -> emergency.helpingOrgs
-      if (n.emergencyId) {
-        const em = mockEmergencies.find((me) => me.id === n.emergencyId);
-        if (em && (em.helpingOrgs ?? []).includes(orgId)) return true;
-      }
-      return false;
-    });
-  }, [needs, orgId, mockEmergencies]);
-
-  // agora podemos retornar null cedo se modal fechado ou org ausente
+  const [selectedEmergency, setSelectedEmergency] = useState<Emergency | null>(
+    null,
+  ); // agora podemos retornar null cedo se modal fechado ou org ausente
   if (!open || !org) return null;
 
   // helpers
@@ -121,9 +42,9 @@ export default function ViewOrganizationModal({
   };
 
   const renderStats = () => {
-    const centersCount = orgCenters.length;
-    const emergenciesCount = orgEmergencies.length;
-    const needsCount = orgNeeds.length;
+    const centersCount = centers.length;
+    const emergenciesCount = emergencies.length;
+    const needsCount = needs.length;
     return (
       <div className={styles.stats}>
         <div className={styles.stat}>
@@ -175,7 +96,9 @@ export default function ViewOrganizationModal({
                 {org.name}
               </h2>
               <div className={styles.type}>Organização Social</div>
-              <div className={styles.location}>{org.city ?? org.address ?? ""}</div>
+              <div className={styles.location}>
+                {org.city ?? org.address ?? ""}
+              </div>
             </div>
           </div>
 
@@ -257,7 +180,9 @@ export default function ViewOrganizationModal({
         </div>
 
         {/* Description */}
-        {org.description && <p className={styles.description}>{org.description}</p>}
+        {org.description && (
+          <p className={styles.description}>{org.description}</p>
+        )}
 
         {/* Tabs */}
         <div className={styles.tabs}>
@@ -310,7 +235,8 @@ export default function ViewOrganizationModal({
             <div className={styles.overview}>
               <h3 className={styles.sectionTitle}>Resumo</h3>
               <p className={styles.sectionText}>
-                {org.short ?? "Organização ativa, presente em diversos projetos sociais."}
+                {org.short ??
+                  "Organização ativa, presente em diversos projetos sociais."}
               </p>
 
               <div className={styles.cardRow}>
@@ -324,7 +250,8 @@ export default function ViewOrganizationModal({
                 <div className={styles.infoCard}>
                   <div className={styles.infoCardTitle}>Áreas de atuação</div>
                   <div className={styles.infoCardText}>
-                    {org.areas?.join(", ") ?? "Assistência social, saúde, educação"}
+                    {org.areas?.join(", ") ??
+                      "Assistência social, saúde, educação"}
                   </div>
                 </div>
 
@@ -344,14 +271,16 @@ export default function ViewOrganizationModal({
             <div>
               {!selectedCenter ? (
                 <>
-                  {orgCenters.length ? (
+                  {centers.length ? (
                     <ul className={styles.centerList}>
-                      {orgCenters.map((c) => (
+                      {centers.map((c) => (
                         <li className={styles.centerItem} key={c.id}>
                           <div className={styles.centerMain}>
-                            <div className={styles.centerTitle}>{c.name}</div>
+                            <div className={styles.centerTitle}>{c.nome}</div>
                             <div className={styles.centerAddr}>{c.address}</div>
-                            <div className={styles.centerDesc}>{c.description}</div>
+                            <div className={styles.centerDesc}>
+                              {c.description}
+                            </div>
                           </div>
 
                           <div className={styles.centerActions}>
@@ -385,7 +314,9 @@ export default function ViewOrganizationModal({
                       ))}
                     </ul>
                   ) : (
-                    <div className={styles.empty}>Nenhum centro cadastrado.</div>
+                    <div className={styles.empty}>
+                      Nenhum centro cadastrado.
+                    </div>
                   )}
                 </>
               ) : (
@@ -402,17 +333,23 @@ export default function ViewOrganizationModal({
                       <div className={styles.centerAddrLarge}>
                         {selectedCenter.address}
                       </div>
-                      <p className={styles.centerDesc}>{selectedCenter.description}</p>
+                      <p className={styles.centerDesc}>
+                        {selectedCenter.description}
+                      </p>
                     </div>
                     <div className={styles.centerDetailRight}>
-                      <div className={styles.sectionSubtitle}>Emergências vinculadas</div>
-                      {mockEmergencies.filter((e) =>
-                        e.helpingOrgs?.includes(selectedCenter.orgId || "")
+                      <div className={styles.sectionSubtitle}>
+                        Emergências vinculadas
+                      </div>
+                      {emergencies.filter((e) =>
+                        e.helpingOrgs?.includes(selectedCenter.orgId || ""),
                       ).length ? (
                         <ul className={styles.emergencyList}>
-                          {mockEmergencies
+                          {emergencies
                             .filter((e) =>
-                              e.helpingOrgs?.includes(selectedCenter.orgId || "")
+                              e.helpingOrgs?.includes(
+                                selectedCenter.orgId || "",
+                              ),
                             )
                             .map((em) => (
                               <li
@@ -421,7 +358,9 @@ export default function ViewOrganizationModal({
                                 onClick={() => setSelectedEmergency(em)}
                               >
                                 <div className={styles.emTitle}>{em.title}</div>
-                                <div className={styles.emStatus}>{em.status}</div>
+                                <div className={styles.emStatus}>
+                                  {em.status}
+                                </div>
                               </li>
                             ))}
                         </ul>
@@ -440,24 +379,26 @@ export default function ViewOrganizationModal({
           {/* EMERGENCIES */}
           {activeTab === "emergencies" && (
             <div>
-              {orgEmergencies.length ? (
+              {emergencies.length ? (
                 <ul className={styles.emergencyList}>
-                  {orgEmergencies.map((e) => (
+                  {emergencies.map((e) => (
                     <li
                       key={e.id}
                       className={styles.emergencyItem}
                       onClick={() => setSelectedEmergency(e)}
                     >
                       <div>
-                        <div className={styles.emTitle}>{e.title}</div>
-                        <div className={styles.emDesc}>{e.description ?? ""}</div>
+                        <div className={styles.emTitle}>{e.titulo}</div>
+                        <div className={styles.emDesc}>{e.descricao ?? ""}</div>
                       </div>
                       <div className={styles.emStatusBadge}>{e.status}</div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className={styles.empty}>Nenhuma emergência cadastrada.</div>
+                <div className={styles.empty}>
+                  Nenhuma emergência cadastrada.
+                </div>
               )}
 
               {selectedEmergency && (
@@ -468,10 +409,16 @@ export default function ViewOrganizationModal({
                   >
                     ← Voltar
                   </button>
-                  <h4 className={styles.sectionTitle}>{selectedEmergency.title}</h4>
-                  <div className={styles.sectionText}>{selectedEmergency.description}</div>
+                  <h4 className={styles.sectionTitle}>
+                    {selectedEmergency.titulo}
+                  </h4>
+                  <div className={styles.sectionText}>
+                    {selectedEmergency.description}
+                  </div>
 
-                  <div className={styles.sectionSubtitle}>Demandas relacionadas</div>
+                  <div className={styles.sectionSubtitle}>
+                    Demandas relacionadas
+                  </div>
                   {needs && needs.length ? (
                     <ul className={styles.needList}>
                       {needs
@@ -479,12 +426,16 @@ export default function ViewOrganizationModal({
                         .map((n) => (
                           <li key={n.id} className={styles.needItem}>
                             <div className={styles.needTitle}>{n.title}</div>
-                            <div className={styles.needQty}>{n.quantity ?? "—"}</div>
+                            <div className={styles.needQty}>
+                              {n.quantity ?? "—"}
+                            </div>
                           </li>
                         ))}
                     </ul>
                   ) : (
-                    <div className={styles.empty}>Nenhuma demanda registrada.</div>
+                    <div className={styles.empty}>
+                      Nenhuma demanda registrada.
+                    </div>
                   )}
                 </div>
               )}
@@ -494,9 +445,9 @@ export default function ViewOrganizationModal({
           {/* NEEDS */}
           {activeTab === "needs" && (
             <div>
-              {orgNeeds.length ? (
+              {needs.length ? (
                 <ul className={styles.needList}>
-                  {orgNeeds.map((n) => (
+                  {needs.map((n) => (
                     <li key={n.id} className={styles.needItem}>
                       <div className={styles.needTitle}>{n.title}</div>
                       <div className={styles.needMeta}>

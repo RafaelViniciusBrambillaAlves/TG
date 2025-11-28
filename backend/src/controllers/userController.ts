@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
-import generateToken from '../utils/generateToken';
-import { usuarioRepository } from '../repositories/usuarioRepository';
-import UsuarioModel from '../models/Usuario';
-import OrganizacaoUsuario from '../models/OrganizacaoUsuario';
-import Perfil from '../models/Perfil';
-import { Types } from 'mongoose';
+import { Request, Response } from "express";
+import generateToken from "../utils/generateToken";
+import { usuarioRepository } from "../repositories/usuarioRepository";
+import UsuarioModel from "../models/Usuario";
+import OrganizacaoUsuario from "../models/OrganizacaoUsuario";
+import Perfil from "../models/Perfil";
+import { Types } from "mongoose";
+import Organizacao from "../models/Organizacao";
 
 export const userController = {
   async registerAdmin(req: Request, res: Response) {
@@ -12,15 +13,17 @@ export const userController = {
       const { nome, email, senha, image } = req.body;
 
       // forçamos a tipagem como any/unknown tratado para evitar erro TS
-      const adminPerfil = (await Perfil.findOne({ nome_perfil: 'Admin' }).lean().exec()) as any;
+      const adminPerfil = (await Perfil.findOne({ nome_perfil: "Admin" })
+        .lean()
+        .exec()) as any;
       if (!adminPerfil || !adminPerfil._id) {
-        res.status(400).json({ message: 'Admin profile not found' });
+        res.status(400).json({ message: "Admin profile not found" });
         return;
       }
 
       const userExists = await usuarioRepository.findByEmail(email);
       if (userExists) {
-        res.status(400).json({ message: 'Usuário já existe' });
+        res.status(400).json({ message: "Usuário já existe" });
         return;
       }
 
@@ -32,15 +35,15 @@ export const userController = {
         email,
         senha,
         id_perfil: perfilId,
-        image
+        image,
       });
 
       const [links, perfil] = await Promise.all([
         OrganizacaoUsuario.find({ user_id: user._id })
-          .populate<{ organization_id: any }>('organization_id')
+          .populate<{ organization_id: any }>("organization_id")
           .lean()
           .exec(),
-        Perfil.findById(user.id_perfil).lean().exec()
+        Perfil.findById(user.id_perfil).lean().exec(),
       ]);
 
       const organizations = (links || [])
@@ -55,7 +58,7 @@ export const userController = {
           short: org.short,
           description: org.description,
           logo: org.logo,
-          createdAt: org.createdAt
+          createdAt: org.createdAt,
         }));
 
       res.status(201).json({
@@ -65,11 +68,11 @@ export const userController = {
         role: perfil,
         image: user.image,
         organizations,
-        token: generateToken(user.id.toString())
+        token: generateToken(user.id.toString()),
       });
     } catch (err) {
-      console.error('Error in registerAdmin:', err);
-      res.status(500).json({ message: 'Server error' });
+      console.error("Error in registerAdmin:", err);
+      res.status(500).json({ message: "Server error" });
     }
   },
 
@@ -78,15 +81,17 @@ export const userController = {
     const { nome, email, senha, image } = req.body;
 
     // Busca o perfil "voluntario"
-    const voluntarioPerfil = await Perfil.findOne({ nome_perfil: 'Voluntario' });
+    const voluntarioPerfil = await Perfil.findOne({
+      nome_perfil: "Voluntario",
+    });
     if (!voluntarioPerfil) {
-      res.status(400).json({ message: 'Voluntario profile not found' });
+      res.status(400).json({ message: "Voluntario profile not found" });
       return;
     }
 
     const userExists = await usuarioRepository.findByEmail(email);
     if (userExists) {
-      res.status(400).json({ message: 'Usuário já existe!' });
+      res.status(400).json({ message: "Usuário já existe!" });
       return;
     }
 
@@ -95,15 +100,15 @@ export const userController = {
       email,
       senha,
       id_perfil: voluntarioPerfil._id as Types.ObjectId,
-      image
+      image,
     });
 
     const [links, perfil] = await Promise.all([
       OrganizacaoUsuario.find({ user_id: user._id })
-        .populate<{ organization_id: any }>('organization_id')
+        .populate<{ organization_id: any }>("organization_id")
         .lean()
         .exec(),
-      Perfil.findById(user.id_perfil).lean().exec()
+      Perfil.findById(user.id_perfil).lean().exec(),
     ]);
 
     const organizations = (links || [])
@@ -118,7 +123,7 @@ export const userController = {
         short: org.short,
         description: org.description,
         logo: org.logo,
-        createdAt: org.createdAt
+        createdAt: org.createdAt,
       }));
 
     res.status(201).json({
@@ -128,7 +133,7 @@ export const userController = {
       role: perfil,
       image: user.image,
       organizations,
-      token: generateToken(user.id.toString())
+      token: generateToken(user.id.toString()),
     });
   },
 
@@ -139,20 +144,20 @@ export const userController = {
       const user = await usuarioRepository.findByEmail(email);
 
       if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
       const isMatch = await user.matchPassword(password);
       if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
       const [links, perfil] = await Promise.all([
         OrganizacaoUsuario.find({ user_id: user._id })
-          .populate<{ organization_id: any }>('organization_id')
+          .populate<{ organization_id: any }>("organization_id")
           .lean()
           .exec(),
-        Perfil.findById(user.id_perfil).lean().exec()
+        Perfil.findById(user.id_perfil).lean().exec(),
       ]);
 
       const organizations = (links || [])
@@ -167,7 +172,7 @@ export const userController = {
           short: org.short,
           description: org.description,
           logo: org.logo,
-          createdAt: org.createdAt
+          createdAt: org.createdAt,
         }));
 
       res.json({
@@ -177,12 +182,11 @@ export const userController = {
         role: perfil,
         image: user.image,
         organizations,
-        token: generateToken(user.id.toString())
+        token: generateToken(user.id.toString()),
       });
-
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: "Server error" });
     }
   },
 
@@ -192,27 +196,68 @@ export const userController = {
       const { email, password } = req.body;
       const user = await usuarioRepository.findByEmail(email);
 
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
-      }
+      if (!user)
+        return res.status(401).json({ message: "Invalid email or password" });
 
       const isMatch = await user.matchPassword(password);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid email or password' });
-      }
+      if (!isMatch)
+        return res.status(401).json({ message: "Invalid email or password" });
 
       const perfil = await Perfil.findById(user.id_perfil).lean().exec();
-      if (!perfil || perfil.nome_perfil !== 'Admin') {
-        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      if (!perfil || perfil.nome_perfil !== "Admin") {
+        return res.status(403).json({ message: "Access denied. Admin only." });
       }
 
+      // 1) buscar links e extrair ids de organização
       const links = await OrganizacaoUsuario.find({ user_id: user._id })
-        .populate<{ organization_id: any }>('organization_id')
+        .select("organization_id")
         .lean()
         .exec();
-
-      const organizations = (links || [])
+      const orgIds = (links || [])
         .map((l: any) => l.organization_id)
+        .filter(Boolean);
+
+      if (orgIds.length === 0) {
+        return res.json({
+          _id: user._id,
+          username: user.nome,
+          email: user.email,
+          role: perfil,
+          image: user.image,
+          organizations: [],
+          token: generateToken(user.id.toString()),
+        });
+      }
+
+      // 2) buscar organizações populadas (centros -> necessidades ; emergencias -> id_usuario, id_endereco)
+      const populatedOrgs = await Organizacao.find({ _id: { $in: orgIds } })
+        .populate({
+          path: "centros", // virtual da Organizacao
+          select: "nome telefone email address image id_centro createdAt",
+          populate: {
+            path: "necessidades", // virtual do Centro
+            model: "Necessidade",
+          },
+        })
+        .populate({
+          path: "emergencias", // virtual da Organizacao
+          model: "Emergencia",
+          select:
+            "titulo subtitulo descricao status data_inicio data_fim createdAt image id_endereco id_usuario",
+          populate: [
+            { path: "id_usuario", select: "-senha" },
+            { path: "id_endereco" },
+          ],
+        })
+        .lean() // opcional: remove overhead do mongoose; se virtuals não aparecerem, remova o .lean()
+        .exec();
+
+      // 3) manter ordem conforme orgIds (opcional)
+      const orgMap = new Map(
+        populatedOrgs.map((o: any) => [o._id.toString(), o]),
+      );
+      const orderedOrgs = orgIds
+        .map((id: any) => orgMap.get(id.toString()))
         .filter(Boolean)
         .map((org: any) => ({
           _id: org._id,
@@ -223,44 +268,53 @@ export const userController = {
           short: org.short,
           description: org.description,
           logo: org.logo,
-          createdAt: org.createdAt
+          createdAt: org.createdAt,
+          // inclui os relacionamentos populados
+          centros: org.centros ?? [],
+          emergencias: org.emergencias ?? [],
         }));
 
+      // 4) responder
       res.json({
         _id: user._id,
         username: user.nome,
         email: user.email,
         role: perfil,
         image: user.image,
-        organizations,
-        token: generateToken(user.id.toString())
+        organizations: orderedOrgs,
+        token: generateToken(user.id.toString()),
       });
-
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: "Server error" });
     }
   },
 
   async getAllVoluntarios(req: Request, res: Response) {
     try {
-      const voluntarioPerfil = await Perfil.findOne({ nome_perfil: 'Voluntario' }).lean();
+      const voluntarioPerfil = await Perfil.findOne({
+        nome_perfil: "Voluntario",
+      }).lean();
       if (!voluntarioPerfil) {
-        return res.status(404).json({ error: 'Perfil voluntario não encontrado' });
+        return res
+          .status(404)
+          .json({ error: "Perfil voluntario não encontrado" });
       }
 
       const allUsers = await UsuarioModel.find()
-        .select('-senha')
-        .populate({ path: 'id_perfil', select: 'nome_perfil descricao' })
+        .select("-senha")
+        .populate({ path: "id_perfil", select: "nome_perfil descricao" })
         .lean();
 
-      const users = allUsers.filter((u: any) =>
-        u.id_perfil && u.id_perfil.nome_perfil === 'Voluntario'
+      const users = allUsers.filter(
+        (u: any) => u.id_perfil && u.id_perfil.nome_perfil === "Voluntario",
       );
 
       const userIds = users.map((u: any) => u._id);
-      const allLinks = await OrganizacaoUsuario.find({ user_id: { $in: userIds } })
-        .populate<{ organization_id: any }>('organization_id')
+      const allLinks = await OrganizacaoUsuario.find({
+        user_id: { $in: userIds },
+      })
+        .populate<{ organization_id: any }>("organization_id")
         .lean()
         .exec();
 
@@ -277,7 +331,7 @@ export const userController = {
             short: link.organization_id.short,
             description: link.organization_id.description,
             logo: link.organization_id.logo,
-            createdAt: link.organization_id.createdAt
+            createdAt: link.organization_id.createdAt,
           });
         }
         return acc;
@@ -293,21 +347,20 @@ export const userController = {
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
         perfil: u.id_perfil,
-        organizacoes: orgsByUserId[u._id.toString()] || []
+        organizacoes: orgsByUserId[u._id.toString()] || [],
       }));
 
       res.json(result);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Erro ao listar voluntários' });
+      res.status(500).json({ error: "Erro ao listar voluntários" });
     }
   },
-
 
   async getById(req: Request, res: Response) {
     const user = await usuarioRepository.findById(req.params.id);
     if (!user) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
       return;
     }
     res.json(user);
@@ -316,10 +369,15 @@ export const userController = {
   async linkUserOrganization(req: Request, res: Response) {
     const { userId, organizationId } = req.body;
     try {
-      const updatedUser = await usuarioRepository.linkUserOrganization(userId, organizationId);
+      const updatedUser = await usuarioRepository.linkUserOrganization(
+        userId,
+        organizationId,
+      );
       res.json(updatedUser);
     } catch (err: any) {
-      res.status(500).json({ message: err.message ?? 'Erro ao vincular usuário à organização' });
+      res.status(500).json({
+        message: err.message ?? "Erro ao vincular usuário à organização",
+      });
     }
   },
 
@@ -387,7 +445,9 @@ export const userController = {
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: "currentPassword and newPassword are required" });
+        return res
+          .status(400)
+          .json({ message: "currentPassword and newPassword are required" });
       }
 
       const user = await UsuarioModel.findById(id);
@@ -397,7 +457,9 @@ export const userController = {
 
       const isMatch = await user.matchPassword(currentPassword);
       if (!isMatch) {
-        return res.status(401).json({ message: "Current password is incorrect" });
+        return res
+          .status(401)
+          .json({ message: "Current password is incorrect" });
       }
 
       user.senha = newPassword; // pre('save') fará hash

@@ -71,7 +71,7 @@ export default function useLogin() {
   }
 
   async function signUpRequest(signUpData: SignUpRequestData) {
-    const { data } = await api.post<string>(
+    const data = await api.post<string>(
       "/api/v1/usuarios/register",
       signUpData,
     );

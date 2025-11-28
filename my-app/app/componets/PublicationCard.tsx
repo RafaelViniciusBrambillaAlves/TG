@@ -33,7 +33,6 @@ export default function PublicationCard({
   onSave,
   onReport,
 }: Props) {
-
   const [menuVisible, setMenuVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
   const [profileToView, setProfileToView] = useState<ProfileData | null>(null);
@@ -50,9 +49,10 @@ export default function PublicationCard({
       const s = raw.trim();
       if (s.startsWith("http://") || s.startsWith("https://")) return s;
       if (s.startsWith("/")) return `http://localhost:3001${s}`;
-      if (s.startsWith("uploads/") || s.includes("/uploads/")) return `http://localhost:3001/${s}`;
+      if (s.startsWith("uploads/") || s.includes("/uploads/"))
+        return `http://localhost:3001${s}`;
       if (isLikelyId(s)) return `http://localhost:3001/api/v1/files/${s}`;
-      return `http://localhost:3001/${s}`;
+      return `http://localhost:3001${s}`;
     }
 
     if (typeof raw === "object") {
@@ -60,16 +60,17 @@ export default function PublicationCard({
         const s = raw.url;
         if (s.startsWith("http")) return s;
         if (s.startsWith("/")) return `http://localhost:3001${s}`;
-        return `http://localhost:3001/${s}`;
+        return `http://localhost:3001${s}`;
       }
       if (raw.path && typeof raw.path === "string") {
         const s = raw.path;
         if (s.startsWith("http")) return s;
         if (s.startsWith("/")) return `http://localhost:3001${s}`;
-        return `http://localhost:3001/${s}`;
+        return `http://localhost:3001${s}`;
       }
       const id = raw.fileId ?? raw._id ?? raw.id;
-      if (id && typeof id === "string") return `http://localhost:3001/api/v1/files/${id}`;
+      if (id && typeof id === "string")
+        return `http://localhost:3001/api/v1/files/${id}`;
     }
 
     return undefined;
@@ -80,8 +81,8 @@ export default function PublicationCard({
     publication.image && Array.isArray(publication.image)
       ? publication.image
       : publication.image
-      ? [publication.image]
-      : [];
+        ? [publication.image]
+        : [];
 
   const images = imagesRaw
     .map((i) => resolveImageUrl(i))
@@ -117,7 +118,9 @@ export default function PublicationCard({
     async function fetchAuthorById(id: string) {
       setLoadingAuthor(true);
       try {
-        const res = await api.get(`/api/v1/usuarios/${id}`, { signal: aborter.signal });
+        const res = await api.get(`/api/v1/usuarios/${id}`, {
+          signal: aborter.signal,
+        });
         if (!mounted) return;
         setFetchedAuthor(res?.data ?? null);
       } catch {
@@ -128,7 +131,8 @@ export default function PublicationCard({
     }
 
     const hasInlineName =
-      candidateAuthor && (candidateAuthor.name || candidateAuthor.nome || candidateAuthor.email);
+      candidateAuthor &&
+      (candidateAuthor.name || candidateAuthor.nome || candidateAuthor.email);
 
     if (!hasInlineName && candidateUserId) {
       fetchAuthorById(candidateUserId);
@@ -143,14 +147,19 @@ export default function PublicationCard({
   }, [candidateUserId, publication._id]);
 
   const authorObj = useMemo(() => {
-    if (candidateAuthor && typeof candidateAuthor === "object") return candidateAuthor;
+    if (candidateAuthor && typeof candidateAuthor === "object")
+      return candidateAuthor;
     if (fetchedAuthor) return fetchedAuthor;
     if ((publication as any).centro) return (publication as any).centro;
     return null;
   }, [candidateAuthor, fetchedAuthor, publication.centro]);
 
   const authorName =
-    (authorObj && (authorObj.name || authorObj.nome || authorObj.nome_centro || authorObj.fullName)) ||
+    (authorObj &&
+      (authorObj.name ||
+        authorObj.nome ||
+        authorObj.nome_centro ||
+        authorObj.fullName)) ||
     (publication as any).nome_autor ||
     "Usuário";
 
@@ -164,10 +173,7 @@ export default function PublicationCard({
   // ---------- TIME LABEL: computeTimeAgo similar ao PostCard.tsx ----------
 
   const timeLabel = useMemo(() => {
-    const raw =
-
-      (publication as any).createdAtRaw ??
-      null;
+    const raw = (publication as any).createdAtRaw ?? null;
     if (!raw) return "";
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return "";
@@ -189,7 +195,8 @@ export default function PublicationCard({
     "";
 
   // texto da publicação (só o corpo, conforme pedido)
-  const publicationText = publication.descricao ?? publication.texto ?? publication.titulo ?? "";
+  const publicationText =
+    publication.descricao ?? publication.texto ?? publication.titulo ?? "";
 
   // ações UI
   const openMenu = () => setMenuVisible(true);
@@ -224,10 +231,19 @@ export default function PublicationCard({
         {/* header */}
         <View style={styles.headerRow}>
           <View style={styles.leftRow}>
-            <TouchableOpacity onPress={openProfile} accessibilityLabel={`Abrir perfil de ${authorName}`} activeOpacity={0.85}>
+            <TouchableOpacity
+              onPress={openProfile}
+              accessibilityLabel={`Abrir perfil de ${authorName}`}
+              activeOpacity={0.85}
+            >
               <View style={styles.avatarWrap}>
                 {loadingAuthor ? (
-                  <View style={[styles.avatarPlaceholder, { justifyContent: "center" }]}>
+                  <View
+                    style={[
+                      styles.avatarPlaceholder,
+                      { justifyContent: "center" },
+                    ]}
+                  >
                     <ActivityIndicator size="small" color="#fff" />
                   </View>
                 ) : authorAvatar ? (
@@ -248,29 +264,43 @@ export default function PublicationCard({
               {/* linha meta: organização • tempo, na MESMA LINHA e sem quebra */}
               <View style={styles.meta}>
                 {authorOrg ? (
-                  <Text style={styles.authorOrg} numberOfLines={1} ellipsizeMode="tail">
+                  <Text
+                    style={styles.authorOrg}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {authorOrg}
                   </Text>
                 ) : null}
 
                 {/* se tem organização e tempo, mostra o bullet entre eles */}
-                {authorOrg && timeLabel ? <Text style={styles.dot}>•</Text> : null}
+                {authorOrg && timeLabel ? (
+                  <Text style={styles.dot}>•</Text>
+                ) : null}
 
                 {/* tempo sempre visível (se houver), e sempre na mesma linha */}
-                {timeLabel ? <Text style={styles.time}>{timeLabel}</Text> : null}
+                {timeLabel ? (
+                  <Text style={styles.time}>{timeLabel}</Text>
+                ) : null}
               </View>
             </View>
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.menuBtn} onPress={openMenu} accessibilityLabel="Mais opções">
+            <TouchableOpacity
+              style={styles.menuBtn}
+              onPress={openMenu}
+              accessibilityLabel="Mais opções"
+            >
               <Entypo name="dots-three-vertical" size={18} color="#444" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* texto da publicação (somente corpo) */}
-        {publicationText ? <Text style={styles.publicationText}>{publicationText}</Text> : null}
+        {publicationText ? (
+          <Text style={styles.publicationText}>{publicationText}</Text>
+        ) : null}
 
         {/* imagem principal (com loading/fallback) */}
         {images.length > 0 && (
@@ -304,16 +334,31 @@ export default function PublicationCard({
 
         {/* galeria de thumbnails quando >1 */}
         {images.length > 1 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageScroll}
+          >
             {images.map((img, idx) => (
-              <Image key={idx} source={{ uri: img }} style={styles.scrollImage} resizeMode="cover" accessibilityLabel={`Imagem ${idx + 1}`} />
+              <Image
+                key={idx}
+                source={{ uri: img }}
+                style={styles.scrollImage}
+                resizeMode="cover"
+                accessibilityLabel={`Imagem ${idx + 1}`}
+              />
             ))}
           </ScrollView>
         )}
       </View>
 
       {/* menu modal */}
-      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={closeMenu}>
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeMenu}
+      >
         <Pressable style={styles.menuOverlay} onPress={closeMenu}>
           <View style={styles.menuBox}>
             <TouchableOpacity style={styles.menuItem} onPress={handleSave}>
@@ -341,7 +386,9 @@ export default function PublicationCard({
 
             <TouchableOpacity style={styles.menuItem} onPress={handleReport}>
               <Feather name="alert-circle" size={18} color="#e53e3e" />
-              <Text style={[styles.menuItemText, { color: "#e53e3e" }]}>Denunciar</Text>
+              <Text style={[styles.menuItemText, { color: "#e53e3e" }]}>
+                Denunciar
+              </Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -378,7 +425,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
   leftRow: { flexDirection: "row", alignItems: "center", flex: 1 },
   avatarWrap: {
     width: AVATAR_SIZE,
@@ -397,7 +448,12 @@ const styles = StyleSheet.create({
   },
 
   headerText: { flex: 1, minWidth: 0 },
-  authorName: { fontSize: 14, fontWeight: "600", color: "#0F172A", marginBottom: 2 },
+  authorName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0F172A",
+    marginBottom: 2,
+  },
 
   // meta: organização + bullet + tempo — agora sem quebra
   meta: { flexDirection: "row", alignItems: "center", flexWrap: "nowrap" },
@@ -413,19 +469,57 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: "row", alignItems: "center", marginLeft: 8 },
   menuBtn: { marginLeft: 8, paddingHorizontal: 6, paddingVertical: 6 },
 
-  publicationText: { fontSize: 15, fontWeight: "400", color: "#0F172A", marginTop: 10, lineHeight: 20 },
+  publicationText: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: "#0F172A",
+    marginTop: 10,
+    lineHeight: 20,
+  },
 
-  imageContainer: { marginTop: 12, borderRadius: 12, overflow: "hidden", backgroundColor: "#f2f2f2" },
-  imageLoader: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", zIndex: 5 },
+  imageContainer: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#f2f2f2",
+  },
+  imageLoader: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 5,
+  },
   mainImage: { width: "100%", height: 200 },
-  imageError: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
+  imageError: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   imageErrorText: { color: "#666", fontSize: 14 },
 
   imageScroll: { marginTop: 10 },
-  scrollImage: { width: 120, height: 120, borderRadius: 12, marginRight: 8, backgroundColor: "#f2f2f2" },
+  scrollImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginRight: 8,
+    backgroundColor: "#f2f2f2",
+  },
 
   /* menu modal */
-  menuOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
   menuBox: {
     backgroundColor: "#fff",
     paddingVertical: 8,
@@ -434,6 +528,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 12,
   },
   menuItem: { flexDirection: "row", alignItems: "center", paddingVertical: 12 },
-  menuItemText: { marginLeft: 12, fontWeight: "600", color: "#111", fontSize: 15 },
+  menuItemText: {
+    marginLeft: 12,
+    fontWeight: "600",
+    color: "#111",
+    fontSize: 15,
+  },
   menuDivider: { height: 1, backgroundColor: "#EEE", marginVertical: 6 },
 });

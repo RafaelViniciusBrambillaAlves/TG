@@ -124,7 +124,7 @@ export default function Header() {
   const router = useRouter();
   const { emergencias, organizacoes, publicacoes, loading, reloadAll } =
     useData();
-  const {user} = useAuth()
+  const { user } = useAuth();
   // listas originais mapeadas
   const organizations = useMemo(
     () => mapOrganizacoesToCard(organizacoes),
@@ -282,32 +282,69 @@ export default function Header() {
   }, [emergencies, emergFilters, searchTerm, emergOrder]);
   const filteredOrganizations = useMemo(() => {
     const q = (searchTerm || "").toLowerCase();
-    const filtered = organizations.filter((org) => {
+    const filtered = organizations.filter((org: any) => {
+      // filtros já existentes
       if (
         orgFilters.hasCenters &&
         (!Array.isArray(org.centros) || org.centros.length === 0)
       )
         return false;
       if (orgFilters.hasEmail && !org.email) return false;
+
+      // se não tem query, passa (aplica só os filtros acima)
       if (!q) return true;
+
+      // campos da organização (vários possíveis nomes)
+      const orgName = (org.nome_organizacao ?? org.name ?? org.title ?? "")
+        .toString()
+        .toLowerCase();
+      const orgDesc = (org.descricao ?? org.description ?? org.about ?? "")
+        .toString()
+        .toLowerCase();
+      const orgAddress = (org.endereco ?? org.address ?? "")
+        .toString()
+        .toLowerCase();
+      const orgEmail = (org.email ?? "").toString().toLowerCase();
+
+      // procura nos centros (nome, endereço)
       const centerMatch =
         Array.isArray(org.centros) &&
         org.centros.some((c: any) => {
-          return c;
+          const centerName = (c.nome_centro ?? c.name ?? "")
+            .toString()
+            .toLowerCase();
+          const centerAddress = (c.endereco ?? c.address ?? "")
+            .toString()
+            .toLowerCase();
+          return centerName.includes(q) || centerAddress.includes(q);
         });
-      return org || centerMatch;
+
+      // combina tudo
+      return (
+        orgName.includes(q) ||
+        orgDesc.includes(q) ||
+        orgAddress.includes(q) ||
+        orgEmail.includes(q) ||
+        centerMatch
+      );
     });
+
+    // ordenação (mantive sua lógica)
     const copy = [...filtered];
     if (orgOrder === "alpha") {
       copy.sort((a, b) =>
-        String(a.nome_organizacao ?? "").localeCompare(
-          String(b.nome_organizacao ?? ""),
+        String(a.nome_organizacao ?? a.name ?? "").localeCompare(
+          String(b.nome_organizacao ?? b.name ?? ""),
           undefined,
           { sensitivity: "base" },
         ),
       );
     } else {
-      copy.sort((a, b) => (b.centersCount ?? 0) - (a.centersCount ?? 0));
+      copy.sort(
+        (a, b) =>
+          (b.centersCount ?? b.centros?.length ?? 0) -
+          (a.centersCount ?? a.centros?.length ?? 0),
+      );
     }
     return copy;
   }, [organizations, orgFilters, searchTerm, orgOrder]);
@@ -384,7 +421,7 @@ export default function Header() {
             onPress={() => setDrawerVisible(true)}
           >
             <Image
-              source={{ uri:`http://localhost:3001${user?.image}`}}
+              source={{ uri: `http://localhost:3001${user?.image}` }}
               style={{ width: 32, height: 32, marginLeft: 8, marginRight: 8 }}
             />
           </TouchableOpacity>

@@ -19,7 +19,12 @@ type FeedProps = {
   onRefresh?: () => void; // <- opcional: força re-fetch no parent
 };
 
-export default function Feed({ posts: postsFromProps, onCreate, onUpdatePost, onRefresh }: FeedProps) {
+export default function Feed({
+  posts: postsFromProps,
+  onCreate,
+  onUpdatePost,
+  onRefresh,
+}: FeedProps) {
   const [user, setUser] = useState<UserProfile>();
 
   useEffect(() => {
@@ -32,7 +37,7 @@ export default function Feed({ posts: postsFromProps, onCreate, onUpdatePost, on
 
   const [internalPosts, setInternalPosts] = useState<
     Publicidade[] | PostType[] | undefined
-  >(undefined);
+  >(postsFromProps);
   const posts = postsFromProps ?? internalPosts; // usa prop se existir, senão internal
 
   const [filter, setFilter] = useState<"all" | "mine">("all");
@@ -102,13 +107,20 @@ export default function Feed({ posts: postsFromProps, onCreate, onUpdatePost, on
   async function handleDelete(id: string) {
     await api({
       url: "/api/v1/publicacao/publicidades/" + id,
-      method: "DELETE"
+      method: "DELETE",
     });
 
     // se parent controla posts, não mexe aqui — apenas instrui o usuário/developer
     // aqui lidamos com internalPosts caso exista
 
     setInternalPosts((s) => s?.filter((p: any) => p._id !== id));
+    getPost()
+      .then((data) => {
+        setInternalPosts(data);
+      })
+      .catch((err) => {
+        console.warn("Falha ao carregar posts no Feed:", err);
+      });
   }
 
   function handleEdit(post: PostType) {
@@ -117,52 +129,54 @@ export default function Feed({ posts: postsFromProps, onCreate, onUpdatePost, on
   }
 
   async function handleUpdatePost(updated: PostType) {
-      try {
-        let imageUrl: string | undefined = undefined;
+    try {
+      let imageUrl: string | undefined = undefined;
 
-        if (updated.image) {
-          const form = new FormData();
-          form.append("file", updated.image);
+      if (updated.image) {
+        const form = new FormData();
+        form.append("file", updated.image);
 
-          const uploadRes = await api.post("/api/v1/upload", form, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-
-          imageUrl = uploadRes.data?.url;
-        }
-        const newPost: Publicidade = {
-          titulo: updated.titulo,
-          descricao: updated.descricao,
-          image: imageUrl,
-          usuario_id: updated.usuario,
-        };
-
-        await api({
-          url: "/api/v1/publicacao/publicidades/" + updated._id,
-          method: "PUT",
-          data: newPost,
+        const uploadRes = await api.post("/api/v1/upload", form, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
 
-        // se parent controla posts: informar o parent (ele fará o setPosts)
-        if (postsFromProps) {
-          if (onUpdatePost) {
-            onUpdatePost(updated); // atualiza só o item no parent
-          } else if (onRefresh) {
-            onRefresh(); // força re-fetch completo
-          } else {
-            console.warn("parent controla posts mas não passou onUpdatePost nem onRefresh");
-          }
-          return;
-        }
-
-        // caso interno (fallback), atualiza localmente
-        setInternalPosts((s) =>
-          s?.map((p: any) => (p._id === updated._id ? updated : p)),
-        );
-      } catch (err) {
-        console.error("Erro ao atualizar post:", err);
+        imageUrl = uploadRes.data?.url;
       }
+      const newPost: Publicidade = {
+        titulo: updated.titulo,
+        descricao: updated.descricao,
+        image: imageUrl,
+        usuario_id: updated.usuario,
+      };
+
+      await api({
+        url: "/api/v1/publicacao/publicidades/" + updated._id,
+        method: "PUT",
+        data: newPost,
+      });
+
+      // se parent controla posts: informar o parent (ele fará o setPosts)
+      if (postsFromProps) {
+        if (onUpdatePost) {
+          onUpdatePost(updated); // atualiza só o item no parent
+        } else if (onRefresh) {
+          onRefresh(); // força re-fetch completo
+        } else {
+          console.warn(
+            "parent controla posts mas não passou onUpdatePost nem onRefresh",
+          );
+        }
+        return;
+      }
+
+      // caso interno (fallback), atualiza localmente
+      setInternalPosts((s) =>
+        s?.map((p: any) => (p._id === updated._id ? updated : p)),
+      );
+    } catch (err) {
+      console.error("Erro ao atualizar post:", err);
     }
+  }
 
   // se posts ainda undefined (fallback) mostra nada até carregamento
   const filteredPosts = (posts ?? []).filter((p: any) => {

@@ -141,8 +141,7 @@ export default function Home() {
         if (!orgDetail) return;
         setSelectedOrg(orgDetail);
         setShowOrgModal(true);
-      } catch (err) {
-      }
+      } catch (err) {}
     };
 
     window.addEventListener("view-org", handler as EventListener);
@@ -202,7 +201,7 @@ export default function Home() {
   const handleCreateEmergency = (e: Emergencia) =>
     setEmergencies((s) => [{ ...e, authorName: currentUser }, ...s]);
   const handleUpdateEmergency = async (e: Emergencia) => {
-    setEmergencies((s) => s.map((x) => (x._id === e._id ? e : x)))
+    setEmergencies((s) => s.map((x) => (x._id === e._id ? e : x)));
   };
   const handleDeleteEmergency = (id: string) => {
     if (confirm("Excluir emergência?"))
@@ -210,7 +209,7 @@ export default function Home() {
   };
 
   const handleCreateNeed = (n: Need) => {
-    setNeeds((s) => [n, ...s])
+    setNeeds((s) => [n, ...s]);
     getNecessidades()
       .then(async (data) => {
         setNeeds(data);
@@ -284,11 +283,6 @@ export default function Home() {
     () => centers?.filter((c) => c.orgId === user?.organizations?.[0]?._id),
     [centers],
   );
-
-  const orgCenters = useMemo(() => {
-    if (!selectedOrg) return [];
-    return centers?.filter((c) => c.orgId === selectedOrg.id);
-  }, [selectedOrg, centers]);
 
   const checkIsAuth = () => {
     return Cookies.get("app.token");
@@ -381,7 +375,7 @@ export default function Home() {
               : "",
             p.usuario?.email ?? "",
             p.usuario?.telefone ?? "",
-            p.usuario?._id
+            p.usuario?._id,
           ].join(" "),
         );
         const hay = [title, desc, author, extra, p.usuario?._id].join(" ");
@@ -641,7 +635,12 @@ export default function Home() {
 
         <div className={styles.center}>
           {activeTab === "publicacoes" && (
-            <Feed posts={filteredPosts} onCreate={getPosts} onUpdatePost={handleUpdatePostInParent} onRefresh={getPosts}/>
+            <Feed
+              posts={filteredPosts}
+              onCreate={getPosts}
+              onUpdatePost={handleUpdatePostInParent}
+              onRefresh={getPosts}
+            />
           )}
 
           {activeTab === "centros" && (
@@ -685,7 +684,7 @@ export default function Home() {
                 )
               }
               onDelete={(id) => {
-                setNeeds((prev) => prev.filter((n) => n._id !== id))
+                setNeeds((prev) => prev.filter((n) => n._id !== id));
                 getNecessidades()
                   .then(async (data) => {
                     setNeeds(data);
@@ -731,10 +730,10 @@ export default function Home() {
             </Suspense>
           )}
         </div>
-
         {/* RightBar: renderizamos somente se NÃO estivermos na view de perfil ou configurações */}
         {activeTab !== "perfil" && activeTab !== "configuracoes" && (
           <aside className={styles.right}>
+            {console.log(selectedOrg)}
             <RightBar
               org={selectedOrg || undefined}
               showRegister={
@@ -821,10 +820,12 @@ export default function Home() {
 
       <OrganizationModal
         open={showOrgModal}
-        org={selectedOrg as ONG}
-        centers={centers} // NÃO filtre aqui
-        emergencies={emergencies}
-        needs={needs}
+        org={selectedOrg}
+        centers={selectedOrg?.centros} // NÃO filtre aqui
+        emergencies={selectedOrg?.emergencias}
+        needs={(
+          selectedOrg?.centros?.map((c) => c.necessidades ?? []) ?? []
+        ).flat()}
         onClose={() => setShowOrgModal(false)}
       />
     </div>

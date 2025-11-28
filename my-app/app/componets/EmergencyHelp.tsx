@@ -53,7 +53,7 @@ export default function EmergencyHelp({
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>{c.nome}</Text>
 
-            {(c.image || c.imagem) ? (
+            {c.image || c.imagem ? (
               <Image
                 source={{ uri: toAbsoluteUrl(c.image || c.imagem)! }}
                 style={styles.centerImage}
@@ -63,14 +63,10 @@ export default function EmergencyHelp({
             {!!c.descricao && <Text style={styles.desc}>{c.descricao}</Text>}
             {!!c.email && <Text style={styles.desc}>{c.email}</Text>}
 
-
             {!!c.telefone && <Text style={styles.phone}>{c.telefone}</Text>}
           </View>
 
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={() => handleOpen(c)}
-          >
+          <TouchableOpacity style={styles.cta} onPress={() => handleOpen(c)}>
             <Text style={styles.ctaText}>Ver Centro</Text>
           </TouchableOpacity>
         </View>
@@ -96,18 +92,23 @@ export default function EmergencyHelp({
                 {selected?.nome ?? "Centro"}
               </Text>
 
-
               {!!selected?.email && (
                 <Text style={styles.modalLine}>Email: {selected.email}</Text>
               )}
               {!!selected?.telefone && (
-                <Text style={styles.modalLine}>Telefone: {selected.telefone}</Text>
+                <Text style={styles.modalLine}>
+                  Telefone: {selected.telefone}
+                </Text>
               )}
               {!!selected?.endereco && selected.endereco.trim() !== "" && (
-                <Text style={styles.modalLine}>Endereço: {selected.endereco}</Text>
+                <Text style={styles.modalLine}>
+                  Endereço: {selected.endereco}
+                </Text>
               )}
               {!!selected?.descricao && selected.descricao.trim() !== "" && (
-                <Text style={styles.modalLine}>Descrição: {selected.descricao}</Text>
+                <Text style={styles.modalLine}>
+                  Descrição: {selected.descricao}
+                </Text>
               )}
 
               {Array.isArray(selected?.necessidades) && (

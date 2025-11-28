@@ -48,12 +48,18 @@ export default function NeedsList({
       .filter((n) => !filters.status || n.status === filters.status)
       .filter((n) => {
         if (!filters.centerId) return true;
-        const nid = typeof n.centerId === "string" ? n.centerId : (n.centerId as any)?._id;
+        const nid =
+          typeof n.centerId === "string"
+            ? n.centerId
+            : (n.centerId as any)?._id;
         return nid === filters.centerId;
       })
       .filter((n) => {
         if (!filters.emergencyId) return true;
-        const ne = typeof n.emergencyId === "string" ? n.emergencyId : (n.emergencyId as any)?._id;
+        const ne =
+          typeof n.emergencyId === "string"
+            ? n.emergencyId
+            : (n.emergencyId as any)?._id;
         return ne === filters.emergencyId;
       });
   }, [localNeeds, filters]);
@@ -201,7 +207,8 @@ export default function NeedsList({
             const centerName = centerObj?.nome ?? "Centro desconhecido";
             const emergencyLabel =
               (emergencyObj &&
-                ((emergencyObj as any).titulo ?? (emergencyObj as any).title)) ??
+                ((emergencyObj as any).titulo ??
+                  (emergencyObj as any).title)) ??
               undefined;
 
             return (
@@ -251,9 +258,12 @@ export default function NeedsList({
                     <button
                       onClick={async () => {
                         try {
-                          await api.post(`/api/v1/necessidades/ajudar/${n._id}`, {
-                            userId: user?._id,
-                          });
+                          await api.post(
+                            `/api/v1/necessidades/ajudar/${n._id}`,
+                            {
+                              userId: user?._id,
+                            },
+                          );
                         } catch (err) {
                           console.warn("Erro ao registrar interesse:", err);
                         }
@@ -275,7 +285,9 @@ export default function NeedsList({
                 <p className={styles.description}>{n.description}</p>
 
                 {emergencyLabel ? (
-                  <p className={styles.description}>Emergência: {emergencyLabel}</p>
+                  <p className={styles.description}>
+                    Emergência: {emergencyLabel}
+                  </p>
                 ) : (
                   <p className={styles.description}>Emergência: —</p>
                 )}
@@ -300,7 +312,11 @@ export default function NeedsList({
                       className={styles.iconBtn}
                       title="Excluir necessidade"
                       onClick={async () => {
-                        if (confirm("Tem certeza que deseja excluir esta necessidade?")) {
+                        if (
+                          confirm(
+                            "Tem certeza que deseja excluir esta necessidade?",
+                          )
+                        ) {
                           // Exclusão otimista na lista local
                           const prev = localNeeds;
                           internalDelete(n._id);

@@ -36,7 +36,9 @@ export default function ProfileModal({
 
   const openMail = (email?: string | null) => {
     if (!email) return Alert.alert("Email não disponível");
-    Linking.openURL(`mailto:${email}`).catch(() => Alert.alert("Erro", "Não foi possível abrir o cliente de email."));
+    Linking.openURL(`mailto:${email}`).catch(() =>
+      Alert.alert("Erro", "Não foi possível abrir o cliente de email."),
+    );
   };
 
   const openWhatsApp = (phone?: string | null) => {
@@ -51,8 +53,17 @@ export default function ProfileModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Fechar perfil">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Pressable
+        style={styles.backdrop}
+        onPress={onClose}
+        accessibilityLabel="Fechar perfil"
+      >
         {/* Pressable captura toque no overlay; conteúdo usa pointerEvents="box-none" para permitir interação */}
         <View style={styles.centerWrap} pointerEvents="box-none">
           <View style={styles.modalBox}>
@@ -64,7 +75,10 @@ export default function ProfileModal({
             </View>
             <View style={styles.avatarRow}>
               {profile.image ? (
-                <Image source={{ uri: `http://localhost:3001${profile?.image}` }} style={styles.avatar} />
+                <Image
+                  source={{ uri: `http://localhost:3001${profile?.image}` }}
+                  style={styles.avatar}
+                />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Feather name="user" size={28} color="#fff" />
@@ -79,7 +93,10 @@ export default function ProfileModal({
             <Text style={styles.title}>Organização do autor</Text>
             <View style={styles.avatarRow}>
               {profile?.organizacoes?.[0]?.logo ? (
-                <Image source={{ uri: profile?.organizacoes?.[0]?.logo }} style={styles.avatar} />
+                <Image
+                  source={{ uri: profile?.organizacoes?.[0]?.logo }}
+                  style={styles.avatar}
+                />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Feather name="user" size={28} color="#fff" />
@@ -102,23 +119,51 @@ export default function ProfileModal({
 
             <View style={styles.actionsRow}>
               <TouchableOpacity
-                style={[styles.actionBtn, !profile.email && styles.actionBtnDisabled]}
+                style={[
+                  styles.actionBtn,
+                  !profile.email && styles.actionBtnDisabled,
+                ]}
                 onPress={() => openMail(profile.email)}
                 disabled={!profile.email}
                 accessibilityLabel="Enviar email"
               >
-                <Feather name="mail" size={16} color={profile.email ? "#fff" : "#9CA3AF"} />
-                <Text style={[styles.actionText, !profile.email && { color: "#9CA3AF" }]}>Email</Text>
+                <Feather
+                  name="mail"
+                  size={16}
+                  color={profile.email ? "#fff" : "#9CA3AF"}
+                />
+                <Text
+                  style={[
+                    styles.actionText,
+                    !profile.email && { color: "#9CA3AF" },
+                  ]}
+                >
+                  Email
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionBtn, !profile.phone && styles.actionBtnDisabled]}
+                style={[
+                  styles.actionBtn,
+                  !profile.phone && styles.actionBtnDisabled,
+                ]}
                 onPress={() => openWhatsApp(profile.phone)}
                 disabled={!profile.phone}
                 accessibilityLabel="Abrir WhatsApp"
               >
-                <Feather name="message-circle" size={16} color={profile.phone ? "#fff" : "#9CA3AF"} />
-                <Text style={[styles.actionText, !profile.phone && { color: "#9CA3AF" }]}>WhatsApp</Text>
+                <Feather
+                  name="message-circle"
+                  size={16}
+                  color={profile.phone ? "#fff" : "#9CA3AF"}
+                />
+                <Text
+                  style={[
+                    styles.actionText,
+                    !profile.phone && { color: "#9CA3AF" },
+                  ]}
+                >
+                  WhatsApp
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -153,11 +198,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   title: { fontSize: 16, fontWeight: "700", color: "#111" },
 
   avatarRow: { flexDirection: "row", alignItems: "center", marginTop: 12 },
-  avatar: { width: 72, height: 72, borderRadius: 12, backgroundColor: "#f2f2f2" },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    backgroundColor: "#f2f2f2",
+  },
   avatarPlaceholder: {
     width: 72,
     height: 72,
@@ -173,7 +227,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, color: "#374151", fontWeight: "700" },
   value: { fontSize: 14, color: "#111", marginTop: 6 },
 
-  actionsRow: { flexDirection: "row", gap: 12, marginTop: 18, justifyContent: "space-between" },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 18,
+    justifyContent: "space-between",
+  },
   actionBtn: {
     flex: 1,
     flexDirection: "row",

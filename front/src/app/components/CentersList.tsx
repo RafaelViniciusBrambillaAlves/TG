@@ -86,10 +86,15 @@ export default function CentersList({ centers = [], onEdit, onDelete }: Props) {
               <div className={styles.cardBody}>
                 <div className={styles.cardHeader}>
                   <div className={styles.titleBlock}>
-                    <h3 id={`center-${c._id}-name`} className={styles.centerName}>
+                    <h3
+                      id={`center-${c._id}-name`}
+                      className={styles.centerName}
+                    >
                       {c.nome}
                     </h3>
-                    {c.short && <div className={styles.centerSubtitle}>{c.short}</div>}
+                    {c.short && (
+                      <div className={styles.centerSubtitle}>{c.short}</div>
+                    )}
                   </div>
 
                   <div className={styles.actions}>

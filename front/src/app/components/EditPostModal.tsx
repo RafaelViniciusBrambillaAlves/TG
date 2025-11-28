@@ -11,7 +11,12 @@ type Props = {
   onUpdate: (updated: Post) => void;
 };
 
-export default function EditPostModal({ post, open, onClose, onUpdate }: Props) {
+export default function EditPostModal({
+  post,
+  open,
+  onClose,
+  onUpdate,
+}: Props) {
   const [text, setText] = useState("");
   const [image, setImage] = useState<string | null>(null); // Caminho da imagem original
   const [preview, setPreview] = useState<string | null>(null); // Preview da nova imagem
@@ -44,7 +49,12 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
   const handleSave = () => {
     if (!text.trim()) return;
     // Passa o file se houver nova imagem, senão mantém o image original
-    onUpdate({ ...post, titulo: text.trim(), descricao: text.trim(), image: file || image });
+    onUpdate({
+      ...post,
+      titulo: text.trim(),
+      descricao: text.trim(),
+      image: file || image,
+    });
     onClose();
   };
 
@@ -102,7 +112,9 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
               src={preview || `http://localhost:3001${image}`}
               alt="Preview"
             />
-            <button className={styles.removeImage} onClick={handleRemoveImage}>✕</button>
+            <button className={styles.removeImage} onClick={handleRemoveImage}>
+              ✕
+            </button>
           </div>
         )}
 
@@ -118,8 +130,12 @@ export default function EditPostModal({ post, open, onClose, onUpdate }: Props) 
         </label>
 
         <div className={styles.actions}>
-          <button className={styles.cancel} onClick={onClose}>Cancelar</button>
-          <button className={styles.save} onClick={handleSave}>Salvar</button>
+          <button className={styles.cancel} onClick={onClose}>
+            Cancelar
+          </button>
+          <button className={styles.save} onClick={handleSave}>
+            Salvar
+          </button>
         </div>
       </div>
     </div>

@@ -1,16 +1,16 @@
-20 
+20
 
 
 ================================================ FRONT ================================================
 
 TEM QUE REVER ISSO DE QUEM TA EM QUE ORGANIZAÇÃO E COMO APARECE
-TEM QUE VER TODAS AS PARTES QUE MOSTRA ENDERECO TANTO NO FRONT QUANTO NO APP 
+TEM QUE VER TODAS AS PARTES QUE MOSTRA ENDERECO TANTO NO FRONT QUANTO NO APP
 NA PARTE DO VOLUNTARIOS TODA CONTA QUE EU CRIO NO APP VAI JA PARA VOLUNTARIOS, EU TENHO QUE CLICAR EM FAZER PARTE PARA IR PARA LA
 
-1 - LOGIN: 
+1 - LOGIN:
 
-2 - Right Card: 
-Listar os centros, organizações, Necessidades
+2 - Right Card:
+X - Listar os centros, organizações, Necessidades
 (lembrar disso daqui)2.6 Todo administrador tem que ter uma organização
 
 3 - PUBLICAÇÂO:
@@ -22,9 +22,9 @@ Não esta excluindo a publicação
 5 - EMERGENCIAS
 Não está excluindo emergências
 
-6 - NECESSIDADES: 
+6 - NECESSIDADES:
 
-7 - VOLUNTARIOS:    
+7 - VOLUNTARIOS:
 
 8 - PERFIL: 4
 8.2 Tem que poder excluir aconta da pessoa
@@ -34,12 +34,12 @@ Não está excluindo emergências
 
 ================================================ APP ================================================
 O Filtro ali em cima tem que funcionar
-A barra de pesquisa tem que funcionar(para organizações)
+X - A barra de pesquisa tem que funcionar(para organizações)
 
 10 - LOGIN: 2
 
 11 - CADASTRAR: 2
-Esta dando algum erro na hora de criar conta
+X - Esta dando algum erro na hora de criar conta
 
 12 - Organizações: 5
 Coloca só o endereco normal da organização(sem maps) tem que colocar endereco ali na organizações
@@ -50,11 +50,10 @@ Coloca só o endereco normal da organização(sem maps) tem que colocar endereco
 
 14 - PUBLICAÇÔES: 4
 Fazer algo para ver a organização
-Tem que ir para centro 
+Tem que ir para centro
 
 15 - NOTIFICAÇÂO: 1
 15.1 Tem que funcionar, nem que seja simulação de algo  - Tem que fazer uma tabela no banco de notifications ai coloca o suubject, data e o tipo
 
 16 - PERFIL: 3
 16.1 Na aba perfil tem que poder ver Salvos, desde de publicações, emergências ou centros
-

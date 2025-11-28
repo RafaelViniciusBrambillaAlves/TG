@@ -23,7 +23,8 @@ import EditProfileModal, { ProfileData } from "./EditProfileModal";
 function normalizeOrgId(input: any): string | null {
   if (!input) return null;
   if (typeof input === "string") return input || null;
-  if (typeof input === "object") return input._id || input.id || input.id_organizacao || null;
+  if (typeof input === "object")
+    return input._id || input.id || input.id_organizacao || null;
   return null;
 }
 
@@ -32,7 +33,7 @@ function resolveServerImage(img?: string | null): string | null {
   if (!img || typeof img !== "string" || img.trim() === "") return null;
   if (/^https?:\/\//.test(img)) return img;
   if (img.startsWith("/")) return `http://localhost:3001${img}`;
-  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+  return `http://localhost:3001${img.replace(/^\/+/, "")}`;
 }
 
 function timeAgo(iso?: string) {
@@ -226,14 +227,16 @@ export const ProfileDrawer = ({
                   </>
                 )}
 
-
                 {/* se estamos vendo outro perfil, mostramos botão de contato */}
                 {viewingOther && (
                   <TouchableOpacity
                     style={[styles.option, { marginTop: 8 }]}
                     onPress={() => {
                       if (shownProfile.email) {
-                        Alert.alert("Contato", `Enviar email para ${shownProfile.email}`);
+                        Alert.alert(
+                          "Contato",
+                          `Enviar email para ${shownProfile.email}`,
+                        );
                       } else {
                         Alert.alert("Contato", "Contato não disponível.");
                       }

@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signUp = async (data: SignUpRequestData) => {
     setLoading(true);
     try {
-      await signUpRequest(data);
+      return await signUpRequest(data);
       // após cadastro, normalmente redireciona para login.
       // não fazemos login automático aqui porque o endpoint pode não retornar token.
     } catch (e) {

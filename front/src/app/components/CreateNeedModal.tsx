@@ -22,7 +22,7 @@ function resolveServerImage(img?: string | null): string | null {
   if (!img || typeof img !== "string" || img.trim() === "") return null;
   if (/^https?:\/\//.test(img)) return img;
   if (img.startsWith("/")) return `http://localhost:3001${img}`;
-  return `http://localhost:3001/${img.replace(/^\/+/, "")}`;
+  return `http://localhost:3001${img.replace(/^\/+/, "")}`;
 }
 
 function fileNameFromPath(path?: string | null): string | null {
@@ -52,12 +52,18 @@ export default function CreateNeedModal({ ...props }: Props) {
   const [description, setDescription] = useState(editData.description ?? "");
   const [type, setType] = useState<Need["type"]>(editData.type ?? "Doação");
   const [quantity, setQuantity] = useState(editData.quantity ?? "");
-  const [status, setStatus] = useState<Need["status"]>(editData.status ?? "Aberta");
+  const [status, setStatus] = useState<Need["status"]>(
+    editData.status ?? "Aberta",
+  );
   const [centerId, setCenterId] = useState<string | undefined>(
-    (editData as any)?.centerId?._id || (editData as any)?.centerId || undefined,
+    (editData as any)?.centerId?._id ||
+      (editData as any)?.centerId ||
+      undefined,
   );
   const [emergencyId, setEmergencyId] = useState<string | undefined>(
-    (editData as any)?.emergencyId?._id || (editData as any)?.emergencyId || undefined,
+    (editData as any)?.emergencyId?._id ||
+      (editData as any)?.emergencyId ||
+      undefined,
   );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,8 +86,16 @@ export default function CreateNeedModal({ ...props }: Props) {
     setType(editData.type ?? "Doação");
     setQuantity(editData.quantity ?? "");
     setStatus(editData.status ?? "Aberta");
-    setCenterId((editData as any)?.centerId?._id || (editData as any)?.centerId || undefined);
-    setEmergencyId((editData as any)?.emergencyId?._id || (editData as any)?.emergencyId || undefined);
+    setCenterId(
+      (editData as any)?.centerId?._id ||
+        (editData as any)?.centerId ||
+        undefined,
+    );
+    setEmergencyId(
+      (editData as any)?.emergencyId?._id ||
+        (editData as any)?.emergencyId ||
+        undefined,
+    );
     setError(null);
     setLoading(false);
     setImageRemoved(false); // NOVO: resetar flag ao abrir
@@ -280,7 +294,9 @@ export default function CreateNeedModal({ ...props }: Props) {
     } catch (err: any) {
       console.error("Error creating/updating need:", err);
       setError(
-        err.response?.data?.message || err.message || "Erro ao salvar necessidade",
+        err.response?.data?.message ||
+          err.message ||
+          "Erro ao salvar necessidade",
       );
     } finally {
       setLoading(false);
@@ -500,8 +516,8 @@ export default function CreateNeedModal({ ...props }: Props) {
               {loading
                 ? "Salvando..."
                 : editData._id
-                ? "Salvar alterações"
-                : "Criar necessidade"}
+                  ? "Salvar alterações"
+                  : "Criar necessidade"}
             </button>
           </footer>
         </form>

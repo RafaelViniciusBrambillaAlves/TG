@@ -34,7 +34,7 @@ export default function Header({
   onSearch,
 }: HeaderProps) {
   const router = useRouter();
-  const { user } = useAuth()
+  const { user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const avatarButtonRef = useRef<HTMLButtonElement | null>(null);

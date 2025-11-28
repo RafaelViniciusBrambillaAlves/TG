@@ -58,7 +58,7 @@ export default function ProfileModal({
       year: "numeric",
     });
   };
-  console.log(profile)
+  console.log(profile);
   return (
     <div
       className={styles.backdrop}
@@ -182,7 +182,11 @@ export default function ProfileModal({
             onClick={() => openMail(profile.email)}
             disabled={!profile.email}
             aria-disabled={!profile.email}
-            title={profile.email ? `Enviar email para ${profile.email}` : "Email não disponível"}
+            title={
+              profile.email
+                ? `Enviar email para ${profile.email}`
+                : "Email não disponível"
+            }
           >
             <FiMail size={18} />
             <span>Enviar Email</span>
@@ -193,7 +197,11 @@ export default function ProfileModal({
             onClick={() => openWhatsapp(profile.phone)}
             disabled={!profile.phone}
             aria-disabled={!profile.phone}
-            title={profile.phone ? `Abrir WhatsApp para ${profile.phone}` : "Telefone não disponível"}
+            title={
+              profile.phone
+                ? `Abrir WhatsApp para ${profile.phone}`
+                : "Telefone não disponível"
+            }
           >
             <FiPhone size={18} />
             <span>WhatsApp</span>

@@ -32,7 +32,12 @@ const API_BASE =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
   "http://localhost:3001";
 
-export default function EditEmergencyModal({ open, emergency, onClose, onUpdate }: Props) {
+export default function EditEmergencyModal({
+  open,
+  emergency,
+  onClose,
+  onUpdate,
+}: Props) {
   const [form, setForm] = useState<FormState>({
     title: "",
     subtitle: "",
@@ -179,7 +184,10 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
       status: form.status,
     };
 
-    await api.put(`/api/v1/emergencias/emergencias/${(emergency as any)._id}`, updated as any);
+    await api.put(
+      `/api/v1/emergencias/emergencias/${(emergency as any)._id}`,
+      updated as any,
+    );
     onUpdate(updated as any);
     onClose();
   }
@@ -191,10 +199,10 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
     form.selectedFile && form.previewUrl
       ? form.previewUrl
       : form.existingImagePath
-      ? form.existingImagePath.startsWith("http")
-        ? form.existingImagePath
-        : `${API_BASE}${form.existingImagePath}`
-      : null;
+        ? form.existingImagePath.startsWith("http")
+          ? form.existingImagePath
+          : `${API_BASE}${form.existingImagePath}`
+        : null;
 
   return (
     <div
@@ -206,7 +214,11 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
       <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <h3 className={styles.title}>Editar emergência</h3>
-          <button className={styles.close} onClick={onClose} aria-label="Fechar">
+          <button
+            className={styles.close}
+            onClick={onClose}
+            aria-label="Fechar"
+          >
             ✕
           </button>
         </header>
@@ -256,7 +268,9 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
               <select
                 className={styles.input}
                 value={form.status}
-                onChange={(e) => handleChange("status", e.target.value as FormState["status"])}
+                onChange={(e) =>
+                  handleChange("status", e.target.value as FormState["status"])
+                }
               >
                 <option value="Aberta">Aberta</option>
                 <option value="Em andamento">Em andamento</option>
@@ -269,13 +283,21 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
             <label className={styles.label}>Imagem (opcional)</label>
             <div className={styles.fileRow}>
               <label className={styles.fileLabel}>
-                <input type="file" accept="image/*" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
                 Selecionar imagem
               </label>
 
               {previewSrc ? (
                 <div className={styles.previewWrap}>
-                  <img src={previewSrc} alt="Preview" className={styles.preview} />
+                  <img
+                    src={previewSrc}
+                    alt="Preview"
+                    className={styles.preview}
+                  />
                   <button
                     type="button"
                     className={styles.removePreview}
@@ -289,7 +311,11 @@ export default function EditEmergencyModal({ open, emergency, onClose, onUpdate 
           </div>
 
           <footer className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <button
+              type="button"
+              className={styles.secondary}
+              onClick={onClose}
+            >
               Cancelar
             </button>
             <button type="submit" className={styles.primary}>

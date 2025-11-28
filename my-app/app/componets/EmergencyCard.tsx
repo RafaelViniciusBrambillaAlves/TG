@@ -48,8 +48,12 @@ export default function EmergencyCard({ item }: Props) {
   // carousel / layout
   const scrollRef = useRef<ScrollView | null>(null);
   const window = useWindowDimensions();
-  const defaultCarouselWidth = Math.max(240, window.width - CARD_HORIZONTAL_MARGIN * 2 - 48);
-  const [carouselWidth, setCarouselWidth] = useState<number>(defaultCarouselWidth);
+  const defaultCarouselWidth = Math.max(
+    240,
+    window.width - CARD_HORIZONTAL_MARGIN * 2 - 48,
+  );
+  const [carouselWidth, setCarouselWidth] =
+    useState<number>(defaultCarouselWidth);
   const [activeIndex, setActiveIndex] = useState(0);
 
   // image loading
@@ -61,11 +65,15 @@ export default function EmergencyCard({ item }: Props) {
   const [modalImageIndex, setModalImageIndex] = useState<number>(0);
 
   // share banner (feedback)
-  const [shareBanner, setShareBanner] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [shareBanner, setShareBanner] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
   // images list normalized
   const images = useMemo(() => {
-    if (Array.isArray(item.images) && item.images.length > 0) return item.images;
+    if (Array.isArray(item.images) && item.images.length > 0)
+      return item.images;
     if (item.image) return [item.image];
     return [];
   }, [item.images, item.image]);
@@ -127,7 +135,10 @@ export default function EmergencyCard({ item }: Props) {
     if (e.timeLabel) lines.push(`(${e.timeLabel})`);
     if (e.descricao) {
       // keep it short: first 200 chars
-      const trimmed = e.descricao.length > 200 ? e.descricao.slice(0, 197) + "..." : e.descricao;
+      const trimmed =
+        e.descricao.length > 200
+          ? e.descricao.slice(0, 197) + "..."
+          : e.descricao;
       lines.push("");
       lines.push(trimmed);
     }
@@ -186,7 +197,9 @@ export default function EmergencyCard({ item }: Props) {
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         try {
           // @ts-ignore
-          await navigator.clipboard.writeText(text + (imageUrl ? `\n\n${imageUrl}` : ""));
+          await navigator.clipboard.writeText(
+            text + (imageUrl ? `\n\n${imageUrl}` : ""),
+          );
           showBanner("info", "Conteúdo copiado para a área de transferência");
           return;
         } catch (err) {
@@ -196,14 +209,19 @@ export default function EmergencyCard({ item }: Props) {
 
       // final fallback: open mail client
       const subject = encodeURIComponent(`Emergência: ${item.titulo}`);
-      const body = encodeURIComponent(text + (imageUrl ? `\n\n${imageUrl}` : ""));
+      const body = encodeURIComponent(
+        text + (imageUrl ? `\n\n${imageUrl}` : ""),
+      );
       const mailto = `mailto:?subject=${subject}&body=${body}`;
       try {
         await Linking.openURL(mailto);
         showBanner("info", "Abrindo cliente de email...");
       } catch (err) {
         // extremely fallback: alert with text
-        Alert.alert("Compartilhar", "Não foi possível abrir recursos de compartilhamento neste dispositivo.");
+        Alert.alert(
+          "Compartilhar",
+          "Não foi possível abrir recursos de compartilhamento neste dispositivo.",
+        );
         showBanner("error", "Compartilhamento não disponível");
       }
     } catch (err) {
@@ -227,7 +245,9 @@ export default function EmergencyCard({ item }: Props) {
             accessibilityLabel="Abrir imagem em tela cheia"
           >
             <View style={styles.thumbInner}>
-              {imageLoading && <ActivityIndicator style={styles.thumbLoader} size="small" />}
+              {imageLoading && (
+                <ActivityIndicator style={styles.thumbLoader} size="small" />
+              )}
               <Image
                 source={{ uri }}
                 style={styles.thumbnail}
@@ -244,7 +264,9 @@ export default function EmergencyCard({ item }: Props) {
               />
               {imageError && (
                 <View style={styles.thumbFallback}>
-                  <Text style={styles.thumbFallbackText}>Imagem indisponível</Text>
+                  <Text style={styles.thumbFallbackText}>
+                    Imagem indisponível
+                  </Text>
                 </View>
               )}
             </View>
@@ -275,7 +297,11 @@ export default function EmergencyCard({ item }: Props) {
                 accessibilityRole="imagebutton"
                 accessibilityLabel={`Abrir imagem ${i + 1} em tela cheia`}
               >
-                <Image source={{ uri: src }} style={[styles.image, { width: carouselWidth }]} resizeMode="cover" />
+                <Image
+                  source={{ uri: src }}
+                  style={[styles.image, { width: carouselWidth }]}
+                  resizeMode="cover"
+                />
               </TouchableOpacity>
             );
           })}
@@ -308,8 +334,8 @@ export default function EmergencyCard({ item }: Props) {
             shareBanner.type === "success"
               ? styles.shareBannerSuccess
               : shareBanner.type === "error"
-              ? styles.shareBannerError
-              : styles.shareBannerInfo,
+                ? styles.shareBannerError
+                : styles.shareBannerInfo,
           ]}
         >
           <Text style={styles.shareBannerText}>{shareBanner.text}</Text>
@@ -323,8 +349,12 @@ export default function EmergencyCard({ item }: Props) {
               {item.titulo}
             </Text>
 
-            <View style={[styles.badge, { backgroundColor: `${severityColor}22` }]}>
-              <View style={[styles.badgeDot, { backgroundColor: severityColor }]} />
+            <View
+              style={[styles.badge, { backgroundColor: `${severityColor}22` }]}
+            >
+              <View
+                style={[styles.badgeDot, { backgroundColor: severityColor }]}
+              />
               <Text style={styles.badgeText}>{severityLabel}</Text>
             </View>
           </View>
@@ -355,8 +385,12 @@ export default function EmergencyCard({ item }: Props) {
           </View>
         </View>
 
-        {item.subtitulo ? <Text style={styles.subtitle}>{item.subtitulo}</Text> : null}
-        {item.timeLabel ? <Text style={styles.time}>{item.timeLabel}</Text> : null}
+        {item.subtitulo ? (
+          <Text style={styles.subtitle}>{item.subtitulo}</Text>
+        ) : null}
+        {item.timeLabel ? (
+          <Text style={styles.time}>{item.timeLabel}</Text>
+        ) : null}
 
         {renderCarousel()}
 
@@ -368,7 +402,14 @@ export default function EmergencyCard({ item }: Props) {
             accessibilityRole="button"
             accessibilityState={{ expanded: openTab === "details" }}
           >
-            <Text style={[styles.tabText, openTab === "details" && styles.tabTextActive]}>Detalhes</Text>
+            <Text
+              style={[
+                styles.tabText,
+                openTab === "details" && styles.tabTextActive,
+              ]}
+            >
+              Detalhes
+            </Text>
             {openTab === "details" && <View style={styles.underline} />}
           </TouchableOpacity>
 
@@ -379,7 +420,14 @@ export default function EmergencyCard({ item }: Props) {
             accessibilityRole="button"
             accessibilityState={{ expanded: openTab === "location" }}
           >
-            <Text style={[styles.tabText, openTab === "location" && styles.tabTextActive]}>Localização</Text>
+            <Text
+              style={[
+                styles.tabText,
+                openTab === "location" && styles.tabTextActive,
+              ]}
+            >
+              Localização
+            </Text>
             {openTab === "location" && <View style={styles.underline} />}
           </TouchableOpacity>
 
@@ -390,7 +438,14 @@ export default function EmergencyCard({ item }: Props) {
             accessibilityRole="button"
             accessibilityState={{ expanded: openTab === "help" }}
           >
-            <Text style={[styles.tabText, openTab === "help" && styles.tabTextActive]}>Ajudar</Text>
+            <Text
+              style={[
+                styles.tabText,
+                openTab === "help" && styles.tabTextActive,
+              ]}
+            >
+              Ajudar
+            </Text>
             {openTab === "help" && <View style={styles.underline} />}
           </TouchableOpacity>
         </View>
@@ -403,18 +458,44 @@ export default function EmergencyCard({ item }: Props) {
       </View>
 
       {/* Fullscreen image modal */}
-      <Modal visible={modalVisible} animationType="fade" transparent={true} onRequestClose={closeImageModal}>
+      <Modal
+        visible={modalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={closeImageModal}
+      >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity style={styles.modalBg} onPress={closeImageModal} activeOpacity={1} />
+          <TouchableOpacity
+            style={styles.modalBg}
+            onPress={closeImageModal}
+            activeOpacity={1}
+          />
           <View style={styles.modalContent}>
-            <TouchableOpacity onPress={closeImageModal} style={styles.modalCloseBtn} accessibilityLabel="Fechar visualização da imagem">
+            <TouchableOpacity
+              onPress={closeImageModal}
+              style={styles.modalCloseBtn}
+              accessibilityLabel="Fechar visualização da imagem"
+            >
               <Feather name="x" size={22} color="#fff" />
             </TouchableOpacity>
 
-            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentOffset={{ x: modalImageIndex * window.width, y: 0 }} style={{ width: window.width }}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              contentOffset={{ x: modalImageIndex * window.width, y: 0 }}
+              style={{ width: window.width }}
+            >
               {images.map((uri, i) => (
-                <View key={String(i)} style={[styles.modalImageWrap, { width: window.width }]}>
-                  <Image source={{ uri: normalizeSrc(uri) }} style={[styles.modalImage, { width: window.width - 32 }]} resizeMode="contain" />
+                <View
+                  key={String(i)}
+                  style={[styles.modalImageWrap, { width: window.width }]}
+                >
+                  <Image
+                    source={{ uri: normalizeSrc(uri) }}
+                    style={[styles.modalImage, { width: window.width - 32 }]}
+                    resizeMode="contain"
+                  />
                 </View>
               ))}
             </ScrollView>
@@ -471,9 +552,21 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  shareBannerSuccess: { backgroundColor: "#ecfdf5", borderColor: "#bbf7d0", borderWidth: 1 },
-  shareBannerError: { backgroundColor: "#fff1f2", borderColor: "#fecaca", borderWidth: 1 },
-  shareBannerInfo: { backgroundColor: "#eff6ff", borderColor: "#dbeafe", borderWidth: 1 },
+  shareBannerSuccess: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#bbf7d0",
+    borderWidth: 1,
+  },
+  shareBannerError: {
+    backgroundColor: "#fff1f2",
+    borderColor: "#fecaca",
+    borderWidth: 1,
+  },
+  shareBannerInfo: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#dbeafe",
+    borderWidth: 1,
+  },
   shareBannerText: { color: "#0b1220", fontWeight: "700" },
 
   content: { flex: 1, padding: 14, paddingTop: 20 }, // added paddingTop to leave space for banner
@@ -494,7 +587,12 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === "android" ? 2 : 0,
   },
   badgeDot: { width: 10, height: 10, borderRadius: 6, marginRight: 6 },
-  badgeText: { fontSize: 12, color: "#0b1220", fontWeight: "700", opacity: 0.85 },
+  badgeText: {
+    fontSize: 12,
+    color: "#0b1220",
+    fontWeight: "700",
+    opacity: 0.85,
+  },
 
   actionIcons: { flexDirection: "row", marginLeft: 12, alignItems: "center" },
   iconBtn: {
@@ -507,7 +605,12 @@ const styles = StyleSheet.create({
   },
 
   // thumbnail
-  thumbnailWrap: { width: "100%", alignItems: "center", marginTop: 10, marginBottom: 10 },
+  thumbnailWrap: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
   thumbInner: {
     width: 160,
     height: 100,
@@ -567,7 +670,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
   },
-  tabBtn: { flex: 1, alignItems: "center", paddingVertical: 10, position: "relative" },
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    position: "relative",
+  },
   tabText: { fontSize: 14, fontWeight: "700", color: "#64748b" },
   tabTextActive: { color: "#0b5fff" },
   underline: {
@@ -580,10 +688,32 @@ const styles = StyleSheet.create({
   },
 
   // modal
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "center", alignItems: "center" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   modalBg: { ...StyleSheet.absoluteFillObject },
-  modalContent: { width: "100%", maxHeight: "92%", alignItems: "center", justifyContent: "center" },
-  modalCloseBtn: { position: "absolute", top: 36, right: 18, zIndex: 20, backgroundColor: "rgba(0,0,0,0.45)", padding: 8, borderRadius: 8 },
-  modalImageWrap: { alignItems: "center", justifyContent: "center", paddingVertical: 24 },
+  modalContent: {
+    width: "100%",
+    maxHeight: "92%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCloseBtn: {
+    position: "absolute",
+    top: 36,
+    right: 18,
+    zIndex: 20,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    padding: 8,
+    borderRadius: 8,
+  },
+  modalImageWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 24,
+  },
   modalImage: { height: "80%", maxHeight: 900, borderRadius: 8 },
 });

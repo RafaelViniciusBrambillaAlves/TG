@@ -7,11 +7,15 @@ import ProfileModal, { ProfileShape } from "./ProfileModal";
 import { getAllVoluntarios, Usuario } from "@/hooks/getVoluntarios";
 
 export default function VolunteersList() {
-  const [localVolunteers, setLocalVolunteers] = useState<Usuario[] | undefined>();
+  const [localVolunteers, setLocalVolunteers] = useState<
+    Usuario[] | undefined
+  >();
   const [loading, setLoading] = useState(true);
 
   // modal state
-  const [selectedProfile, setSelectedProfile] = useState<ProfileShape | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<ProfileShape | null>(
+    null,
+  );
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -42,7 +46,9 @@ export default function VolunteersList() {
     <section className={styles.wrap}>
       <header className={styles.header}>
         <h2 className={styles.title}>Voluntários</h2>
-        <p className={styles.subtitle}>Lista de pessoas cadastradas como voluntários da sua ONG.</p>
+        <p className={styles.subtitle}>
+          Lista de pessoas cadastradas como voluntários da sua ONG.
+        </p>
       </header>
 
       <div className={styles.list}>
@@ -63,7 +69,11 @@ export default function VolunteersList() {
               >
                 {v.image ? (
                   <img
-                    src={v.image.startsWith("http") ? v.image : `http://localhost:3001${v.image}`}
+                    src={
+                      v.image.startsWith("http")
+                        ? v.image
+                        : `http://localhost:3001${v.image}`
+                    }
                     alt={v.nome}
                     className={styles.avatar}
                   />
