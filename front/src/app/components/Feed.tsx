@@ -105,22 +105,42 @@ export default function Feed({
   }
 
   async function handleDelete(id: string) {
-    await api({
-      url: "/api/v1/publicacao/publicidades/" + id,
-      method: "DELETE",
-    });
+  
+    const previousInternal = internalPosts;
+    if (!postsFromProps) {
+      setInternalPosts((s) => s?.filter((p: any) => p._id !== id));
+    } else {
 
-    // se parent controla posts, não mexe aqui — apenas instrui o usuário/developer
-    // aqui lidamos com internalPosts caso exista
+    }
 
-    setInternalPosts((s) => s?.filter((p: any) => p._id !== id));
-    getPost()
-      .then((data) => {
-        setInternalPosts(data);
-      })
-      .catch((err) => {
-        console.warn("Falha ao carregar posts no Feed:", err);
+    try {
+      await api({
+        url: "/api/v1/publicacao/publicidades/" + id,
+        method: "DELETE",
       });
+
+     
+      if (postsFromProps) {
+        
+        if (typeof (onRefresh) === "function") {
+          onRefresh();
+        } else {
+          console.warn(
+            "Feed: publicações controladas pelo parent. Passe onRefresh ou onUpdatePost/onDeletePost."
+          );
+        }
+        return;
+      }
+
+    } catch (err) {
+      console.error("Erro ao deletar publicação:", err);
+     
+      if (!postsFromProps) {
+        setInternalPosts(previousInternal);
+      } else {
+        alert("Falha ao deletar publicação. Tente novamente.");
+      }
+    }
   }
 
   function handleEdit(post: PostType) {
