@@ -48,29 +48,29 @@ export default function PublicationCard({
     if (typeof raw === "string") {
       const s = raw.trim();
       if (s.startsWith("http://") || s.startsWith("https://")) return s;
-      if (s.startsWith("/")) return `http://localhost:3001${s}`;
+      if (s.startsWith("/")) return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
       if (s.startsWith("uploads/") || s.includes("/uploads/"))
-        return `http://localhost:3001${s}`;
-      if (isLikelyId(s)) return `http://localhost:3001/api/v1/files/${s}`;
-      return `http://localhost:3001${s}`;
+        return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
+      if (isLikelyId(s)) return `${process.env.EXPO_PUBLIC_API_URL}/api/v1/files/${s}`;
+      return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
     }
 
     if (typeof raw === "object") {
       if (raw.url && typeof raw.url === "string") {
         const s = raw.url;
         if (s.startsWith("http")) return s;
-        if (s.startsWith("/")) return `http://localhost:3001${s}`;
-        return `http://localhost:3001${s}`;
+        if (s.startsWith("/")) return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
+        return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
       }
       if (raw.path && typeof raw.path === "string") {
         const s = raw.path;
         if (s.startsWith("http")) return s;
-        if (s.startsWith("/")) return `http://localhost:3001${s}`;
-        return `http://localhost:3001${s}`;
+        if (s.startsWith("/")) return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
+        return `${process.env.EXPO_PUBLIC_API_URL}${s}`;
       }
       const id = raw.fileId ?? raw._id ?? raw.id;
       if (id && typeof id === "string")
-        return `http://localhost:3001/api/v1/files/${id}`;
+        return `${process.env.EXPO_PUBLIC_API_URL}/api/v1/files/${id}`;
     }
 
     return undefined;

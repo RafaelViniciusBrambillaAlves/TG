@@ -3,11 +3,10 @@ import { View, Text, StyleSheet } from "react-native";
 import { EmergencyType } from "./EmergencyCard";
 
 export default function EmergencyLocation({ emergency }: { emergency: EmergencyType }) {
-  console.log(emergency);
   return (
     <View style={styles.container}>
       <Text style={styles.label}>📍 Endereço da Emergência</Text>
-      <Text style={styles.address}>{emergency.endereco}</Text>
+      <Text style={styles.address}>{emergency.address}</Text>
     </View>
   );
 }

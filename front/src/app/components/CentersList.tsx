@@ -19,7 +19,7 @@ export default function CentersList({ centers = [], onEdit, onDelete }: Props) {
   const resolveImage = (img?: string) => {
     if (!img) return null;
     if (/^https?:\/\//.test(img)) return img;
-    if (img.startsWith("/")) return `http://localhost:3001${img}`;
+    if (img.startsWith("/")) return `${process.env.API_URL}${img}`;
     return img;
   };
 

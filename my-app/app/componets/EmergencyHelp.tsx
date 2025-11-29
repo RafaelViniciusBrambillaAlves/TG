@@ -11,7 +11,7 @@ import {
 import { EmergencyType } from "./EmergencyCard";
 
 // Se tiver uma base de API/arquivos diferente, ajuste aqui:
-const API_BASE = "http://localhost:3001";
+const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 // Converte "/api/v1/files/xxx" em URL absoluta para o RN
 function toAbsoluteUrl(possiblyRelative?: string | null) {

@@ -80,7 +80,7 @@ export default function ViewOrganizationModal({
                 src={
                   org.logo.startsWith("http")
                     ? org.logo
-                    : `http://localhost:3001${org.logo}`
+                    : `${process.env.API_URL}${org.logo}`
                 }
                 alt={org.name}
                 className={styles.logo}
@@ -274,7 +274,7 @@ export default function ViewOrganizationModal({
                   {centers.length ? (
                     <ul className={styles.centerList}>
                       {centers.map((c) => (
-                        <li className={styles.centerItem} key={c.id}>
+                        <li className={styles.centerItem} key={c._id}>
                           <div className={styles.centerMain}>
                             <div className={styles.centerTitle}>{c.nome}</div>
                             <div className={styles.centerAddr}>{c.address}</div>
@@ -383,7 +383,7 @@ export default function ViewOrganizationModal({
                 <ul className={styles.emergencyList}>
                   {emergencies.map((e) => (
                     <li
-                      key={e.id}
+                      key={e._id}
                       className={styles.emergencyItem}
                       onClick={() => setSelectedEmergency(e)}
                     >

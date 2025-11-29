@@ -203,9 +203,9 @@ export default function Home() {
   const handleUpdateEmergency = async (e: Emergencia) => {
     setEmergencies((s) => s.map((x) => (x._id === e._id ? e : x)));
   };
-  const handleDeleteEmergency = (id: string) => {
-    if (confirm("Excluir emergência?"))
-      setEmergencies((s) => s.filter((x) => x._id !== id));
+  const handleDeleteEmergency = async (id: string) => {
+    await api.delete(`/api/v1/emergencias/emergencias/${id}`);
+    setEmergencies((s) => s.filter((x) => x._id !== id));
   };
 
   const handleCreateNeed = (n: Need) => {
@@ -667,7 +667,6 @@ export default function Home() {
                 setShowEditEmergency(true);
               }}
               onDelete={(id: string) => {
-                const em = emergencies.find((x) => x.id === id);
                 handleDeleteEmergency(id);
               }}
             />

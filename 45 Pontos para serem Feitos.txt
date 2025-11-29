@@ -15,12 +15,12 @@ X - Listar os centros, organizações, Necessidades
 
 3 - PUBLICAÇÂO:
 3.5 Botão de Salvar tem que funcionar
-Não esta excluindo a publicação
+X - Não esta excluindo a publicação
 
 4 - CENTROS:
 
 5 - EMERGENCIAS
-Não está excluindo emergências
+X - Não está excluindo emergências
 
 6 - NECESSIDADES:
 
@@ -42,10 +42,10 @@ X - A barra de pesquisa tem que funcionar(para organizações)
 X - Esta dando algum erro na hora de criar conta
 
 12 - Organizações: 5
-Coloca só o endereco normal da organização(sem maps) tem que colocar endereco ali na organizações
+X - Coloca só o endereco normal da organização(sem maps) tem que colocar endereco ali na organizações
 
 13 - EMERGÊNCIAS: 5
-13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
+X - 13.2 Tira a localização do maps( já se que não vai dar tempo de fazer isso), deixa só o enderenco em texto mesmo
 13.4 tem que pode salvar a emergência se quiser ver
 
 14 - PUBLICAÇÔES: 4

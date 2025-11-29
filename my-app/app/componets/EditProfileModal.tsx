@@ -52,8 +52,8 @@ function resolveUri(u?: string | null): string | null {
   if (u.startsWith("content:")) return u;
   if (u.startsWith("file:") || u.startsWith("data:")) return u;
   if (/^https?:\/\//.test(u)) return u;
-  if (u.startsWith("/")) return `http://localhost:3001${u}`;
-  return `http://localhost:3001${u.replace(/^\/+/, "")}`;
+  if (u.startsWith("/")) return `${process.env.EXPO_PUBLIC_API_URL}${u}`;
+  return `${process.env.EXPO_PUBLIC_API_URL}${u.replace(/^\/+/, "")}`;
 }
 function isLocalUri(u?: string | null) {
   return (
@@ -68,7 +68,7 @@ function isLocalUri(u?: string | null) {
 // base URL do backend a partir do axios instance
 function getApiBase() {
   // @ts-ignore
-  const base = api?.defaults?.baseURL || "http://localhost:3001";
+  const base = api?.defaults?.baseURL || process.env.EXPO_PUBLIC_API_URL;
   return String(base).replace(/\/+$/, "");
 }
 

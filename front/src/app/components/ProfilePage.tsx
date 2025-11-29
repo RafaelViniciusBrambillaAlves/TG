@@ -243,7 +243,7 @@ export default function ProfilePage() {
     if (!img) return "";
     if (/^https?:\/\//.test(img)) return img;
     if (img.startsWith("/")) {
-      return `http://localhost:3001${img}`;
+      return `${process.env.API_URL}${img}`;
     }
     return img;
   };

@@ -30,7 +30,7 @@ type FormState = {
 
 const API_BASE =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
-  "http://localhost:3001";
+  process.env.API_URL;
 
 export default function EditEmergencyModal({
   open,

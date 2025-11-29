@@ -124,7 +124,7 @@ export default function EmergencyCard({ item }: Props) {
   const closeImageModal = () => setModalVisible(false);
 
   const normalizeSrc = (uri: string) =>
-    uri && uri.startsWith("http") ? uri : `http://localhost:3001${uri}`;
+    uri && uri.startsWith("http") ? uri : `${process.env.EXPO_PUBLIC_API_URL}${uri}`;
 
   // ---------------- SHARE LOGIC ----------------
   // Build a nice share text

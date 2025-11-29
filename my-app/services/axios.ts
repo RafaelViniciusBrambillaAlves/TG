@@ -2,8 +2,8 @@ import axios from "axios";
 
 export function getAPIClient(ctx?: any) {
   const api = axios.create({
-    // baseURL: "http://168.138.135.43/",
-    baseURL: "http://localhost:3001/",
+    baseURL: process.env.EXPO_PUBLIC_API_URL,
+    // baseURL: "http://localhost:3001/",
     headers: {
       Accept: "application/json",
       "X-User-Agent-Time-Zone":

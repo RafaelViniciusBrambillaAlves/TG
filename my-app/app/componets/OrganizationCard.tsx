@@ -45,6 +45,7 @@ export default function OrganizationCard({
 }: {
   organization: Organizacao;
 }) {
+  console.log(organization)
   const primary = colors.primary ?? "#3B82F6";
   const [expanded, setExpanded] = useState(false);
   const { linkUser } = useLinkUser();
@@ -88,7 +89,7 @@ export default function OrganizationCard({
         <View style={styles.thumbBox}>
           {item.image ? (
             <Image
-              source={{ uri: `http://localhost:3001${item.image}` }}
+              source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${item.image}` }}
               style={styles.centerThumb}
             />
           ) : (

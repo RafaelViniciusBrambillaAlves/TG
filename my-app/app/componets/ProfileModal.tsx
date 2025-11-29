@@ -76,7 +76,7 @@ export default function ProfileModal({
             <View style={styles.avatarRow}>
               {profile.image ? (
                 <Image
-                  source={{ uri: `http://localhost:3001${profile?.image}` }}
+                  source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${profile?.image}` }}
                   style={styles.avatar}
                 />
               ) : (

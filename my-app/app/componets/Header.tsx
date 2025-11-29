@@ -57,6 +57,7 @@ const mapEmergenciasToCard = (list: any[]): EmergencyType[] =>
       // NOVO: centros (array) e organizacao (opcional)
       centros: e.centros ?? e.centers ?? [],
       organizacao: e.organizacao ?? undefined,
+      address: e.address
     };
   });
 
@@ -73,7 +74,7 @@ const mapOrganizacoesToCard = (list: any[]) =>
         id_centro: c.id_centro ?? c._id ?? Math.floor(Math.random() * 1000000),
         nome: c.nome,
         descricao: c.descricao ?? "",
-        endereco: c.endereco ?? "",
+        endereco: c.address ?? "",
         telefone: c.telefone ?? "",
         email: c.email ?? "",
         image: c.image ?? "",
@@ -234,6 +235,7 @@ export default function Header() {
   };
 
   const filteredEmergencies = useMemo(() => {
+    console.log('test')
     const q = (searchTerm || "").toLowerCase();
     // filtra
     const filtered = emergencies.filter((e) => {
@@ -301,7 +303,7 @@ export default function Header() {
       const orgDesc = (org.descricao ?? org.description ?? org.about ?? "")
         .toString()
         .toLowerCase();
-      const orgAddress = (org.endereco ?? org.address ?? "")
+      const orgAddress = (org.address ?? "")
         .toString()
         .toLowerCase();
       const orgEmail = (org.email ?? "").toString().toLowerCase();
@@ -421,7 +423,7 @@ export default function Header() {
             onPress={() => setDrawerVisible(true)}
           >
             <Image
-              source={{ uri: `http://localhost:3001${user?.image}` }}
+              source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${user?.image}` }}
               style={{ width: 32, height: 32, marginLeft: 8, marginRight: 8 }}
             />
           </TouchableOpacity>
@@ -906,7 +908,10 @@ export default function Header() {
         {!loading &&
           activeTab === "emergencias" &&
           filteredEmergencies.map((item) => (
+            <>
+              {console.log('test')}
             <EmergencyCard key={String(item.id)} item={item} />
+            </>
           ))}
 
         {!loading &&

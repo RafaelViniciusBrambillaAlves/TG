@@ -32,8 +32,8 @@ function normalizeOrgId(input: any): string | null {
 function resolveServerImage(img?: string | null): string | null {
   if (!img || typeof img !== "string" || img.trim() === "") return null;
   if (/^https?:\/\//.test(img)) return img;
-  if (img.startsWith("/")) return `http://localhost:3001${img}`;
-  return `http://localhost:3001${img.replace(/^\/+/, "")}`;
+  if (img.startsWith("/")) return `${process.env.EXPO_PUBLIC_API_URL}${img}`;
+  return `${process.env.EXPO_PUBLIC_API_URL}${img.replace(/^\/+/, "")}`;
 }
 
 function timeAgo(iso?: string) {

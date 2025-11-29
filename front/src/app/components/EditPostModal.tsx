@@ -109,7 +109,7 @@ export default function EditPostModal({
         {(preview || image) && (
           <div className={styles.imagePreview}>
             <img
-              src={preview || `http://localhost:3001${image}`}
+              src={preview || `${process.env.API_URL}${image}`}
               alt="Preview"
             />
             <button className={styles.removeImage} onClick={handleRemoveImage}>

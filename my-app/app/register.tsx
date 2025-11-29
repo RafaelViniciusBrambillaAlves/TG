@@ -1,4 +1,3 @@
-// app/screens/Register.tsx  (substitua o arquivo atual por este)
 import React, { useState } from "react";
 import {
   Alert,
@@ -25,6 +24,7 @@ export default function Register() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [confirmSenha, setConfirmSenha] = useState("");
   const [telefone, setTelefone] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -37,6 +37,7 @@ export default function Register() {
 
   // === ADICIONADO: controle para mostrar/ocultar senha ===
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // ========================================================
 
   const validate = () => {
@@ -46,6 +47,8 @@ export default function Register() {
     else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = "Email inválido";
     if (!senha || senha.length < 6)
       e.senha = "Senha deve ter ao menos 6 caracteres";
+    if (!confirmSenha) e.confirmSenha = "Confirme a senha";
+    else if (senha !== confirmSenha) e.confirmSenha = "Senhas não conferem";
     if (!telefone || telefone.replace(/\D/g, "").length < 8)
       e.telefone = "Telefone inválido";
     setErrors(e);
@@ -101,6 +104,7 @@ export default function Register() {
         setNome("");
         setEmail("");
         setSenha("");
+        setConfirmSenha("");
         setTelefone("");
         setErrors({});
 
@@ -220,8 +224,10 @@ export default function Register() {
               value={senha}
               onChangeText={(v) => {
                 setSenha(v);
-                if (errors.senha)
-                  setErrors((s) => ({ ...s, senha: undefined }));
+                if (errors.senha) setErrors((s) => ({ ...s, senha: undefined }));
+                // limpa erro de confirmação quando as senhas passam a bater
+                if (errors.confirmSenha && v === confirmSenha)
+                  setErrors((s) => ({ ...s, confirmSenha: undefined }));
               }}
               secureTextEntry={!showPassword}
               accessibilityLabel="Senha"
@@ -243,6 +249,44 @@ export default function Register() {
             </TouchableOpacity>
           </View>
           {errors.senha && <Text style={styles.error}>{errors.senha}</Text>}
+          {/* ===================================================== */}
+
+          {/* === NOVO: campo Confirmar senha com ícone de olho === */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[
+                styles.inputPassword,
+                errors.confirmSenha ? styles.inputError : null,
+              ]}
+              placeholder="Confirmar senha"
+              value={confirmSenha}
+              onChangeText={(v) => {
+                setConfirmSenha(v);
+                if (errors.confirmSenha && v === senha)
+                  setErrors((s) => ({ ...s, confirmSenha: undefined }));
+              }}
+              secureTextEntry={!showConfirmPassword}
+              accessibilityLabel="Confirmar senha"
+              autoComplete="password"
+              returnKeyType="next"
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword((s) => !s)}
+              accessibilityLabel={
+                showConfirmPassword ? "Ocultar confirmação" : "Mostrar confirmação"
+              }
+            >
+              <AntDesign
+                name={showConfirmPassword ? "eye-invisible" : "eye"}
+                size={20}
+                color="#888"
+              />
+            </TouchableOpacity>
+          </View>
+          {errors.confirmSenha && (
+            <Text style={styles.error}>{errors.confirmSenha}</Text>
+          )}
           {/* ===================================================== */}
 
           <TextInput

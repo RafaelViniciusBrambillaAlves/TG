@@ -211,7 +211,7 @@ export default function Header({
                 <div className={styles.avatarWrap}>
                   {user && (
                     <img
-                      src={`http://localhost:3001${user?.image}`}
+                      src={`${process.env.API_URL}${user?.image}`}
                       alt="Perfil"
                       style={{
                         width: "100%",

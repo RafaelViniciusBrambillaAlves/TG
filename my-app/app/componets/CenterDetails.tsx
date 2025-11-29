@@ -208,7 +208,7 @@ export default function CenterDetails({
       {/* Conteúdo: se tab for null, nada expande (tudo colapsado) */}
       {tab !== null ? (
         <View style={styles.content}>
-          {/* LOCALIZAÇÃO */}
+          {console.log(centerProp)}
           {tab === "localizacao" && (
             <View>
               <Text style={styles.sectionTitle}>{(centerProp as any).nome_centro ?? centerProp.nome}</Text>
@@ -224,16 +224,6 @@ export default function CenterDetails({
               <Text style={styles.value}>
                 {centerProp.endereco ? centerProp.endereco : "Endereço não informado"}
               </Text>
-
-              <TouchableOpacity
-                accessibilityLabel="Abrir no mapa"
-                style={[styles.mapBtn, { borderColor: primary }]}
-                onPress={() => openMaps(centerProp.endereco)}
-                activeOpacity={0.85}
-              >
-                <Feather name="map-pin" size={14} color={primary} />
-                <Text style={[styles.mapBtnText, { color: primary }]}>Abrir no mapa</Text>
-              </TouchableOpacity>
             </View>
           )}
 

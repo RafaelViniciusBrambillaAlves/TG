@@ -72,7 +72,7 @@ export default function VolunteersList() {
                     src={
                       v.image.startsWith("http")
                         ? v.image
-                        : `http://localhost:3001${v.image}`
+                        : `${process.env.API_URL}${v.image}`
                     }
                     alt={v.nome}
                     className={styles.avatar}

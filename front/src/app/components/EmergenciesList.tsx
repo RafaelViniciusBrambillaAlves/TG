@@ -63,6 +63,30 @@ export default function EmergenciesList({
   );
   const [profileOrgId, setProfileOrgId] = useState<string | null>(null);
 
+  // --- estados para modal de exclusão (adicionados) ---
+  const [toDelete, setToDelete] = useState<Emergencia | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const closeModal = () => {
+    setToDelete(null);
+    setIsDeleting(false);
+    setError(null);
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    if (toDelete) {
+      document.addEventListener("keydown", onKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [toDelete]);
+  // ------------------------------------------------------
+
   const sorted = useMemo(() => {
     const copy = [...localEmergencies];
     copy.sort(
@@ -135,6 +159,22 @@ export default function EmergenciesList({
     }
   }
 
+  // --- função de confirmar exclusão (usa toDelete) ---
+  const handleConfirmDelete = async () => {
+    if (!toDelete) return;
+
+    try {
+      setIsDeleting(true);
+      if (onDelete) await onDelete(toDelete._id);
+      closeModal();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Falha ao excluir.";
+      setError(msg);
+      setIsDeleting(false);
+    }
+  };
+  // -----------------------------------------------------
+
   return (
     <section className={styles.wrap} aria-label="Lista de emergências">
       <header className={styles.header}>
@@ -202,7 +242,7 @@ export default function EmergenciesList({
               <div className={cardStyles.media}>
                 {em.image ? (
                   <img
-                    src={`http://localhost:3001${em.image}`}
+                    src={`${process.env.API_URL}${em.image}`}
                     alt={em.titulo}
                     className={cardStyles.thumb}
                   />
@@ -274,10 +314,11 @@ export default function EmergenciesList({
                           >
                             <FiEdit />
                           </button>
+                          {/* agora abre modal em vez de chamar delete direto */}
                           <button
                             className={cardStyles.iconBtn}
                             title="Excluir emergência"
-                            onClick={() => onDelete?.(em._id)}
+                            onClick={() => setToDelete(em)}
                           >
                             <FiTrash2 />
                           </button>
@@ -292,15 +333,63 @@ export default function EmergenciesList({
         })}
       </div>
 
+      {/* modal de confirmação de exclusão (cópia do padrão CentersList adaptada) */}
+      {toDelete && (
+        <div
+          style={modalStyles.overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-delete-title"
+          onClick={closeModal}
+        >
+          <div style={modalStyles.dialog} onClick={(e) => e.stopPropagation()}>
+            <h3 id="confirm-delete-title" style={modalStyles.title}>
+              Excluir emergência
+            </h3>
+            <p style={modalStyles.text}>
+              Tem certeza que deseja excluir "<strong>{toDelete.titulo}</strong>"?
+              Esta ação não poderá ser desfeita.
+            </p>
+
+            {error && (
+              <div style={modalStyles.alert} role="alert">
+                {error}
+              </div>
+            )}
+
+            <div style={modalStyles.actions}>
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={isDeleting}
+                style={modalStyles.cancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={modalStyles.danger}
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DRAWER (mantido idêntico, sem alterações) */}
       <div
-        className={`${drawerStyles.overlay} ${selectedEmergency ? drawerStyles.show : ""}`}
+        className={`${drawerStyles.overlay} ${selectedEmergency ? drawerStyles.show : ""
+          }`}
         onClick={() => setSelectedEmergencyId(null)}
         aria-hidden={!selectedEmergency}
       />
 
       <aside
-        className={`${drawerStyles.drawer} ${selectedEmergency ? drawerStyles.open : ""}`}
+        className={`${drawerStyles.drawer} ${selectedEmergency ? drawerStyles.open : ""
+          }`}
         aria-hidden={!selectedEmergency}
       >
         {selectedEmergency ? (
@@ -650,3 +739,64 @@ export default function EmergenciesList({
     </section>
   );
 }
+
+const modalStyles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    zIndex: 1100, // acima do drawer
+  } as React.CSSProperties,
+  dialog: {
+    background: "#fff",
+    borderRadius: "8px",
+    padding: "20px",
+    width: "min(520px, 100%)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  } as React.CSSProperties,
+  title: {
+    color: "#333",
+    margin: "0 0 8px 0",
+    fontSize: "1.25rem",
+    fontWeight: 600,
+  } as React.CSSProperties,
+  text: {
+    margin: "0 0 16px 0",
+    lineHeight: 1.5,
+    color: "#333",
+  } as React.CSSProperties,
+  actions: {
+    display: "flex",
+    gap: "12px",
+    justifyContent: "flex-end",
+    marginTop: "16px",
+  } as React.CSSProperties,
+  cancel: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    background: "#fff",
+    color: "#333",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  danger: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid",
+    background: "#f43f5e",
+    color: "#fff",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  alert: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    border: "1px solid #fecaca",
+    borderRadius: "6px",
+    padding: "8px 10px",
+    marginTop: "8px",
+  } as React.CSSProperties,
+};

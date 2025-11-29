@@ -147,7 +147,7 @@ export default function PostCard({
             >
               {avatar ? (
                 <img
-                  src={`http://localhost:3001${avatar}`}
+                  src={`${process.env.API_URL}${avatar}`}
                   alt={personName}
                   className={styles.avatar}
                 />
@@ -312,7 +312,7 @@ export default function PostCard({
           <p className={styles.description}>{post.descricao}</p>
           {post.image && (
             <img
-              src={`http://localhost:3001${post.image}`}
+              src={`${process.env.API_URL}${post.image}`}
               alt={post.titulo ?? ""}
               className={styles.image}
             />

@@ -82,7 +82,7 @@ export default function ProfileModal({
               src={
                 profile.image.startsWith("http")
                   ? profile.image
-                  : `http://localhost:3001${profile.image}`
+                  : `${process.env.API_URL}${profile.image}`
               }
               alt={profile.nome}
               className={styles.avatar}

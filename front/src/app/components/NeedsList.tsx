@@ -37,6 +37,11 @@ export default function NeedsList({
     emergencyId: "",
   });
 
+  // estados para modal de exclusão
+  const [toDelete, setToDelete] = useState<Need | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   // Mantém localNeeds em sincronia com o pai (se a prop 'needs' for usada pelo pai)
   useEffect(() => {
     if (needs) setLocalNeeds(needs);
@@ -135,6 +140,46 @@ export default function NeedsList({
       .catch((err) => console.warn("getEmergencias failed:", err));
   }, [needs]);
 
+  // listener Esc para fechar modal de exclusão
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setToDelete(null);
+        setIsDeleting(false);
+        setDeleteError(null);
+      }
+    };
+    if (toDelete) document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [toDelete]);
+
+  // confirma exclusão — faz otimista + rollback se falhar
+  const handleConfirmDelete = async () => {
+    if (!toDelete) return;
+    const id = toDelete._id;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    const prev = localNeeds;
+    // otimista
+    internalDelete(id);
+
+    try {
+      await api.delete(`/api/v1/necessidades/${id}`);
+      // notifica pai se quiser sincronizar estado externo
+      if (onDelete) onDelete(id);
+      // fecha modal
+      setToDelete(null);
+      setIsDeleting(false);
+    } catch (err: any) {
+      // rollback
+      setLocalNeeds(prev);
+      const msg = err?.message ?? "Falha ao excluir. Tente novamente.";
+      setDeleteError(msg);
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <section className={styles.wrap} aria-label="Necessidades">
       <header className={styles.header}>
@@ -212,13 +257,13 @@ export default function NeedsList({
               undefined;
 
             return (
-              <article key={n._id} className={styles.card}>
+              <article key={n.id} className={styles.card}>
                 {n.image && (
                   <img
                     src={
                       n.image.startsWith("http")
                         ? n.image
-                        : `http://localhost:3001${n.image}`
+                        : `${process.env.API_URL}${n.image}`
                     }
                     alt="Imagem da necessidade"
                     style={{
@@ -307,31 +352,11 @@ export default function NeedsList({
                       <FiEdit />
                     </button>
 
-                    {/* Delete */}
+                    {/* Delete -> abre modal (em vez do confirm) */}
                     <button
                       className={styles.iconBtn}
                       title="Excluir necessidade"
-                      onClick={async () => {
-                        if (
-                          confirm(
-                            "Tem certeza que deseja excluir esta necessidade?",
-                          )
-                        ) {
-                          // Exclusão otimista na lista local
-                          const prev = localNeeds;
-                          internalDelete(n._id);
-                          try {
-                            await api.delete(`/api/v1/necessidades/${n._id}`);
-                            // Notifica o pai (se quiser manter o estado no pai em sincronia)
-                            if (onDelete) onDelete(n._id);
-                          } catch (err) {
-                            // rollback se falhar
-                            setLocalNeeds(prev);
-                            console.warn("Erro ao excluir necessidade:", err);
-                            alert("Falha ao excluir. Tente novamente.");
-                          }
-                        }
-                      }}
+                      onClick={() => setToDelete(n)}
                     >
                       <FiTrash2 />
                     </button>
@@ -342,6 +367,63 @@ export default function NeedsList({
           })
         )}
       </div>
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      {toDelete && (
+        <div
+          style={modalStyles.overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-delete-title"
+          onClick={() => {
+            if (!isDeleting) {
+              setToDelete(null);
+              setDeleteError(null);
+            }
+          }}
+        >
+          <div style={modalStyles.dialog} onClick={(e) => e.stopPropagation()}>
+            <h3 id="confirm-delete-title" style={modalStyles.title}>
+              Excluir necessidade
+            </h3>
+            <p style={modalStyles.text}>
+              Tem certeza que deseja excluir "
+              <strong>{toDelete.title ?? "esta necessidade"}</strong>"? Esta
+              ação não poderá ser desfeita.
+            </p>
+
+            {deleteError && (
+              <div style={modalStyles.alert} role="alert">
+                {deleteError}
+              </div>
+            )}
+
+            <div style={modalStyles.actions}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isDeleting) {
+                    setToDelete(null);
+                    setDeleteError(null);
+                  }
+                }}
+                disabled={isDeleting}
+                style={modalStyles.cancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={modalStyles.danger}
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE EDIÇÃO */}
       {editingNeed && (
@@ -358,3 +440,64 @@ export default function NeedsList({
     </section>
   );
 }
+
+const modalStyles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    zIndex: 1100,
+  } as React.CSSProperties,
+  dialog: {
+    background: "#fff",
+    borderRadius: "8px",
+    padding: "20px",
+    width: "min(520px, 100%)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  } as React.CSSProperties,
+  title: {
+    color: "#333",
+    margin: "0 0 8px 0",
+    fontSize: "1.25rem",
+    fontWeight: 600,
+  } as React.CSSProperties,
+  text: {
+    margin: "0 0 16px 0",
+    lineHeight: 1.5,
+    color: "#333",
+  } as React.CSSProperties,
+  actions: {
+    display: "flex",
+    gap: "12px",
+    justifyContent: "flex-end",
+    marginTop: "16px",
+  } as React.CSSProperties,
+  cancel: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    background: "#fff",
+    color: "#333",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  danger: {
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid",
+    background: "#f43f5e",
+    color: "#fff",
+    cursor: "pointer",
+  } as React.CSSProperties,
+  alert: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    border: "1px solid #fecaca",
+    borderRadius: "6px",
+    padding: "8px 10px",
+    marginTop: "8px",
+  } as React.CSSProperties,
+};

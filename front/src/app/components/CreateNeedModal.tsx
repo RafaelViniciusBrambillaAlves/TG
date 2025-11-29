@@ -21,8 +21,8 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
 function resolveServerImage(img?: string | null): string | null {
   if (!img || typeof img !== "string" || img.trim() === "") return null;
   if (/^https?:\/\//.test(img)) return img;
-  if (img.startsWith("/")) return `http://localhost:3001${img}`;
-  return `http://localhost:3001${img.replace(/^\/+/, "")}`;
+  if (img.startsWith("/")) return `${process.env.API_URL}${img}`;
+  return `${process.env.API_URL}${img.replace(/^\/+/, "")}`;
 }
 
 function fileNameFromPath(path?: string | null): string | null {
