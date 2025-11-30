@@ -219,23 +219,25 @@ export default function Login() {
         />
         {fieldErrors.email ? <Text style={styles.errorMini}>{fieldErrors.email}</Text> : null}
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { flexDirection: "row", alignItems: "center" }]}> 
           <TextInput
-            ref={pwdRef}
-            style={[styles.inputPassword, fieldErrors.password ? styles.inputError : null]}
+            // ref={pwdRef}
+            style={[styles.inputPassword, fieldErrors.password ? styles.inputError : null, { flex: 1, paddingRight: 10 }]}
             placeholder="Senha"
             placeholderTextColor="#888"
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={(t) => setPassword(t)}
             importantForAutofill="yes"
-            textContentType="password"
             returnKeyType="done"
+            textContentType={showPassword ? "none" : "password"}
             onSubmitEditing={handleSubmit}
           />
           <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={() => setShowPassword((s) => !s)}
+            style={{ position: "absolute", right: 15 }}
+            onPress={() => {
+              setShowPassword((s) => !showPassword)
+            }}
             accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             <AntDesign name={showPassword ? "eye-invisible" : "eye"} size={20} color="#888" />
@@ -331,13 +333,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 10,
-    top: "43%",
-    transform: [{ translateY: -10 }],
-    padding: 3,
   },
   button: {
     width: "100%",

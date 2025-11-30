@@ -179,7 +179,7 @@ export default function OrganizationCard({
                   justifyContent: "space-between",
                 }}
               >
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={async () => {
                     if (!user?._id) {
                       Alert.alert("Atenção", "Usuário não autenticado.");
@@ -195,7 +195,7 @@ export default function OrganizationCard({
                   <Text style={{ color: primary, fontWeight: "700" }}>
                     Faça parte
                   </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <AntDesign
                   name={expanded ? "up" : "down"}
