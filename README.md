@@ -1,4 +1,5 @@
 # 🚨 Sistema de Coordenação de Voluntários e Recursos em Situações de Emergência
+![Full Stack](https://img.shields.io/badge/Full_Stack-4CAF50?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
